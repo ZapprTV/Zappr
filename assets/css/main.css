@@ -1,0 +1,617 @@
+@keyframes loaded {
+    100% {
+        transform: translateY(-100vh);
+        display: none;
+    }
+}
+
+#loading {
+    width: 100vw;
+    height: 100vh;
+    z-index: 90;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #111111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 7.5vw;
+    font-weight: 900;
+    transition: 2s all;
+}
+.loaded {
+    animation: loaded 1s cubic-bezier(0.22, 0.61, 0.36, 1) forwards
+}
+html, body {
+    width: 100vw;
+    height: 100%;
+    overflow: hidden;
+    background-color: #242424;
+    color: white;
+    margin: 0;
+}
+.lcn, .logo, .channel-name, #bottom img, #loading, .channel-subtitle, .hbbtv-enabler-text, .category, .hbbtv-enabler-arrow {
+    user-select: none;
+    pointer-events: none;
+}
+::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+}
+::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+::-webkit-scrollbar-thumb {
+    background: #636363;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #7e7e7e;
+}
+::-webkit-scrollbar-thumb:active {
+    background: #c2c2c2;
+}
+::-webkit-scrollbar-track {
+    background: #111111;
+    border: 0px none #ffffff;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+* {
+    font-family: "IBM Plex Mono", monospace;
+    line-height: 1.5rem;
+    letter-spacing: -0.5px;
+}
+.plyr {
+    height: 100%;
+}
+a {
+    cursor: pointer;
+}
+.columns, .column {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+#tv {
+    background: #000;
+}
+#plyr {
+    width: 100%;
+    height: 100vh;
+}
+.channel {
+    height: auto;
+    padding: 1rem 1rem 1rem 0;
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    transition: .25s all ease-in-out;
+}
+.channel:not(:last-of-type) {
+    border-bottom: 2px #373737 solid;
+}
+#channels {
+    height: calc(100% - 3rem);
+    overflow-y: scroll;
+}
+.channel:not([disabled]):hover {
+    background: #333 !important;
+}
+.channel[disabled] {
+    background: #202020;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.highlighted {
+    background: #333 !important;
+}
+.lcn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    margin-right: 0.5rem;
+    margin-left: 1rem;
+    background: #111111;
+    width: max-content;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    height: 40%;
+}
+.hd::after {
+    content: "HD";
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin-left: 0.75rem;
+    display: flex;
+    background: #181818;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.uhd::after {
+    content: "4K";
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin-left: 0.75rem;
+    display: flex;
+    background: #181818;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.channel-name {
+    margin-left: 1rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+.hbbtv-channels .channel-name {
+    font-size: 1.25rem;
+}
+.channel-subtitle {
+    margin-left: 1rem;
+    font-size: 1rem;
+    color: grey;
+}
+.logo {
+    min-width: 80px;
+    width: 80px;
+    height: 100%;
+    margin-left: 0.5rem;
+}
+#bottom {
+    position: sticky;
+    height: 1.5rem;
+    bottom: 0;
+    width: auto;
+    background: #111111;
+    font-size: 1.325rem;
+    font-weight: 200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+}
+#bottom img, #icons > a {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+}
+#bottom img {
+    transition: 1s all;
+}
+#settings-icon:hover img {
+    transform: rotate(120deg);
+}
+#icons {
+    height: 24px;
+}
+iframe {
+    border: 0;
+}
+#lcn-typing {
+    display: none;
+    position: absolute;
+    text-align: center;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 69;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+#lcn-typed {
+    font-size: 7rem;
+    line-height: 7rem;
+    font-weight: 900;
+}
+#controls {
+    line-height: 1.25rem;
+}
+@keyframes shake {
+    0% {
+        transform: translate(-50%, -50%);
+    }
+    
+    25% {
+        transform: translate(calc(-50% - 5px), -50%);
+        background: rgb(255, 0, 0, 0.25);
+    }
+    
+    50% {
+        transform: translate(calc(-50% + 5px), -50%);
+        background: rgb(255, 0, 0, 0.5);
+    }
+    
+    75% {
+        transform: translate(calc(-50% - 5px), -50%);
+        background: rgb(255, 0, 0, 0.25);
+    }
+    
+    100% {
+        transform: translate(-50%, -50%);
+    }
+}
+.shaking {
+    animation: shake 500ms ease-in-out forwards;
+}
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+.tooltip-content {
+    opacity: 0;
+    visibility: hidden;
+    background-color: #111111;
+    color: #fff;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 9;
+    transition: 250ms all;
+    text-align: right;
+    float: right;
+    right: 0.75rem;
+    bottom: 3.25rem;
+}
+.modal, .modal-content {
+    transition: 500ms all;
+}
+.modal {
+    width: 0;
+    height: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+}
+.modal.is-visible {
+    opacity: 1;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+}
+.modal.is-visible .modal-content {
+    transform: scale(1);
+}
+.modal-content {
+    transform: scale(0);
+    background: #121212;
+    padding: 1.5rem;
+    border-radius: 0.25rem;
+    max-width: 80vw;
+}
+.modal-title {
+    display: flex;
+    justify-content: space-between;
+}
+.modal-title h1 {
+    margin: 0;
+}
+.close {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+.close::before, .close::after {
+    position: relative;
+    left: 12px;
+    content: ' ';
+    display: block;
+    height: 24px;
+    width: 2px;
+    background-color: #aaa;
+}
+.close:hover::before, .close:hover::after {
+    transition: 500ms all;
+    background: #fff;
+}
+.close::before {
+    transform: rotate(45deg);
+}
+.close::after {
+    top: -24px;
+    transform: rotate(-45deg);
+}
+.technical-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+.technical-info h3 {
+    margin: 0;
+}
+.technical-info a {
+    background: #000;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+}
+.code {
+    background: #000;
+    padding: 1rem;
+    min-width: 20rem;
+    max-width: 37.5rem;
+    overflow-x: scroll;
+}
+#report-error, .modal-content p {
+    min-width: 20rem;
+    max-width: 37.5rem;
+}
+.modal-buttons {
+    margin-bottom: 0.5rem;
+}
+.button {
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+}
+.button.primary {
+    color: #fff;
+    background: #00b2ff;
+    font-weight: 600;
+}
+.button.secondary {
+    color: #000;
+    background: #f0f8ff;
+    font-weight: 400;
+}
+.is-hidden {
+    display: none !important;
+}
+.tooltip-content #region-selector {
+    margin-bottom: 1rem;
+}
+#region {
+    min-width: 6rem !important;
+}
+.tooltip-content .non-bulma-button {
+    color: white;
+    background: #404040;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem
+}
+.visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+.radio::after {
+    content: "";
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M14 20.725v-2.05q2.25-.65 3.625-2.5t1.375-4.2t-1.375-4.2T14 5.275v-2.05q3.1.7 5.05 3.138T21 11.975t-1.95 5.613T14 20.725M3 15V9h4l5-5v16l-5-5zm11 1V7.95q1.175.55 1.838 1.65T16.5 12q0 1.275-.663 2.363T14 16'/%3E%3C/svg%3E");
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin-left: 0.75rem;
+    display: flex;
+    width: 1rem;
+    height: 1.5rem;
+    background-size: 75%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #181818;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.ondemand::after {
+    content: "";
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M21 3H3c-1.11 0-2 .89-2 2v12a2 2 0 0 0 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5a2 2 0 0 0-2-2m0 14H3V5h18zm-5-6l-7 4V7z'/%3E%3C/svg%3E");
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin-left: 0.75rem;
+    display: flex;
+    width: 1rem;
+    height: 1.5rem;
+    background-size: 75%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #181818;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.channel.hbbtv-app::after {
+    content: "";
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1805' height='651' fill='none'%3E%3Cpath fill='%23fff' d='M735.56 1.015c8.253-2.293 16.907-.346 24.813 2.32 15.32 5.68 25.987 20.987 27.56 37.027 1.387 13.773-4.253 27.933-14.346 37.32-7.107 6.907-16.974 10.013-26.56 11.4-8.48.64-16.96-1.853-24.6-5.36-13.44-6.907-22.12-21.573-23.027-36.48-1.573-21.413 14.52-43.227 36.16-46.227ZM590.613 2.909C598.44.255 606.947.469 615.08 1.242c13.773 1.64 25.053 11.8 31.24 23.773 4.467 8.4 4.76 18.227 3.8 27.494-2.653 16.973-16.267 31.666-33.187 35.12-10.026 3.346-20.893 1.053-30.293-3.134-12.307-5.773-20.813-17.866-24-30.88-.827-8.426-1.28-17.426 2.4-25.306 4.76-11.32 13.68-21.467 25.573-25.4ZM499.56 118.735c7.947-.933 16.227-.933 23.893 1.627 12.507 5.173 22.88 15.573 27.174 28.507a57.094 57.094 0 0 1 0 27.293c-4.374 13.32-15.134 24.147-28.267 28.88-8.12 2.293-16.813 2.2-25.08.84-15.68-3.88-28.453-17.093-32.36-32.707-1.547-9.946-1.773-20.88 3.293-29.906 5.814-12.414 17.827-22.107 31.347-24.534ZM816.853 118.469c11.094-1.974 23.574-1 32.974 5.773 13.586 8.253 22.053 24.44 20.853 40.307-.773 22.32-21.013 42.533-43.627 41.906-21.08 1.2-41.44-15.773-44.186-36.68-1.627-11.36 0-23.706 6.96-33.133 6.426-8.92 16.026-16.227 27.026-18.173ZM52.2 233.309c25.68-.107 51.36-.12 77.04.013.027 21.2-5.093 41.893-6.6 62.96-1.053 12.24-3.707 24.267-4.76 36.507-1 11.973-3.56 23.76-4.68 35.733-1.053 11.893-2.36 23.773-3.787 35.627 68.934.053 137.894.026 206.84-.014 3.067-24.293 6.28-48.573 9.054-72.906 1.48-10.64 3.16-21.267 4.066-31.987 1.774-16.667 4.707-33.187 6.04-49.893.587-5.027.734-10.28 2.827-14.96 3.453-1.867 7.667-.987 11.453-1.227 22.014.28 44.027-.187 66.027.267-1.173 16.16-4.52 32.066-5.773 48.226-1.987 17.4-4.814 34.694-6.44 52.134-3.2 18.333-3.894 36.986-7.16 55.306-2.08 13.814-2.467 27.827-5.094 41.56-3 16.107-2.173 32.76-6.226 48.68.16-4.52.266-9.04.44-13.546-14-2.334-28.16-3.254-42.28-4.347-15.094-1-29.84-4.653-44.92-5.693-15.494-1.814-30.987-3.6-46.427-5.72-21-4.467-42.573-5.067-63.573-9.547-17.654-3.813-35.76-4.96-53.347-9.12-10.427-2.307-21.027-3.707-31.52-5.72-11.867-2.24-23.507-5.613-35.44-7.56-12.373-2.013-24.373-5.747-36.627-8.347-1.386 9.974-3.28 19.867-5.186 29.747.026-9.747 1.866-19.333 3.466-28.907 1.414-8.186 1.774-16.506 2.8-24.746 1.067-9.854 3.307-19.547 4-29.44.974-12.974 4-25.68 4.987-38.64 1.347-16.52 4.76-32.774 5.893-49.307.787-11.827 2.627-23.52 4.907-35.133ZM466.747 233.442c26.12-.387 52.253-.253 78.373-.053-.733 13.586-3.907 26.88-4.893 40.44-1.16 15.973-4.72 31.653-5.76 47.64-.827 12.253-4.12 24.2-4.654 36.493 12.907-3.467 25.214-9.24 38.64-10.507 28.76-5.6 58.454-3.626 86.974 2.347 15.04 4.8 30.013 11.053 42.013 21.6 14.6 12.333 24.293 29.76 28.96 48.16 4.773 15.933 4.467 32.72 4.227 49.173-.307 8.894-.094 17.907-2.107 26.64-.053-2.293-.173-4.573-.267-6.853-15.506-1.08-31.08-.027-46.546-1.653-9.28-.894-18.574-1.374-27.88-1.547-1.547 7.76-3.454 15.44-5.28 23.133 1.44-14.68 5.386-29.16 4.493-44-.64-13.32-3.8-27.16-12.147-37.84-5.146-6.64-12.6-11.053-20.266-14.186-11.52-4.614-24.187-3.574-36.307-3.44-18.067.2-35.44 5.653-52.533 10.946-3.774 1.48-8.32 2.92-10.267 6.814-1.853 5.173-1.933 10.76-2.533 16.186-1.094 13.6-3.574 27.04-5.054 40.6-.013-1.893-.04-3.76-.093-5.64-8.867-1.64-17.8-3.013-26.813-3.4-16.374-.8-32.694-2.066-49.04-3.146-1.067 11.693-2.694 23.333-5.16 34.826.04-7.773 1.306-15.466 2.493-23.12 2.387-16.12 3.867-32.346 6.427-48.44 1.533-15.853 3.573-31.64 5.853-47.4 1.107-16.133 4.973-31.92 5.973-48.066.72-9.747 1.947-19.454 3.574-29.094 2.2-13.04 2.293-26.346 4.72-39.36 2.386-12.32 2.76-24.906 4.88-37.253ZM786.12 233.549c26.24-.547 52.493-.4 78.733-.094-1.333 13.054-3.813 25.974-4.706 39.08-.947 14.867-4.294 29.427-5.64 44.254-1.294 13.72-4.2 27.28-4.587 41.08 12.72-3.467 24.88-9.094 38.107-10.507 21.72-3.973 44.013-4.147 65.866-1.213 9.8 1.653 19.934 2.306 29.16 6.333 17.387 6.067 33.987 15.867 45.397 30.587a89.93 89.93 0 0 1 17.75 37.586c4.63 14.6 4.39 30.054 4.31 45.187-.51 17.053-.9 34.36-6.07 50.787 1.01-8.587 1.96-17.174 3.16-25.734-25.41-.76-50.84.067-76.253-.266 3.026-18.587 2.32-38.36-5.454-55.747-7.68-16.64-26.44-25.387-44.066-25.92-15.694-.373-31.654-.28-46.894 3.88-8.186 2.267-16.373 4.573-24.413 7.293-4.027 1.6-9.227 3.56-9.853 8.507-1.747 8.867-1.8 17.973-3.04 26.907-1.587 11.72-3.747 23.373-4.734 35.173-16.573-1.84-33.253-.853-49.88-1.333-8.84-.214-17.68-.4-26.52-.734-1.026 3.16-2.053 6.334-2.893 9.574.573-9.12 2.72-18.027 3.44-27.12 1.2-15.174 4.373-30.107 5.547-45.28 1.2-14.734 4.346-29.227 5.413-43.974 1.293-15.64 4.067-31.106 5.68-46.706 1.267-12.467 4-24.734 4.893-37.24.587-7.907 1.494-15.8 2.934-23.6 2.533-13.467 2.586-27.227 4.613-40.76ZM1069.52 233.455c124.97-.506 249.96-.026 374.95-.293 2.4.133 5-.053 7.22 1.133 3.12 4.894 3.78 10.814 5.27 16.307 16.41 56.08 32.09 112.36 48.35 168.493 3.97 14.494 8.01 28.974 12.42 43.334-14.86-.88-29.58 1.693-44.33 2.933-14.47 1.587-28.99 2.84-43.31 5.453-7.77-24.48-14.45-49.28-22.17-73.76-9.43-31.68-19.27-63.24-28.27-95.04-19.3-.933-38.64-.213-57.94-.44-20.59.227-41.18-.453-61.75.4-4.73 38.827-9.59 77.667-14.49 116.48-1.31 16.747-4.78 33.24-6.07 49.987-1 8.973-1.09 18.093-3.55 26.84.02-3.44.1-6.907-.72-10.253-8.97-2.467-18.44-.894-27.57-.307-16.07 1.64-32.24 2.013-48.29 3.867-.46 2.32-.91 4.653-1.32 6.986.01-10.133 1.74-20.133 3.4-30.093 1.97-11.72 2.74-23.587 4.37-35.347 3-19.173 4.31-38.546 7.41-57.706 2.24-23.627 5.9-47.107 8.12-70.747-40.12-.28-80.25.053-120.37-.173 1.19-11.947 3.44-23.76 4.6-35.707 1.13-10.813 2.45-21.6 4.04-32.347ZM1713.05 234.189c3.58-1.387 7.54-.907 11.31-1.027 26.57.36 53.17-.32 79.75.36-4.2 10.773-10.83 20.32-16.22 30.493-33.26 58.4-66.56 116.814-99.68 175.307-15.56-1.04-30.49 4.4-45.88 5.667-15.06 1.226-29.86 4.4-44.82 6.413 3.57-10.107 9.45-19.133 14.32-28.613 27.05-51.187 54.42-102.2 81.61-153.307 4.71-8.653 9.49-17.267 13.8-26.12 1.75-3.147 3.04-6.747 5.81-9.173Z'/%3E%3Cpath fill='%23fff' d='M31.333 409.735c12.254 2.6 24.254 6.334 36.627 8.347 11.933 1.947 23.573 5.32 35.44 7.56 10.493 2.013 21.093 3.413 31.52 5.72 17.587 4.16 35.693 5.307 53.347 9.12 21 4.48 42.573 5.08 63.573 9.547 15.44 2.12 30.933 3.906 46.427 5.72 15.08 1.04 29.826 4.693 44.92 5.693 14.12 1.093 28.28 2.013 42.28 4.347-.174 4.506-.28 9.026-.44 13.546-1.52 14.494-2.574 29.094-5.107 43.48-2.28 13.6-2.373 27.454-4.92 41.027-2.573 14.027-2.747 28.347-5.427 42.36-2.733 14.627-2.2 29.693-5.893 44.147-25.947-.174-51.893.08-77.827-.107.56-14.507 4.507-28.6 5.227-43.093.747-15.014 4.347-29.667 5.52-44.627.84-13 3.84-25.733 4.88-38.707 1.4-17.053 4.827-33.84 6.173-50.893-69 .053-138.013-.04-207.013.053-2.293 15.054-4.24 30.16-5.52 45.347-2.8 17.04-4.387 34.24-6.467 51.387-2.746 15.613-3.613 31.466-6.146 47.106-1.72 11.12-2.387 22.387-4.214 33.494-26.093-.08-52.2.12-78.293-.094 2.587-17.053 3.84-34.253 6.347-51.306 2.733-15.214 3.093-30.72 5.76-45.934 2.506-13.773 2.586-27.84 5.133-41.6 2.96-15.266 2.747-30.933 5.773-46.186 1.774-8.48 1.974-17.16 3.134-25.707 1.906-9.88 3.8-19.773 5.186-29.747ZM1642.33 444.989c15.39-1.267 30.32-6.707 45.88-5.667-39.29 69.08-78.34 138.32-117.7 207.36-1.23 2.32-3.28 3.987-6.03 3.587-26.84.08-53.68.026-80.51.013-17.62-59.933-36.29-119.533-53.88-179.467 14.32-2.613 28.84-3.866 43.31-5.453 14.75-1.24 29.47-3.813 44.33-2.933 8.15 29.56 16.42 59.093 25.4 88.4 12.11-20.56 22.67-42 34.03-62.974 6.09-12.24 13.16-23.973 19.08-36.28l1.27-.173c14.96-2.013 29.76-5.187 44.82-6.413ZM437.987 471.349c16.346 1.08 32.666 2.346 49.04 3.146 9.013.387 17.946 1.76 26.813 3.4.053 1.88.08 3.747.093 5.64-1 16.027-4.12 31.814-5.773 47.774-1.293 16.066-4.507 31.88-5.933 47.92 11.906 3.893 24.213 6.88 36.773 7.346 15.933.374 32.107 1.947 47.84-1.426 13.187-3.547 25.613-10.534 34.92-20.6 14.68-15.254 22.267-35.774 26.787-56.094 1.826-7.693 3.733-15.373 5.28-23.133 9.306.173 18.6.653 27.88 1.547 15.466 1.626 31.04.573 46.546 1.653.094 2.28.214 4.56.267 6.853-4.547 33.16-14.36 66.454-34.187 93.867-17.013 23.773-42.186 41.16-69.786 50.373-11.974 3.04-23.68 7.494-36.107 8.28-37.667 5.307-75.72 1.134-113.4-1.52-5.107-.28-10.133-1.266-15.12-2.293-14.093-2.853-28.64-2.84-42.667-6.107-.92-5.466.347-10.933 1.174-16.306 2.413-14.107 3.053-28.427 5.333-42.534 2.52-15.253 3.213-30.72 5.787-45.946 1.56-8.947 1.96-18.04 3.28-27.014 2.466-11.493 4.093-23.133 5.16-34.826ZM1207.56 484.722c9.13-.587 18.6-2.16 27.57.307.82 3.346.74 6.813.72 10.253-1.61 17.48-4.08 34.88-6.5 52.28-1.3 20.027-5.55 39.707-6.95 59.72-2.15 14.307-4.37 28.587-5.41 43.04-26.26-.12-52.51.133-78.76-.107 3.56-18.426 3.61-37.293 7.14-55.72 2.1-14.386 3-28.933 5.42-43.293 2.12-18.573 4.25-37.147 7.16-55.627.41-2.333.86-4.666 1.32-6.986 16.05-1.854 32.22-2.227 48.29-3.867ZM756.493 488.655c8.84.334 17.68.52 26.52.734 16.627.48 33.307-.507 49.88 1.333-2.4 19.973-5.04 39.933-7.373 59.92-.893 9.453-3.96 18.907-2.72 28.453 18.893 8.254 40.027 7.52 60.227 8.16 11.266-.186 22.92-.573 33.306-5.453 13.747-5.533 25.44-15.4 33.667-27.667 12.72-18.8 18.24-41.306 21.347-63.506 25.413.333 50.843-.494 76.253.266-1.2 8.56-2.15 17.147-3.16 25.734-3.25 17.626-9.31 34.746-17.19 50.84-9.96 19.493-23.57 37.573-41.437 50.453-8.6 6.387-17.76 12.04-27.653 16.187-11.147 5.773-23.613 7.84-35.493 11.493-33.747 6.6-68.44 5.467-102.534 2.533-10.92-.426-21.813-1.44-32.666-2.56-16.76-3.693-33.96-4.453-50.84-7.426.173-5.2.52-10.4 1.413-15.52 2.173-13.387 3.08-26.934 5.013-40.36 2.654-17.24 3.934-34.667 6.574-51.92 1.613-10.667 2.04-21.507 3.973-32.12.84-3.24 1.867-6.414 2.893-9.574Z'/%3E%3C/svg%3E");
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin-left: 0.75rem;
+    display: flex;
+    width: 5rem;
+    height: 2rem;
+    background-size: 75%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #181818;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.channel-title-subtitle {
+    width: 100%;
+}
+.hbbtv-enabler, .hbbtv-channels .channel {
+    display: flex;
+    height: 0;
+    padding-left: 1rem;
+    overflow: hidden;
+    align-items: center;
+    transition: .25s all ease-in-out;
+}
+.hbbtv-channels {
+    height: 0;
+    overflow: hidden;
+    padding: 0 !important;
+    max-height: max-content;
+    border-bottom: 0px #373737 solid;
+    transition: .25s ease-in-out;
+}
+.hbbtv-enabler:hover {
+    background: #333;
+}
+.hbbtv-enabler-arrow {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    margin: 0 0.75rem;
+    background: #181818;
+    font-size: 1.25rem;
+    height: auto;
+    transition: .25s all ease-in-out;
+}
+.hbbtv-mosaic .hbbtv-enabler-arrow {
+    margin-right: 0.188rem;
+}
+.hbbtv-enabler.clicked .hbbtv-enabler-arrow {
+    transform: rotate(90deg);
+}
+.hbbtv-channels .channel {
+    font-size: 1.25rem;
+    height: auto;
+    min-height: 1.75rem;
+    padding: 0.5rem 1rem;
+}
+.hbbtv-enabler, .hbbtv-channels .channel {
+    border-bottom: 0px #373737 solid;
+}
+.hbbtv-channels .channel .lcn {
+    height: 75%;
+    font-size: 1rem;
+}
+.hbbtv-channels .channel .logo {
+    width: 60px;
+    height: auto;
+}
+.hbbtv-container:hover .hbbtv-enabler:not(.hbbtv-mosaic), .channel.watching + .hbbtv-enabler, .channel.watching-hbbtv + .hbbtv-enabler, .hbbtv-enabler.clicked:not(.hbbtv-mosaic) {
+    height: 2.5rem;
+    padding: 0.5rem 0 0.5rem 1rem;
+    border-bottom: 2px #373737 solid;
+}
+.hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching + .hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching-hbbtv + .hbbtv-enabler.clicked + .hbbtv-channels {
+    height: var(--scroll-height);
+    border-bottom: 2px #373737 solid;
+}
+.category {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 1rem 0 1rem 2rem;
+}
+.hbbtv-mosaic {
+    height: auto;
+    padding: 1rem 1rem 1rem 0;
+    border-bottom: 2px #373737 solid;
+}
+.adult-marker::after {
+    content: "18+";
+    font-size: 1.25rem;
+    margin-left: 0.75rem;
+    display: flex;
+    font-weight: bold;
+    background: #c00000;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.plyr.hbbtv-app iframe {
+    aspect-ratio: 16 / 9;
+    width: 100vw;
+    height: auto;
+    position: absolute;
+    top: 50%;
+    --plyr-wrapper-scale: 0.75;
+    transform: translateY(-50%) scale(calc(var(--plyr-wrapper-scale) * var(--plyr-wrapper-scale-multiplier, 1)));
+}
+.plyr.hbbtv-app:fullscreen iframe {
+    --plyr-wrapper-scale: 1;
+}
+@media screen and (max-width: 1023px) and (orientation: portrait) {
+    #channels-column {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    #channels {
+        margin-top: 56.25% !important;
+    }
+    #tv {
+        position: fixed;
+        aspect-ratio: 16/9;
+        top: 0;
+        height: auto;
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+    }
+    .plyr {
+        height: auto;
+        width: 100vw;
+    }
+    .plyr:not(:fullscreen) #plyr {
+        height: auto;
+    }
+    .plyr.hbbtv-app iframe {
+        --plyr-wrapper-scale: 1;
+    }
+}
+@media screen and (min-width: 769px) {
+    .columns {
+        display: flex;
+    }
+    .column.is-two-fifths-tablet {
+        flex: none;
+        width: 40%;
+    }
+    .plyr.hbbtv-app iframe {
+        --plyr-wrapper-scale: 0.6;
+    }
+}
+@media screen and (min-width: 1024px) {
+    .column.is-two-fifths-desktop {
+        flex: none;
+        width: 40%;
+    }
+    .plyr.hbbtv-app iframe {
+        --plyr-wrapper-scale: 0.6;
+    }
+}
+@media screen and (min-width: 1216px) {
+    .column.is-one-third-widescreen {
+        flex: none;
+        width: 33.3333%;
+    }
+    .plyr.hbbtv-app iframe {
+        --plyr-wrapper-scale: 0.66666666;
+    }
+}
+@media screen and (min-width: 1408px) {
+    .column.is-one-quarter-fullhd {
+        flex: none;
+        width: 25%;
+    }
+    .plyr.hbbtv-app iframe {
+        --plyr-wrapper-scale: 0.75;
+    }
+}
+@media screen and (max-width: 1023px) {
+    .channel {
+        font-size: 1.25rem;
+    }
+    .logo {
+        min-width: 60px;
+        width: 60px;
+    }
+}
+
+*, ::after, ::before {
+    box-sizing: inherit;
+}

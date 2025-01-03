@@ -1,0 +1,42 @@
+{
+  "name": "Zappr (frontend)",
+  "version": "0.1",
+  "description": "Guarda facilmente il digitale terrestre italiano, nazionale e locale.",
+  "author": "Francesco Rosi <hi@francescoro.si> (https://francescoro.si)",
+  "homepage": "https://zappr.stream",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZapprTV/frontend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ZapprTV/frontend/issues",
+    "email": "mail@zappr.stream"
+  },
+  "license": "GPL-3.0-or-later",
+  "funding": [
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/FrancescoRosi27"
+    },
+    {
+      "type": "ko-fi",
+      "url": "https://ko-fi.com/FrancescoRosi"
+    }
+  ],
+  "source": "/index.html",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.0.8",
+    "@zappr/plyr": "^3.7.8-final",
+    "dashjs": "^4.7.3",
+    "hls.js": "^1.4.14",
+    "mpegts.js": "^1.7.3"
+  },
+  "devDependencies": {
+    "@parcel/config-default": "^2.11.0",
+    "@parcel/core": "^2.11.0",
+    "isomorphic-git": "^1.25.2"
+  }
+}

@@ -1,0 +1,33 @@
+{
+    "config": {
+        "channels": {
+            "bundle": {
+                "enabled": true,
+                "host": "/channels"
+            },
+            "remote": {
+                "enabled": false,
+                "host": "https://channels.zappr.stream"
+            }
+        },
+        "backend": {
+            "enabled": true,
+            "host": "https://api.zappr.stream"
+        },
+        "logos": {
+            "bundle": {
+                "enabled": true,
+                "host": "/channels/logos"
+            },
+            "remote": {
+                "enabled": false,
+                "host": "https://channels.zappr.stream/logos"
+            },
+            "imgix": {
+                "enabled": false,
+                "host": "https://zappr.imgix.net"
+            },
+            "optimized": false
+        }
+    }
+}

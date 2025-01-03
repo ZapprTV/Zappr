@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/node_modules/@fontsource/ibm-plex-mono/latin.css">
+        <link rel="stylesheet" href="/node_modules/@zappr/plyr/dist/plyr.css" />
+        <link rel="stylesheet" href="/assets/css/main.css">
+        <style id="hide-progress" media="not all">
+            .plyr__progress__container, .plyr__time--current {
+                display: none;
+            }
+        </style>
+        <style id="iframe-controls" media="not all">
+            .plyr__controls > *:not([data-plyr="fullscreen"]) {
+                display: none;
+                margin: 0;
+            }
+            .plyr__controls {
+                width: max-content;
+                margin-left: auto;
+                padding-left: 25px !important;
+                background: linear-gradient(to top left, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 56.25%, rgba(0, 0, 0, 0) 100%) !important;
+            }
+        </style>
+        <style id="stretch-to-16-9" media="not all">
+            #plyr {
+                object-fit: fill;
+                aspect-ratio: 16 / 9;
+                height: auto;
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        </style>
+        <style id="night-adult-channels">
+            .adult-marker.at-night {
+                display: none;
+            }
+        </style>
+        <style id="raiplay-sound-fix" media="not all">
+            .plyr.hbbtv-app iframe {
+                --plyr-wrapper-scale-multiplier: 1.5;
+            }
+        </style>
+        <title>Zappr</title>
+    </head>
+    <body>
+        <div id="loading">Caricamento...</div>
+        <div class="columns">
+            <div class="column is-one-third-widescreen is-one-quarter-fullhd is-two-fifths-desktop is-two-fifths-tablet p-0" id="channels-column">
+                <div id="channels" class="menu"></div>
+                <div id="bottom">
+                    <div id="info">
+                        <b>Zappr</b> v0.0.1 (git)
+                    </div>
+                    <div id="icons">
+                        <a href="https://github.com/ZapprTV/frontend" target="_blank">
+                            <img src="/assets/icons/github.svg">
+                        </a>
+                        <a id="settings-icon" class="tooltip" data-target="#settings">
+                            <img src="/assets/icons/settings.svg">
+                        </a>
+                        <div class="tooltip-content" id="settings">
+                            <div id="region-selector">
+                                Regione
+                                <select id="region">
+                                    <option value="national">Nessuna (solo canali nazionali)</option>
+                                    <option value="lazio">Lazio</option>
+                                    <option value="piemonte">Piemonte</option>
+                                    <option value="lombardia">Lombardia</option>
+                                </select>
+                            </div>
+                            <a id="save-and-reload" class="non-bulma-button">Salva e ricarica</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column p-0" id="tv">
+                <video id="plyr" playsinline controls></video>
+            </div>
+        </div>
+        <script src="/node_modules/@zappr/plyr/dist/plyr.min.js"></script>
+        <script src="/node_modules/hls.js/dist/hls.min.js"></script>
+        <script src="/node_modules/dashjs/dist/dash.mediaplayer.min.js"></script>
+        <script src="/node_modules/mpegts.js/dist/mpegts.js"></script>
+        <script src="/assets/js/twitch.js"></script>
+        <script src="/assets/js/main.js" type="module"></script>
+    </body>
+</html>

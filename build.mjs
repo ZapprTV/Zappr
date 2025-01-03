@@ -74,18 +74,3 @@ if (toBundle.includes("channels")) {
 
     console.log("download dei channels terminato");
 };
-
-if (toBundle.includes("logos")) {
-    const dir = joinPath(process.cwd(), "dist", "logos"),
-          logosBundleURL = process.env.NPM_CONFIG_LOGOSURL ?? "https://github.com/ZapprTV/logos";
-
-    await gitClone({
-        fs, http, dir, url: logosBundleURL
-    });
-
-    await fs.promises.rm(joinPath(dir, ".git"), { recursive: true, force: true }, err => {
-        if (err) throw err;
-    });
-
-    console.log("download dei logos terminato");
-};

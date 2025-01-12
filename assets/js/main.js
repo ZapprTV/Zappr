@@ -4,21 +4,19 @@ await fetch("/config.json")
     .catch(err => {
         console.log(`Impossibile trovare config (${err}), in uso quella di default`);
         window["zappr"] = {
-            config: {
-                channels: {
-                    path: "https://channels.zappr.stream"
+            "config": {
+                "channels": {
+                    "host": "https://channels.zappr.stream"
                 },
-                backend: {
-                    enabled: true,
-                    host: {
-                        vercel: "https://vercel-api.zappr.stream",
-                        cloudflare: "https://cloudflare-api.zappr.stream"
+                "backend": {
+                    "host": {
+                        "vercel": "https://vercel-api.zappr.stream",
+                        "cloudflare": "https://cloudflare-api.zappr.stream"
                     }
                 },
-                logos: {
-                    host: "https://zappr.imgix.net",
-                    imgix: true,
-                    optimized: true
+                "logos": {
+                    "host": "https://channels.zappr.stream/logos",
+                    "optimized": true
                 }
             }
         };
@@ -66,7 +64,7 @@ const createErrorModal = async (title, error, info) => {
             <div class="code">${info}</div>
             <p id="report-error">Per favore segnala questo errore, aprendo un'issue su GitHub o inviando un'email a mail@zappr.stream.</p>
             <div class="modal-buttons">
-                <a class="button primary" href="https://github.com/ZapprTV/frontend/issues/new" target="_blank">Segnala tramite issue</a>
+                <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new" target="_blank">Segnala tramite issue</a>
                 <a class="button secondary" href="mailto:mail@zappr.stream" target="_blank">Segnala tramite email</a>
             </div>
         </div>
@@ -236,18 +234,14 @@ const loadChannel = async (type, url, seek, api) => {
 const getChannelLogoURL = (logo) => {
     const config = zappr.config.logos;
 
-    if (config.bundle.enabled || config.remote.enabled) {
-        return `${config.bundle.enabled ? config.bundle.host : config.remote.host}/${config.optimized ? "optimized/": ""}${logo}${logo.endsWith(".svg") ? "" : (config.optimized ? ".webp" : ".png")}`;
-    } else if (config.imgix.enabled) {
-        return `${config.imgix.host}/${logo}${logo.endsWith(".svg") ? "" : ".webp"}?w=80`
-    };
+    return `${config.host}/${config.optimized ? "optimized/": ""}${logo}${logo.endsWith(".svg") ? "" : (config.optimized ? ".webp" : ".png")}`;
 };
 
 
 const getChannelsListURL = (path) => {
     const config = zappr.config.channels;
 
-    return `${config.bundle.enabled ? config.bundle.host : config.remote.host}/${path}.json`;
+    return `${config.host}/${path}.json`;
 };
 
 const addChannels = (channels) => {

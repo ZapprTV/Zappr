@@ -1,36 +1,17 @@
 {
     "config": {
         "channels": {
-            "bundle": {
-                "enabled": true,
-                "host": "/channels"
-            },
-            "remote": {
-                "enabled": false,
-                "host": "https://channels.zappr.stream"
-            }
+            "host": "https://channels.zappr.stream"
         },
         "backend": {
-            "enabled": true,
             "host": {
                 "vercel": "https://vercel-api.zappr.stream",
                 "cloudflare": "https://cloudflare-api.zappr.stream"
             }
         },
         "logos": {
-            "bundle": {
-                "enabled": true,
-                "host": "/channels/logos"
-            },
-            "remote": {
-                "enabled": false,
-                "host": "https://channels.zappr.stream/logos"
-            },
-            "imgix": {
-                "enabled": false,
-                "host": "https://zappr.imgix.net"
-            },
-            "optimized": false
+            "host": "https://channels.zappr.stream/logos",
+            "optimized": true
         }
     }
 }

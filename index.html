@@ -40,6 +40,11 @@
                 top: 50%;
             }
         </style>
+        <style id="squashed-height-fix" class="cssfix" media="not all">
+            #plyr {
+                transform: scaleY(1.3333333333);
+            }
+        </style>
         <title>Zappr</title>
     </head>
     <body>
@@ -49,7 +54,8 @@
                 <div id="channels" class="menu"></div>
                 <div id="bottom">
                     <div id="info">
-                        <b>Zappr</b> v0.0.1 (git)
+                        <b>Zappr</b>
+                        <span id="version">beta</span>
                     </div>
                     <div id="icons">
                         <a href="https://github.com/ZapprTV/frontend" target="_blank">
@@ -59,15 +65,17 @@
                             <img src="/assets/icons/settings.svg">
                         </a>
                         <div class="tooltip-content" id="settings">
-                            <div id="region-selector">
-                                Regione
-                                <select id="region">
-                                    <option value="national">Nessuna (solo canali nazionali)</option>
-                                    <option value="lazio">Lazio</option>
-                                    <option value="lombardia">Lombardia</option>
-                                </select>
+                            <div class="tooltip-content-box">
+                                <div id="region-selector">
+                                    Regione
+                                    <select id="region">
+                                        <option value="national">Nessuna (solo canali nazionali)</option>
+                                        <option value="lazio">Lazio</option>
+                                        <option value="lombardia">Lombardia</option>
+                                    </select>
+                                </div>
+                                <a id="save-and-reload" class="non-bulma-button">Salva e ricarica</a>
                             </div>
-                            <a id="save-and-reload" class="non-bulma-button">Salva e ricarica</a>
                         </div>
                     </div>
                 </div>

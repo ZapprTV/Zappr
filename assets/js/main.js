@@ -279,7 +279,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-type="${subchannel.type}" data-url="${subchannel.url}" data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="api-${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""}>
+                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-type="${subchannel.type}" data-url="${subchannel.url}" data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}">
                                 <div class="channel-title-subtitle">

@@ -172,11 +172,18 @@ a {
     width: auto;
     background: #111111;
     font-size: 1.325rem;
-    font-weight: 200;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem;
+}
+#bottom #version {
+    background: white;
+    border-radius: 0.25rem;
+    color: black;
+    padding: 0.1rem 0.325rem;
+    font-size: 1rem;
 }
 #bottom img, #icons > a {
     width: 24px;
@@ -254,18 +261,25 @@ iframe {
 .tooltip-content {
     opacity: 0;
     visibility: hidden;
-    background-color: #111111;
-    color: #fff;
-    padding: 1rem;
     font-size: 1rem;
-    border-radius: 6px;
     position: absolute;
     z-index: 9;
     transition: 250ms all;
     text-align: right;
-    float: right;
-    right: 0.75rem;
-    bottom: 3.25rem;
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(315deg, black, transparent);
+    left: 0;
+    bottom: 3rem;
+}
+.tooltip-content-box {
+    width: max-content;
+    background-color: #111111;
+    right: 0.5rem;
+    position: absolute;
+    bottom: 0.5rem;
+    padding: 1rem;
+    border-radius: 1rem;
 }
 .modal, .modal-content {
     transition: 500ms all;

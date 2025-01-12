@@ -1,7 +1,6 @@
 {
   "name": "Zappr (frontend)",
-  "version": "0.1",
-  "description": "Guarda facilmente il digitale terrestre italiano, nazionale e locale.",
+  "description": "Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.",
   "author": "Francesco Rosi <hi@francescoro.si> (https://francescoro.si)",
   "homepage": "https://zappr.stream",
   "repository": {

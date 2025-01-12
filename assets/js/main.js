@@ -623,10 +623,10 @@ const keydownHandler = (e) => {
     
     let matchedChannel = channels.filter(ch => ch.lcn === parseInt(lcnTypedElement.innerText));
 
-    if (lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && matchedChannel[0].hbbtv.filter(subch => subch.sublcn == lcnTypedElement.innerText.split(".")[1]).length === 0) {
+    if ((lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && matchedChannel[0].hbbtv && matchedChannel[0].hbbtv.filter(subch => subch.sublcn == lcnTypedElement.innerText.split(".")[1]).length === 0) || (lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && !matchedChannel[0].hbbtv)) {
         matchedChannel = [];
     };
-
+    
     if (!multipleChannelSelection && e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7) || e.key === ".") {
         typingLCN = true;
         lcnTypingElement.style.display = "block";

@@ -1,5 +1,5 @@
 import { Parcel } from "@parcel/core";
-import { join as joinPath, parse } from "path";
+import { join as joinPath } from "path";
 import { clone as gitClone } from "isomorphic-git";
 import * as http from "isomorphic-git/http/node/index.cjs";
 import * as fs from "fs";
@@ -17,12 +17,6 @@ const parseArgv = (argv) => {
     return result;
 };
 const argv = parseArgv(process.argv);
-
-if (process.env.PNPM_SCRIPT_SRC_DIR != undefined) {
-    Object.keys(argv).forEach(key => {
-        process.env[`npm_config_${key}`] = argv[key];
-    });
-};
 
 let config = await fs.promises.readFile("config.json", "utf8", err => {
     if (err) throw err;
@@ -54,9 +48,9 @@ await fs.promises.copyFile("config.json", "dist/config.json", 0, err => {
 });
 console.log("copiata la config nella cartella dist");
 
-if (process.env.NPM_CONFIG_BUNDLE != undefined) {
+if (argv.bundleChannels === true) {
     const dir = joinPath(process.cwd(), "dist", "channels"),
-          channelsBundleURL = process.env.NPM_CONFIG_CHANNELSURL ?? "https://github.com/ZapprTV/channels";
+          channelsBundleURL = argv.channelsURL ?? "https://github.com/ZapprTV/channels";
 
     await gitClone({
         fs, http, dir, url: channelsBundleURL

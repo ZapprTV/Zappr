@@ -12,7 +12,10 @@
         },
         "backend": {
             "enabled": true,
-            "host": "https://api.zappr.stream"
+            "host": {
+                "vercel": "https://vercel-api.zappr.stream",
+                "cloudflare": "https://cloudflare-api.zappr.stream"
+            }
         },
         "logos": {
             "bundle": {

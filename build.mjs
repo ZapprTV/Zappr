@@ -54,13 +54,7 @@ await fs.promises.copyFile("config.json", "dist/config.json", 0, err => {
 });
 console.log("copiata la config nella cartella dist");
 
-const toBundle = process.env.NPM_CONFIG_BUNDLE != undefined ? process.env.NPM_CONFIG_BUNDLE.split(",") : [];
-
-if (toBundle.length != 0) {
-    console.log(`download in corso di ${toBundle.join(" e ")}...`);
-};
-
-if (toBundle.includes("channels")) {
+if (process.env.NPM_CONFIG_BUNDLE != undefined) {
     const dir = joinPath(process.cwd(), "dist", "channels"),
           channelsBundleURL = process.env.NPM_CONFIG_CHANNELSURL ?? "https://github.com/ZapprTV/channels";
 

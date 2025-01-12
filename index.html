@@ -11,19 +11,12 @@
                 display: none;
             }
         </style>
-        <style id="iframe-controls" media="not all">
-            .plyr__controls > *:not([data-plyr="fullscreen"]) {
+        <style id="night-adult-channels">
+            .adult-marker.at-night {
                 display: none;
-                margin: 0;
-            }
-            .plyr__controls {
-                width: max-content;
-                margin-left: auto;
-                padding-left: 25px !important;
-                background: linear-gradient(to top left, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 56.25%, rgba(0, 0, 0, 0) 100%) !important;
             }
         </style>
-        <style id="stretch-to-16-9" media="not all">
+        <style id="stretch-fix" class="cssfix" media="not all">
             #plyr {
                 object-fit: fill;
                 aspect-ratio: 16 / 9;
@@ -33,14 +26,18 @@
                 transform: translateY(-50%);
             }
         </style>
-        <style id="night-adult-channels">
-            .adult-marker.at-night {
-                display: none;
-            }
-        </style>
-        <style id="raiplay-sound-fix" media="not all">
+        <style id="raiplay-sound-fix" class="cssfix" media="not all">
             .plyr.hbbtv-app iframe {
                 --plyr-wrapper-scale-multiplier: 1.5;
+            }
+        </style>
+        <style id="streamshow-embed-fix" class="cssfix" media="not all">
+            .plyr iframe {
+                height: auto;
+                aspect-ratio: 16 / 9;
+                transform: scale(1.024) translate(8px, -50%);
+                position: absolute;
+                top: 50%;
             }
         </style>
         <title>Zappr</title>
@@ -67,7 +64,6 @@
                                 <select id="region">
                                     <option value="national">Nessuna (solo canali nazionali)</option>
                                     <option value="lazio">Lazio</option>
-                                    <option value="piemonte">Piemonte</option>
                                     <option value="lombardia">Lombardia</option>
                                 </select>
                             </div>

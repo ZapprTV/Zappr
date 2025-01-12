@@ -30,8 +30,8 @@
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.0.8",
     "@zappr/plyr": "^3.7.8-final",
-    "dashjs": "^4.7.3",
-    "hls.js": "^1.4.14",
+    "dashjs": "^4.7.4",
+    "hls.js": "^1.5.18",
     "mpegts.js": "^1.7.3"
   },
   "devDependencies": {

@@ -153,9 +153,11 @@ a {
     font-size: 1.25rem;
 }
 .channel-subtitle {
+    margin-top: 0.25rem;
     margin-left: 1rem;
     font-size: 1rem;
     color: grey;
+    line-height: 1;
 }
 .logo {
     min-width: 80px;
@@ -350,6 +352,7 @@ iframe {
     min-width: 20rem;
     max-width: 37.5rem;
     overflow-x: scroll;
+    max-height: 25vh;
 }
 #report-error, .modal-content p {
     min-width: 20rem;

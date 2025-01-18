@@ -1,7 +1,7 @@
 {
     "config": {
         "channels": {
-            "host": "/channels"
+            "host": "https://channels.zappr.stream"
         },
         "backend": {
             "host": {
@@ -10,7 +10,7 @@
             }
         },
         "logos": {
-            "host": "/channels/logos",
+            "host": "https://channels.zappr.stream/logos",
             "optimized": true
         }
     }

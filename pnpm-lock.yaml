@@ -28,6 +28,12 @@ devDependencies:
   '@parcel/core':
     specifier: ^2.11.0
     version: 2.11.0
+  '@parcel/packager-raw-url':
+    specifier: 2.11.0
+    version: 2.11.0(@parcel/core@2.11.0)
+  '@parcel/transformer-webmanifest':
+    specifier: 2.11.0
+    version: 2.11.0(@parcel/core@2.11.0)
   isomorphic-git:
     specifier: ^1.25.2
     version: 1.25.3
@@ -515,6 +521,16 @@ packages:
       - '@parcel/core'
     dev: true
 
+  /@parcel/packager-raw-url@2.11.0(@parcel/core@2.11.0):
+    resolution: {integrity: sha512-CAa+zTXRotlAgb0eRg//NBVaXRsomWowl7weWeOgRDCq80gqPLAli9k5N9l+048gBiY+OORRtMRM32QgO59tfg==}
+    engines: {node: '>= 12.0.0', parcel: ^2.11.0}
+    dependencies:
+      '@parcel/plugin': 2.11.0(@parcel/core@2.11.0)
+      '@parcel/utils': 2.11.0
+    transitivePeerDependencies:
+      - '@parcel/core'
+    dev: true
+
   /@parcel/packager-raw@2.11.0(@parcel/core@2.11.0):
     resolution: {integrity: sha512-2/0JQ8DZrz7cVNXwD6OYoUUtSSnlr4dsz8ZkpFDKsBJhvMHtC78Sq+1EDixDGOMiUcalSEjNsoHtkpq9uNh+Xw==}
     engines: {node: '>= 12.0.0', parcel: ^2.11.0}
@@ -794,6 +810,18 @@ packages:
       posthtml-parser: 0.10.2
       posthtml-render: 3.0.0
       semver: 7.5.4
+    transitivePeerDependencies:
+      - '@parcel/core'
+    dev: true
+
+  /@parcel/transformer-webmanifest@2.11.0(@parcel/core@2.11.0):
+    resolution: {integrity: sha512-15DAZX1NOT30L8yzbmYJxwWtHprQ8Zpg5+981IlS6X0YbsdIFq4BRhjfO+ZNOP0tDJe2pjJjcxPAtbubG5MJAw==}
+    engines: {parcel: ^2.11.0}
+    dependencies:
+      '@mischnic/json-sourcemap': 0.1.1
+      '@parcel/diagnostic': 2.11.0
+      '@parcel/plugin': 2.11.0(@parcel/core@2.11.0)
+      '@parcel/utils': 2.11.0
     transitivePeerDependencies:
       - '@parcel/core'
     dev: true

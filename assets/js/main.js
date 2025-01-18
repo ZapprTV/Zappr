@@ -349,7 +349,7 @@ const addChannels = (channels) => {
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
                 <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" data-type="${channel.type}" data-url="${channel.url}" data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
-                    <img class="logo" src="${getChannelLogoURL(channel.logo)}">
+                    <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
                         <div class="channel-name">${channel.name}</div>
                         ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
@@ -374,7 +374,7 @@ const addChannels = (channels) => {
                         subchannel.categorySeparator === undefined
                             ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-type="${subchannel.type}" data-url="${subchannel.url}" data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
-                                <img class="logo" src="${getChannelLogoURL(subchannel.logo)}">
+                                <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
                                     <div class="channel-name">${subchannel.name}</div>
                                     ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}

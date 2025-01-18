@@ -24,7 +24,7 @@
   ],
   "source": "/index.html",
   "scripts": {
-    "build": "node build.mjs",
+    "build": "PARCEL_WORKER_BACKEND=process node build.mjs",
     "dev": "serve"
   },
   "dependencies": {

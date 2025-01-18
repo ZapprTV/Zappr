@@ -38,7 +38,7 @@
     "@parcel/config-default": "^2.11.0",
     "@parcel/core": "^2.11.0",
     "@parcel/packager-raw-url": "2.11.0",
-    "@parcel/transformer-webmanifest": "2.11.0",
+    "@parcel/transformer-webmanifest": "2.13.3",
     "isomorphic-git": "^1.25.2",
     "serve": "^14.2.4",
     "svgo": "^3.3.2"

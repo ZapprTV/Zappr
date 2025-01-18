@@ -29,7 +29,9 @@ let currentType = "",
     targetedChannel = "",
     target = "";
 
-new Plyr("#plyr");
+const plyr = new Plyr("#plyr");
+plyr.on("enterfullscreen", () => screen.orientation.lock("landscape-primary").catch(() => {}));
+plyr.on("exitfullscreen", () => screen.orientation.lock("natural").catch(() => {}));
 
 const player = (document.querySelector("#plyr")),
       channelslist = (document.querySelector("#channels")),
@@ -49,7 +51,8 @@ plyrContainer.insertAdjacentHTML("beforeend", `<div id="lcn-typing">
     </div>
 </div>`);
 
-const createErrorModal = async (title, error, info) => {
+const createErrorModal = async (title, error, info, params) => {
+    let urlParams = new URLSearchParams(params).toString();
     const modalHTML = `<div class="modal">
         <div class="modal-content">
             <div class="modal-title">
@@ -59,13 +62,19 @@ const createErrorModal = async (title, error, info) => {
             <p>${error}</p>
             <div class="technical-info">
                 <h3>Informazioni tecniche</h3>
-                <a>Copia</a>
+                <a onclick="copyInfo()">Copia</a>
             </div>
-            <div class="code">${info}</div>
-            <p id="report-error">Per favore segnala questo errore, aprendo un'issue su GitHub o inviando un'email a mail@zappr.stream.</p>
+            <div class="code" onclick="copyInfo()">${info}</div>
+            <p id="report-error">Per favore segnala questo errore via GitHub o email. Cliccando su uno dei pulsanti qui sotto le informazioni principali dell'errore verranno compilate automaticamente.</p>
             <div class="modal-buttons">
-                <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new" target="_blank">Segnala tramite issue</a>
-                <a class="button secondary" href="mailto:mail@zappr.stream" target="_blank">Segnala tramite email</a>
+                <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new?${urlParams}" target="_blank">Segnala tramite GitHub</a>
+                <a class="button secondary" href="mailto:zappr@francescoro.si?subject=${params.title}&body=${
+                    encodeURIComponent(`Informazioni tecniche: ${params.info}
+
+Per favore specifica qui sotto se il canale funziona da altre parti (su altri siti o in HbbTV) e su che browser dà errore:
+
+`)
+                }" target="_blank">Segnala tramite email</a>
             </div>
         </div>
     </div>`;
@@ -76,7 +85,7 @@ const createErrorModal = async (title, error, info) => {
         (document.querySelector(".modal")).outerHTML = modalHTML;
     };
 
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     (document.querySelector(".modal")).classList.add("is-visible");
 };
@@ -106,10 +115,54 @@ const createModal = async (title, text, buttons) => {
     (document.querySelector(".modal")).classList.add("is-visible");
 };
 
-const loadStream = async (type, url, seek, api) => {
-    if (api != undefined) {
+const loadStream = async (type, url, seek, api, name, lcn, logo) => {
+    if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
+
+    document.title = `${name} - Zappr`;
+    const img = document.querySelector(`img[src="${logo}"]`);
+    const canvas = document.querySelector("canvas");
+
+    const generateMetadataImage = () => {
+        const ctx = canvas.getContext("2d");
+        const canvasSize = canvas.width;
+        const aspectRatio = img.width / img.height;
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        if (aspectRatio > 1) {
+            drawWidth = canvasSize;
+            drawHeight = canvasSize / aspectRatio;
+            offsetX = 0;
+            offsetY = (canvasSize - drawHeight) / 2;
+        } else {
+            drawWidth = canvasSize * aspectRatio;
+            drawHeight = canvasSize;
+            offsetX = (canvasSize - drawWidth) / 2;
+            offsetY = 0;
+        };
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        canvas.toBlob((blob) => {
+            const artworkURL = URL.createObjectURL(blob);
+    
+            if ("mediaSession" in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: `${name} - Zappr`,
+                    artist: "In riproduzione",
+                    artwork: [{
+                        src: artworkURL,
+                        sizes: "512x512",
+                        type: "image/png"
+                    }],
+                });
+            }
+        });
+    }
+
+    img.addEventListener("load", () => generateMetadataImage());
+    if (img.complete) generateMetadataImage();
 
     switch(currentType) {
 
@@ -145,7 +198,19 @@ const loadStream = async (type, url, seek, api) => {
                 } else {
                     window.hls = new Hls();
                 };
-                hls.on(Hls.Events.ERROR, (event, data) => createErrorModal("Errore canale (HLS)", `Impossibile caricare ${data.response.url}: ${data.response.code} ${data.response.text}`, JSON.stringify(data)));
+                hls.on(Hls.Events.ERROR, (event, data) => createErrorModal(
+                    "Errore canale (HLS)",
+                    `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,
+                    JSON.stringify(data),
+                    {
+                        template: "hls.yml",
+                        labels: "Errore,HLS",
+                        title: `[ERRORE HLS] ${lcn} - ${name}: ${data.response.code} ${data.response.text}`,
+                        name: name,
+                        lcn: lcn,
+                        info: JSON.stringify(data)
+                    })
+                );
                 hls.loadSource(url);
                 hls.attachMedia(player);
             };
@@ -155,7 +220,20 @@ const loadStream = async (type, url, seek, api) => {
         case "dash":
             window.dash = dashjs.MediaPlayer().create();
             dash.initialize(player, url, true);
-            dash.on("error", e => createErrorModal("Errore canale (DASH)", `Impossibile caricare ${e.error.data.response.responseURL}: ${e.error.data.response.status} ${e.error.data.response.statusText}`, JSON.stringify(e)))
+            dash.on("error", event => createErrorModal(
+                "Errore canale (DASH)",
+                `Impossibile caricare <b>${name}</b> <i>(${url})</i>: ${event.error.data.response.status} ${event.error.data.response.statusText}`,
+                JSON.stringify(event),
+                {
+                    template: "dash.yml",
+                    labels: "Errore,DASH",
+                    title: `[ERRORE DASH] ${lcn} - ${name}: ${event.error.data.response.status} ${event.error.data.response.statusText}`,
+                    name: name,
+                    lcn: lcn,
+                    info: JSON.stringify(event)
+                })
+            );
+            
             break;
 
         case "flv":
@@ -205,6 +283,19 @@ const loadStream = async (type, url, seek, api) => {
             break;
 
         case "direct":
+            player.addEventListener("error", e => createErrorModal(
+                "Errore canale (Diretto)",
+                `Impossibile caricare <b>${name}</b> <i>(${url})</i>.`,
+                "Nessun'informazione disponibile",
+                {
+                    template: "diretto.yml",
+                    labels: "Errore,Diretto",
+                    title: `[ERRORE DIRETTO] ${lcn} - ${name}`,
+                    name: name,
+                    lcn: lcn,
+                    info: url
+                }
+            ));
             player.src = url;
             player.play();
     }
@@ -214,21 +305,29 @@ const loadStream = async (type, url, seek, api) => {
     hideProgress.media = seek === "false" ? "" : "not all";
 };
 
-const loadChannel = async (type, url, seek, api) => {
+const loadChannel = async (type, url, seek, api, name, lcn, logo) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
 
             case "sky":
                 await fetch(`https://apid.sky.it/vdp/v1/getLivestream?id=${parameter}&isMobile=false`)
-                    .then((response) => response.json())
-                    .then((json) => {
-                        loadStream(type, json.streaming_url, seek);
+                    .then(response => response.json())
+                    .then(json => {
+                        loadStream(type, json.streaming_url, seek, false, name, lcn, logo);
+                    });
+                break;
+
+            case "la7-hbbtv":
+                await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}`)
+                    .then(response => response.json())
+                    .then(json => {
+                        loadStream(type, json.main, seek, false, name, lcn, logo);
                     });
                 break;
 
         };
-    } else await loadStream(type, url, seek, api);
+    } else await loadStream(type, url, seek, api, name, lcn, logo);
 };
 
 const getChannelLogoURL = (logo) => {
@@ -248,7 +347,7 @@ const addChannels = (channels) => {
     channels.forEach(channel => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-type="${channel.type}" data-url="${channel.url}" data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" data-type="${channel.type}" data-url="${channel.url}" data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}">
                     <div class="channel-title-subtitle">
@@ -273,7 +372,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-type="${subchannel.type}" data-url="${subchannel.url}" data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""}>
+                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-type="${subchannel.type}" data-url="${subchannel.url}" data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}">
                                 <div class="channel-title-subtitle">
@@ -429,16 +528,16 @@ const scheduleProgram = (program) => {
         const timeUntilEnd = endTime.getTime() - now.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, "false")
+            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"));
             scheduleProgram(program);
         }, timeUntilEnd);
         
         state.timeouts.set(`${program.title}-end`, endTimeoutId);
-        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, "false");
+        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"));
         state.playingRegional = true;
         return;
     } else if (!state.playingRegional) {
-        loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, "false")
+        loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"));
     };
 
     const nextAirTime = getNextAirTime(program);
@@ -448,14 +547,14 @@ const scheduleProgram = (program) => {
     if (timeUntilAir <= 0) return;
 
     const timeoutId = setTimeout(() => {
-        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, "false");
+        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"));
         state.playingRegional = true;
         
         const endTime = new Date(nextAirTime.toDateString() + ' ' + program.to);
         const timeUntilEnd = endTime.getTime() - nextAirTime.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, "false")
+            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"));
             scheduleProgram(program);
         }, timeUntilEnd);
         
@@ -466,21 +565,10 @@ const scheduleProgram = (program) => {
     state.timeouts.set(program.title, timeoutId);
 };
 
-const pause = () => {
-    for (const timeoutId of state.timeouts.values()) {
-        clearTimeout(timeoutId);
-    };
-    state.timeouts.clear();
-};
-
 const start = (scheduleData) => {
     state.schedule = scheduleData;
 
     Object.values(scheduleData).flat().forEach(scheduleProgram);
-};
-
-const resume = () => {
-    Object.values(state.schedule).flat().forEach(scheduleProgram);
 };
 
 const remove = () => {
@@ -554,7 +642,7 @@ document.querySelectorAll(".channel").forEach(el => {
                     return;
                 };
             };
-            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api)
+            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo);
         });
     };
 });
@@ -776,10 +864,24 @@ window["closeModal"] = () => {
     document.querySelector(".modal").classList.remove("is-visible");
 };
 
+window["copyInfo"] = () => {
+    document.querySelector(".modal .technical-info a").innerText = "Copiato!";
+    document.querySelector(".modal .technical-info a").classList.add("copied");
+    setTimeout(() => {
+        document.querySelector(".modal .technical-info a").innerText = "Copia";
+        document.querySelector(".modal .technical-info a").classList.remove("copied");
+    }, 2500);
+    let range = document.createRange();
+    range.selectNode(document.querySelector(".modal .code"));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    navigator.clipboard.writeText(document.querySelector(".modal .code").innerText);
+};
+
 // https://stackoverflow.com/a/60949881
 Promise.all(Array.from(document.images).filter(img => !img.complete).map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))).then(() => {
+    document.querySelector("#loading").classList.add("loaded");
     document.querySelectorAll(".hbbtv-channels").forEach(el => {
         el.style.cssText = `--scroll-height: ${el.scrollHeight}px;`;
     });
-    document.querySelector("#loading").classList.add("loaded");
 });

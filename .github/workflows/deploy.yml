@@ -1,0 +1,36 @@
+name: Deploy
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installa pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Installa dipendenze e builda
+        run: |
+          pnpm install
+          pnpm run build
+      
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=zappr
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          packageManager: pnpm

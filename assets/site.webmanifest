@@ -1,0 +1,85 @@
+{
+  "name": "Zappr",
+  "short_name": "Zappr",
+  "icons": [
+    {
+      "src": "/assets/icons/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/pwa-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#242424",
+  "theme_color": "#242424",
+  "description": "Guarda facilmente il digitale terrestre italiano, nazionale e locale. Gratis e senza dover configurare niente.",
+  "categories": ["entertainment", "music", "news"],
+  "scope": "/",
+  "screenshots": [{
+      "src": "/assets/images/screenshots/1.webp",
+      "sizes": "515x915",
+      "type": "image/webp",
+      "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/2.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/3.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/4.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/5.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/6.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/7.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "/assets/images/screenshots/8.webp",
+    "sizes": "515x915",
+    "type": "image/webp",
+    "form_factor": "narrow"
+  }]
+}

@@ -3,6 +3,22 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+        <meta name="description" content="Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.">
+        <meta property="og:title" content="Zappr">
+        <meta property="og:url" content="https://zappr.stream">
+        <meta property="og:description" content="Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.">
+        <meta property="og:image" content="/assets/images/og.webp">
+        <meta property="og:image:alt" content="Zappr - Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.">
+        <meta property="og:locale" content="it_IT">
+        <meta property="og:type" content="website">
+        <meta name="twitter:card" content="/assets/images/og.webp">
+        <link rel="canonical" href="https://zappr.stream">
+        <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+        <link rel="icon" href="/assets/icons/favicon.ico" sizes="48x48">
+        <link rel="icon" href="/assets/icons/favicon.svg" sizes="any" type="image/svg+xml">
+        <link rel="manifest" href="/assets/site.webmanifest">
+        <meta name="theme-color" content="#242424">
         <link rel="stylesheet" href="/node_modules/@fontsource/ibm-plex-mono/latin.css">
         <link rel="stylesheet" href="/node_modules/@zappr/plyr/dist/plyr.css" />
         <link rel="stylesheet" href="/assets/css/main.css">
@@ -58,7 +74,7 @@
                         <span id="version">beta</span>
                     </div>
                     <div id="icons">
-                        <a href="https://github.com/ZapprTV/frontend" target="_blank">
+                        <a href="https://github.com/ZapprTV/Zappr" target="_blank">
                             <img src="/assets/icons/github.svg">
                         </a>
                         <a id="settings-icon" class="tooltip" data-target="#settings">
@@ -83,6 +99,7 @@
             <div class="column p-0" id="tv">
                 <video id="plyr" playsinline controls></video>
             </div>
+            <canvas width="512" height="512"></canvas>
         </div>
         <script src="/node_modules/@zappr/plyr/dist/plyr.min.js"></script>
         <script src="/node_modules/hls.js/dist/hls.min.js"></script>

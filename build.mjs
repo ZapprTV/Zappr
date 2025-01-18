@@ -50,15 +50,19 @@ console.log("copiata la config nella cartella dist");
 
 if (argv.bundleChannels === true) {
     const dir = joinPath(process.cwd(), "dist", "channels"),
-          channelsBundleURL = argv.channelsURL ?? "https://github.com/ZapprTV/channels";
+          channelsBundleURL = argv.channelsURL ?? "https://github.com/ZapprTV/channels.git";
 
-    await gitClone({
-        fs, http, dir, url: channelsBundleURL
-    });
-
-    await fs.promises.rm(joinPath(dir, ".git"), { recursive: true, force: true }, err => {
-        if (err) throw err;
-    });
+    if (channelsBundleURL.endsWith(".git")) {
+        await gitClone({
+            fs, http, dir, url: channelsBundleURL
+        });
+    
+        await fs.promises.rm(joinPath(dir, ".git"), { recursive: true, force: true }, err => {
+            if (err) throw err;
+        });
+    } else {
+        await fs.promises.cp(joinPath(process.cwd(), channelsBundleURL), joinPath(process.cwd(), "dist", channelsBundleURL), { recursive: true });
+    };
 
     console.log("download dei channels terminato");
 };

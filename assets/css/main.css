@@ -107,8 +107,19 @@ a {
     opacity: 0.5;
     cursor: not-allowed;
 }
+@keyframes highlighted {
+    0% {
+        background: inherit;
+    }
+    10%, 90% {
+        background: #333;
+    }
+    100% {
+        background: inherit;
+    }
+}
 .highlighted {
-    background: #333 !important;
+    animation: highlighted 2.5s linear forwards;
 }
 .lcn {
     padding: 0.25rem 0.5rem;
@@ -160,6 +171,8 @@ a {
     line-height: 1;
 }
 .logo {
+    max-height: 7.5rem;
+    object-fit: contain;
     min-width: 80px;
     width: 80px;
     height: 100%;
@@ -551,6 +564,13 @@ iframe {
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
 }
+.plyr.hbbtv-app .plyr__controls, .plyr.hbbtv-app .plyr__controls [data-plyr="fullscreen"] {
+    display: flex !important;
+    background: none;
+}
+.plyr.hbbtv-app .plyr__controls > *:not([data-plyr="fullscreen"]) {
+    display: none;
+}
 .plyr.hbbtv-app iframe {
     aspect-ratio: 16 / 9;
     width: 100vw;
@@ -567,6 +587,23 @@ canvas {
     width: 0;
     height: 0;
     opacity: 0;
+}
+a#reopen-window {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: max-content;
+    z-index: 1;
+    height: 0;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+}
+a#reopen-window svg {
+    margin-right: 1rem;
 }
 @media screen and (max-width: 1023px) and (orientation: portrait) {
     #channels-column {

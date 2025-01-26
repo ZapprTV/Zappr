@@ -27,6 +27,11 @@
                 display: none;
             }
         </style>
+        <style id="hide-controls" media="not all">
+            .plyr__controls, .plyr__video-wrapper, .plyr button {
+                display: none !important;
+            } 
+        </style>
         <style id="night-adult-channels">
             .adult-marker.at-night {
                 display: none;
@@ -86,8 +91,19 @@
                                     Regione
                                     <select id="region">
                                         <option value="national">Nessuna (solo canali nazionali)</option>
-                                        <option value="lazio">Lazio</option>
-                                        <option value="lombardia">Lombardia</option>
+                                        <optgroup label="Nord Italia">
+                                            <option value="fvg">Friuli-Venezia Giulia</option>
+                                            <option value="liguria">Liguria</option>
+                                            <option value="lombardia">Lombardia</option>
+                                            <option value="piemonte">Piemonte</option>
+                                            <option value="trento">Trento</option>
+                                            <option value="veneto">Veneto</option>
+                                        </optgroup>
+                                        <optgroup label="Centro Italia">
+                                            <option value="lazio">Lazio</option>
+                                        </optgroup>
+                                        <optgroup label=""></optgroup>
+                                        <optgroup label="Altre regioni in arrivo!"></optgroup>
                                     </select>
                                 </div>
                                 <a id="save-and-reload" class="non-bulma-button">Salva e ricarica</a>

@@ -720,40 +720,29 @@ const selectChannel = (channel, zapping) => {
     targetedChannel.classList.add("highlighted");
 
     if (zapping) {
-        console.clear();
         if (targetedChannel.previousElementSibling != null) {
-            console.log("previous = channel")
             targetedChannel.previousElementSibling.classList.remove("highlighted");
         }
         if (targetedChannel.previousElementSibling != null && targetedChannel.previousElementSibling.querySelector(".channel") != null) {
-            console.log("previous = hbbtv-container")
             targetedChannel.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
         }
         if (targetedChannel.parentElement.className === "hbbtv-container") {
-            console.log("current = hbbtv-container")
             if (targetedChannel.parentElement.previousElementSibling.querySelector(".channel") != null) {
-                console.log("previous = hbbtv-container")
                 targetedChannel.parentElement.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
             } else {
-                console.log("previous = channel");
                 targetedChannel.parentElement.previousElementSibling.classList.remove("highlighted");
             };
         };
         if (targetedChannel.nextElementSibling != null) {
-            console.log("next = channel")
             targetedChannel.nextElementSibling.classList.remove("highlighted");
         }
         if (targetedChannel.nextElementSibling != null && targetedChannel.nextElementSibling.querySelector(".channel") != null) {
-            console.log("next = hbbtv-container")
             targetedChannel.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
         }
         if (targetedChannel.parentElement.className === "hbbtv-container") {
-            console.log("current = hbbtv-container")
             if (targetedChannel.parentElement.nextElementSibling.querySelector(".channel") != null) {
-                console.log("next = hbbtv-container")
                 targetedChannel.parentElement.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
             } else {
-                console.log("next = channel");
                 targetedChannel.parentElement.nextElementSibling.classList.remove("highlighted");
             };
         };

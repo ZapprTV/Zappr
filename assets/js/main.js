@@ -29,7 +29,11 @@ let currentType = "",
     targetedChannel = "",
     target = "";
 
-const plyr = new Plyr("#plyr");
+const plyr = new Plyr("#plyr", {
+    fullscreen: {
+        iosNative: true
+    }
+});
 plyr.on("enterfullscreen", () => screen.orientation.lock("landscape-primary").catch(() => {}));
 plyr.on("exitfullscreen", () => screen.orientation.lock("natural").catch(() => {}));
 

@@ -982,6 +982,31 @@ document.querySelector("#save-and-reload").addEventListener("click", () => {
     location.reload();
 });
 
+let installPrompt = null;
+const installButton = document.querySelector("#icons #install");
+const disableInAppInstallPrompt = () => {
+    installPrompt = null;
+    installButton.setAttribute("hidden", "");
+};
+
+window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    installPrompt = e;
+    installButton.removeAttribute("hidden");
+});
+
+installButton.addEventListener("click", async e => {
+    e.preventDefault();
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    disableInAppInstallPrompt();
+});
+
+window.addEventListener("appinstalled", () => {
+    disableInAppInstallPrompt();
+});
+
+
 window["closeModal"] = () => {
     document.querySelector(".modal").classList.remove("is-visible");
 };

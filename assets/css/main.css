@@ -203,6 +203,9 @@ a {
     height: 24px;
     display: inline-block;
 }
+#icons > a:not(:last-of-type) {
+    margin-right: 0.75rem;
+}
 #bottom img {
     transition: 1s all;
 }
@@ -210,6 +213,8 @@ a {
     transform: rotate(120deg);
 }
 #icons {
+    display: flex;
+    align-items: center;
     height: 24px;
 }
 iframe {
@@ -604,6 +609,26 @@ a#reopen-window {
 }
 a#reopen-window svg {
     margin-right: 1rem;
+}
+#icons #install {
+    width: auto;
+    display: flex;
+    align-items: center;
+    background: #063c00;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.888rem;
+    font-weight: 400;
+    color: white;
+    text-decoration: none;
+    border-radius: 0.5rem;
+}
+#icons #install img {
+    margin-right: 0;
+    margin-left: 0.5rem;
+    height: 1.25rem;
+}
+[hidden] {
+    display: none !important;
 }
 @media screen and (max-width: 1023px) and (orientation: portrait) {
     #channels-column {

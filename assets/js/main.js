@@ -362,10 +362,14 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http) => {
         currentType = type;
     };
 
-    hideProgress.media = seek === "false" ? "" : "not all";
+    if (seek === "false" || type === "dash" || type === "flv" || type === "direct") {
+        hideProgress.media = "";
+    } else {
+        hideProgress.media = "not all";
+    };
 };
 
-const loadChannel = async (type, url, seek, api, name, lcn, logo, http) => {
+const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -383,6 +387,43 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http) => {
                     .then(response => response.json())
                     .then(json => {
                         loadStream(type, json.main, seek, false, name, lcn, logo, false);
+                    });
+                break;
+
+            case "wim":
+                const token = await fetch("https://platform.wim.tv/wimtv-server/oauth/token", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Basic d3d3Og==",
+                        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    },
+                    body: "grant_type=client_credentials"
+                })
+                    .then(response => response.json())
+                    .then(json => json.access_token);
+
+                await fetch(`https://platform.wim.tv/wimtv-server/api/public/live/channel/${parameter}/play`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: "{}"
+                })
+                    .then(response => response.json())
+                    .then(json => {
+                        loadStream(type, json.srcs[0].uniqueStreamer, seek, false, name, lcn, logo, false);
+                    });
+
+        };
+    } else if (license != undefined) {
+        switch(license) {
+            
+            case "xdevel-wms":
+                await fetch("https://play.xdevel.com/was")
+                    .then(response => response.json())
+                    .then(json => {
+                        loadStream(type, `${url}?wmsAuthSign=${json.was}`, seek, false, name, lcn, logo, false);
                     });
                 break;
 
@@ -407,7 +448,7 @@ const addChannels = (channels) => {
     channels.forEach(channel => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" data-type="${channel.type}" data-url="${channel.url}" data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -432,7 +473,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-type="${subchannel.type}" data-url="${subchannel.url}" data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""}>
+                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -702,7 +743,7 @@ document.querySelectorAll(".channel").forEach(el => {
                     return;
                 };
             };
-            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http);
+            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http, el.dataset.license);
         });
     };
 });

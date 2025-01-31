@@ -1,11 +1,10 @@
-<h1 align="center"><i>ATTENZIONE: ZAPPR È ANCORA IN BETA.</i></h1>
-<h3 align="center">Inoltre, questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</h3>
+<h2 align="center"><i>ATTENZIONE: ZAPPR È ANCORA IN BETA.</i></h2>
+<h4 align="center">Inoltre, questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</h4>
 
-<br>
 <img width="100%" src="readme-assets/header.svg" max>
-<br><br>
+<br>
 <img width="100%" src="readme-assets/demo.gif">
-<br><br>
+<br>
 <h1 align="center">🎉 Provalo subito su <a href="https://zappr.stream">zappr.stream</a>! 🎉</h1>
 
 ### _[[Salta alle informazioni sullo sviluppo](#informazioni-sullo-sviluppo-locale)]_

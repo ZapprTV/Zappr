@@ -118,7 +118,7 @@ const createModal = async (title, text, buttons) => {
     (document.querySelector(".modal")).classList.add("is-visible");
 };
 
-const loadStream = async (type, url, seek, api, name, lcn, logo, http) => {
+const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
@@ -362,14 +362,14 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http) => {
         currentType = type;
     };
 
-    if (seek === "false" || type === "dash" || type === "flv" || type === "direct") {
+    if (seek === "false" || type === "dash" || type === "flv" || (type === "direct" && ondemand != "true")) {
         hideProgress.media = "";
     } else {
         hideProgress.media = "not all";
     };
 };
 
-const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license) => {
+const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license, ondemand) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -378,7 +378,7 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license)
                 await fetch(`https://apid.sky.it/vdp/v1/getLivestream?id=${parameter}&isMobile=false`)
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.streaming_url, seek, false, name, lcn, logo, false);
+                        loadStream(type, json.streaming_url, seek, false, name, lcn, logo, false, false);
                     });
                 break;
 
@@ -386,7 +386,7 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license)
                 await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}`)
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.main, seek, false, name, lcn, logo, false);
+                        loadStream(type, json.main, seek, false, name, lcn, logo, false, false);
                     });
                 break;
 
@@ -412,8 +412,9 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license)
                 })
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.srcs[0].uniqueStreamer, seek, false, name, lcn, logo, false);
+                        loadStream(type, json.srcs[0].uniqueStreamer, seek, false, name, lcn, logo, false, false);
                     });
+                break;
 
         };
     } else if (license != undefined) {
@@ -423,12 +424,12 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license)
                 await fetch("https://play.xdevel.com/was")
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, `${url}?wmsAuthSign=${json.was}`, seek, false, name, lcn, logo, false);
+                        loadStream(type, `${url}?wmsAuthSign=${json.was}`, seek, false, name, lcn, logo, false, false);
                     });
                 break;
 
         };
-    } else await loadStream(type, url, seek, api, name, lcn, logo, http);
+    } else await loadStream(type, url, seek, api, name, lcn, logo, http, ondemand);
 };
 
 const getChannelLogoURL = (logo) => {
@@ -448,7 +449,7 @@ const addChannels = (channels) => {
     channels.forEach(channel => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -473,7 +474,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""}>
+                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.ondemand ? `data-ondemand="${subchannel.ondemand}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -743,7 +744,7 @@ document.querySelectorAll(".channel").forEach(el => {
                     return;
                 };
             };
-            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http, el.dataset.license);
+            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http, el.dataset.license, el.dataset.ondemand);
         });
     };
 });

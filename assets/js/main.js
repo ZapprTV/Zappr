@@ -322,7 +322,11 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
                 plyrHideControls.media = "";
                 player.play();
                 const youtubeIFrame = document.createElement("iframe");
-                youtubeIFrame.src = `https://www.youtube-nocookie.com/embed/${url}?autoplay=1&modestbranding=1&rel=0&hl=it-it`;
+                if (url.startsWith("UC") && url.length > 11) {
+                    youtubeIFrame.src = `https://www.youtube-nocookie.com/embed/live_stream?channel=${url}&autoplay=1&modestbranding=1&rel=0&hl=it-it`;
+                } else {
+                    youtubeIFrame.src = `https://www.youtube-nocookie.com/embed/${url}?autoplay=1&modestbranding=1&rel=0&hl=it-it`;
+                };
                 youtubeIFrame.allowFullscreen = true;
                 youtubeIFrame.allow = "autoplay";
                 plyrContainer.insertAdjacentElement("afterbegin", youtubeIFrame);

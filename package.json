@@ -40,7 +40,17 @@
     "@parcel/packager-raw-url": "2.13.3",
     "@parcel/transformer-webmanifest": "2.13.3",
     "isomorphic-git": "^1.25.2",
+    "parcel-reporter-static-files-copy": "^1.5.3",
     "serve": "^14.2.4",
     "svgo": "^3.3.2"
-  }
+  },
+  "staticFiles": [
+    {
+      "staticPath": ".well-known",
+      "staticOutPath": ".well-known"
+    },
+    {
+      "staticPath": "config.json"
+    }
+  ]
 }

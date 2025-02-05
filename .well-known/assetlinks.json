@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "stream.zappr",
+        "sha256_cert_fingerprints": ["87:D3:7D:99:81:06:FC:0B:AD:2D:B4:4A:8F:91:F6:21:9A:F3:1A:51:55:45:8B:33:B2:92:37:E6:8E:94:5E:A6"]
+      }
+    }]

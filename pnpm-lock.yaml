@@ -37,6 +37,9 @@ devDependencies:
   isomorphic-git:
     specifier: ^1.25.2
     version: 1.25.3
+  parcel-reporter-static-files-copy:
+    specifier: ^1.5.3
+    version: 1.5.3(@parcel/core@2.11.0)
   serve:
     specifier: ^14.2.4
     version: 14.2.4
@@ -2278,6 +2281,15 @@ packages:
 
   /pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+    dev: true
+
+  /parcel-reporter-static-files-copy@1.5.3(@parcel/core@2.11.0):
+    resolution: {integrity: sha512-Ukq2SyJYn3GFIPCLamXuQ+2t+0j54llujjOUoRjtmVvfsuGnJDEpMznADeIoKuQDvy0jpxtWzWkQvxqI/j+U4A==}
+    engines: {parcel: ^2.0.0-beta.1}
+    dependencies:
+      '@parcel/plugin': 2.11.0(@parcel/core@2.11.0)
+    transitivePeerDependencies:
+      - '@parcel/core'
     dev: true
 
   /parent-module@1.0.1:

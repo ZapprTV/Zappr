@@ -3,6 +3,7 @@ import { join as joinPath } from "path";
 import { clone as gitClone } from "isomorphic-git";
 import * as http from "isomorphic-git/http/node/index.cjs";
 import * as fs from "fs";
+import { fileURLToPath } from "url";
 
 // visto che pnpm run è una MERDA non passa gli argomenti in linea di comando come environment variable e quindi devo fare queste cagate con l'argv >:(
 const parseArgv = (argv) => {
@@ -30,9 +31,13 @@ await fs.promises.rm(joinPath(process.cwd(), "dist"), { recursive: true, force: 
 
 console.log("bundling in corso...");
 let bundler = new Parcel({
-    entries:  ["index.html", "offline-pwa.html"],
+    entries: ["index.html", "offline-pwa.html"],
     defaultConfig: "@parcel/config-default",
-    mode: "production"
+    mode: "production",
+    additionalReporters: [{
+        packageName: "parcel-reporter-static-files-copy",
+        resolveFrom: fileURLToPath(import.meta.url)
+    }]
 });
 
 try {
@@ -42,11 +47,6 @@ try {
 } catch (err) {
     console.log(err.diagnostics);
 };
-
-await fs.promises.copyFile("config.json", "dist/config.json", 0, err => {
-    if (err) throw err;
-});
-console.log("copiata la config nella cartella dist");
 
 if (argv.bundleChannels === true) {
     const dir = joinPath(process.cwd(), "dist", "channels"),

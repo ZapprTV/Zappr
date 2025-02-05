@@ -132,6 +132,11 @@
             </div>
             <canvas width="512" height="512"></canvas>
         </div>
+        <script type="module">
+            if (typeof navigator.serviceWorker != "undefined") {
+                navigator.serviceWorker.register(new URL("/assets/js/sw.js", import.meta.url));
+            };
+        </script>
         <script src="/node_modules/@zappr/plyr/dist/plyr.min.js"></script>
         <script src="/node_modules/hls.js/dist/hls.min.js"></script>
         <script src="/node_modules/dashjs/dist/dash.mediaplayer.min.js"></script>

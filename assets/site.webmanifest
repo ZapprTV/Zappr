@@ -34,6 +34,17 @@
   "description": "Guarda facilmente il digitale terrestre italiano, nazionale e locale. Gratis e senza dover configurare niente.",
   "categories": ["entertainment", "music", "news"],
   "scope": "/",
+  "id": "/",
+  "launch_handler": {
+    "client_mode": "navigate-new"
+  },
+  "orientation": "any",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "edge_side_panel": {
+    "preferred_width": 560
+  },
+  "dir": "ltr",
+  "lang": "it",
   "screenshots": [{
       "src": "/assets/images/screenshots/1.webp",
       "sizes": "515x915",

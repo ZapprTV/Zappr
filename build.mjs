@@ -30,7 +30,7 @@ await fs.promises.rm(joinPath(process.cwd(), "dist"), { recursive: true, force: 
 
 console.log("bundling in corso...");
 let bundler = new Parcel({
-    entries: "index.html",
+    entries:  ["index.html", "offline-pwa.html"],
     defaultConfig: "@parcel/config-default",
     mode: "production"
 });

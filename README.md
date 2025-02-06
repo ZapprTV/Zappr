@@ -3,7 +3,6 @@
 <br>
 <img width="100%" src="readme-assets/header.svg" max>
 <img width="100%" src="readme-assets/demo.gif">
-<br>
 <h1 align="center">🎉 Provalo subito su <a href="https://zappr.stream">zappr.stream</a>! 🎉</h1>
 
 ### _[[Salta alle informazioni sullo sviluppo](#informazioni-sullo-sviluppo-locale)]_

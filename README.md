@@ -1,6 +1,6 @@
 <h2 align="center"><i>ATTENZIONE: ZAPPR È ANCORA IN BETA.</i></h2>
 <h4 align="center">Inoltre, questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</h4>
-
+<br>
 <img width="100%" src="readme-assets/header.svg" max>
 <img width="100%" src="readme-assets/demo.gif">
 <br>

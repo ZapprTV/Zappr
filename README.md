@@ -2,7 +2,6 @@
 <h4 align="center">Inoltre, questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</h4>
 
 <img width="100%" src="readme-assets/header.svg" max>
-<br>
 <img width="100%" src="readme-assets/demo.gif">
 <br>
 <h1 align="center">🎉 Provalo subito su <a href="https://zappr.stream">zappr.stream</a>! 🎉</h1>

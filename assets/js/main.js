@@ -339,6 +339,7 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
                 iframe.src = url;
                 iframe.allowFullscreen = true;
                 iframe.allow = "autoplay";
+                iframe.scrolling = "no";
                 plyrContainer.insertAdjacentElement("afterbegin", iframe);
                 break;
 

@@ -66,6 +66,15 @@
                 transform: scaleY(1.3333333333);
             }
         </style>
+        <style id="center-iframe-fix" class="cssfix" media="not all">
+            .plyr iframe {
+                height: auto;
+                aspect-ratio: 16 / 9;
+                transform: translateY(-50%);
+                position: absolute;
+                top: 50%;
+            }
+        </style>
         <title>Zappr</title>
     </head>
     <body>
@@ -113,9 +122,12 @@
                                         <optgroup label="Sud Italia">
                                             <option value="abruzzo">Abruzzo</option>
                                             <option value="basilicata">Basilicata</option>
+                                            <option value="calabria">Calabria</option>
                                             <option value="campania">Campania</option>
                                             <option value="molise">Molise</option>
                                             <option value="puglia">Puglia</option>
+                                            <option value="sardegna">Sardegna</option>
+                                            <option value="sicilia">Sicilia</option>
                                         </optgroup>
                                         <optgroup label=""></optgroup>
                                         <optgroup label="Altre regioni in arrivo!"></optgroup>

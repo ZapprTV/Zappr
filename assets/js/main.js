@@ -257,19 +257,23 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
                     } else {
                         window.hls = new Hls();
                     };
-                    hls.on(Hls.Events.ERROR, (event, data) => createErrorModal(
-                        "Errore canale (HLS)",
-                        `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,
-                        JSON.stringify(data),
-                        {
-                            template: "hls.yml",
-                            labels: "Errore,HLS",
-                            title: `${lcn} - ${name}: ${data.response.code} ${data.response.text}`,
-                            name: name,
-                            lcn: lcn,
-                            info: JSON.stringify(data)
-                        })
-                    );
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        if (lcn != 7) {
+                            createErrorModal(
+                                "Errore canale (HLS)",
+                                `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,
+                                JSON.stringify(data),
+                                {
+                                    template: "hls.yml",
+                                    labels: "Errore,HLS",
+                                    title: `${lcn} - ${name}: ${data.response.code} ${data.response.text}`,
+                                    name: name,
+                                    lcn: lcn,
+                                    info: JSON.stringify(data)
+                                }
+                            );
+                        };
+                    });
                     hls.loadSource(url);
                     hls.attachMedia(player);
                 };

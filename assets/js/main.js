@@ -832,6 +832,8 @@ const toggleNightAdultChannelsStyle = () => {
 toggleNightAdultChannelsStyle();
 
 const keydownHandler = (e) => {
+    if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) closeModal();
+
     if (["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -847,11 +849,11 @@ const keydownHandler = (e) => {
         matchedChannel = [];
     };
     
-    if (!multipleChannelSelection && e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7) || e.key === ".") {
+    if (!multipleChannelSelection && e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7) || e.key === "." || e.code === "NumpadDecimal") {
         typingLCN = true;
         lcnTypingElement.style.display = "block";
         if (!(e.key === "." && lcnTypedElement.innerText.includes("."))) {
-            lcnTypedElement.innerText += e.code.startsWith("Digit") || e.key === "." ? e.key  : e.code.replaceAll("Numpad", "");
+            lcnTypedElement.innerText += e.code.startsWith("Digit") || e.key === "." ? e.key : e.code.replaceAll("Numpad", "").replaceAll("Decimal", ".");
         };
     };
 
@@ -859,6 +861,9 @@ const keydownHandler = (e) => {
         switch(e.code) {
             case "Backspace":
             case "Delete":
+            case "NumpadDivide":
+            case "NumpadMultiply":
+            case "NumpadSubtract":
                 if (lcnTypedElement.innerText.slice(0, -1) === "") {
                     lcnTypingElement.style.display = "none";
                 };

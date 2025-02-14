@@ -336,6 +336,7 @@ iframe {
     justify-content: space-between;
 }
 .modal-title h1 {
+    line-height: 2rem;
     margin: 0;
 }
 .close {
@@ -389,7 +390,6 @@ iframe {
 .code {
     background: #000;
     padding: 1rem;
-    min-width: 20rem;
     max-width: 37.5rem;
     overflow-x: scroll;
     max-height: 25vh;
@@ -630,6 +630,20 @@ a#reopen-window svg {
 [hidden] {
     display: none !important;
 }
+.modal-buttons {
+    display: flex;
+    flex-direction: row;
+}
+.modal-buttons .button {
+    display: flex;
+    justify-content: space-between;
+}
+.modal-buttons .button:not(:last-child) {
+    margin-right: 1rem;
+}
+.modal-buttons .button svg {
+    margin-left: 1rem;
+}
 @media screen and (max-width: 1023px) and (orientation: portrait) {
     #channels-column {
         display: flex !important;
@@ -656,6 +670,13 @@ a#reopen-window svg {
     }
     .plyr.hbbtv-app iframe {
         --plyr-wrapper-scale: 1;
+    }
+    .modal-buttons {
+        flex-direction: column;
+    }
+    .modal-buttons .button {
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
     }
 }
 @media screen and (min-width: 769px) {

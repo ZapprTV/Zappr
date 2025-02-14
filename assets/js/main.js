@@ -70,14 +70,20 @@ const createErrorModal = async (title, error, info, params) => {
             <div class="code" onclick="copyInfo()">${info}</div>
             <p id="report-error">Per favore segnala questo errore via GitHub o email. Cliccando su uno dei pulsanti qui sotto le informazioni principali dell'errore verranno compilate automaticamente.</p>
             <div class="modal-buttons">
-                <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new?${urlParams}" target="_blank">Segnala tramite GitHub</a>
+                <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new?${urlParams}" target="_blank">
+                    Segnala tramite GitHub
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
+                </a>
                 <a class="button secondary" href="mailto:zappr@francescoro.si?subject=${params.title}&body=${
                     encodeURIComponent(`Informazioni tecniche: ${params.info}
 
 Per favore specifica qui sotto se il canale funziona da altre parti (su altri siti o in HbbTV) e su che browser dà errore:
 
 `)
-                }" target="_blank">Segnala tramite email</a>
+                }" target="_blank">
+                    Segnala tramite email
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#000" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
+                </a>
             </div>
         </div>
     </div>`;
@@ -258,7 +264,7 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
                         window.hls = new Hls();
                     };
                     hls.on(Hls.Events.ERROR, (event, data) => {
-                        if (lcn != 7) {
+                        if (data.details != "fragLoadError") {
                             createErrorModal(
                                 "Errore canale (HLS)",
                                 `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,

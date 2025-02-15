@@ -199,24 +199,31 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
             player.src = "";
             break;
 
-        case "http":
+        case "popup":
             document.querySelector("#reopen-window").remove();
             document.querySelector(".plyr > button").classList.remove("is-hidden");
-            httpPlayer.close();
+            popupPlayer.close();
             break;
             
-    }
+    };
 
-    if (http) {
-        const httpPlayerURL = `${window.zappr.config.httpPlayer.host}?${new URLSearchParams({
-            type: type,
-            url: url,
-            name: name,
-            lcn: lcn,
-            logo: img.src
-        }).toString()}`;
-        window.httpPlayer = window.open(
-            httpPlayerURL,
+    let popupPlayerURL = "";
+
+    if (http || type === "popup") {
+        if (http) {
+            popupPlayerURL = `${window.zappr.config.httpPlayer.host}?${new URLSearchParams({
+                type: type,
+                url: url,
+                name: name,
+                lcn: lcn,
+                logo: img.src
+            }).toString()}`;
+        } else if (type === "popup") {
+            popupPlayerURL = url;
+        };
+
+        window.popupPlayer = window.open(
+            popupPlayerURL,
             "httpWindow",
             new URLSearchParams({
                 left: document.querySelector("#channels-column").offsetWidth,
@@ -226,13 +233,13 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
             }).toString().replaceAll("&", ",")
         );
 
-        if (!httpPlayer) {
+        if (!popupPlayer) {
             createModal(
                 "Accesso ai popup negato",
                 `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
                 [{
                     type: "primary",
-                    href: httpPlayerURL,
+                    href: popupPlayerURL,
                     newtab: true,
                     text: "Apri in una nuova finestra"
                 },
@@ -243,15 +250,15 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
                 }]
             );
         };
-        window.addEventListener("unload", () => httpPlayer.close());
+        window.addEventListener("unload", () => popupPlayer.close());
         document.querySelector("#tv").insertAdjacentHTML("afterbegin", `<a href="#" id="reopen-window"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h6q.425 0 .713.288T12 4t-.288.713T11 5H5v14h14v-6q0-.425.288-.712T20 12t.713.288T21 13v6q0 .825-.587 1.413T19 21zM19 6.4L10.4 15q-.275.275-.7.275T9 15t-.275-.7t.275-.7L17.6 5H15q-.425 0-.712-.288T14 4t.288-.712T15 3h5q.425 0 .713.288T21 4v5q0 .425-.288.713T20 10t-.712-.288T19 9z"/></svg>Riapri player</a>`);
         document.querySelector("#reopen-window").addEventListener("click", () => {
-            if (httpPlayer.closed) document.querySelector(".channel.watching").click()
-            else httpPlayer.focus();
+            if (popupPlayer.closed) document.querySelector(".channel.watching").click()
+            else popupPlayer.focus();
         });
         document.querySelector(".plyr > button").classList.add("is-hidden");
 
-        currentType = "http";
+        currentType = "popup";
     } else {
         switch(type) {
             case "hls":
@@ -462,6 +469,18 @@ const getChannelsListURL = (path) => {
 
 const addChannels = (channels) => {
     channels.forEach(channel => {
+        if (window.location.search === "?amazon-appstore") {
+            if (channel.lcn === 7) {
+                channel.type = "popup";
+                channel.url = "https://www.la7.it/dirette-tv";
+                
+                channel.hbbtv[0].type = "popup";
+                channel.hbbtv[0].url = "https://www.la7.it/live-eventi-la7";
+            } else if (channel.lcn === 29) {
+                channel.type = "popup";
+                channel.url = "https://www.la7.it/live-la7d";
+            };
+        };
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
                 <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""}>
@@ -476,6 +495,7 @@ const addChannels = (channels) => {
                     ${channel.uhd ? `<div class="uhd"></div>` : ""}
                     ${channel.radio ? `<div class="radio"></div>` : ""}
                     ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
+                    ${channel.type === "popup" ? `<div class="external"></div>` : ""}
                     ${channel.adult === true ? `<div class="adult-marker"></div>`
                         : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
 
@@ -500,6 +520,7 @@ const addChannels = (channels) => {
                                 ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
                                 ${subchannel.radio ? `<div class="radio"></div>` : ""}
                                 ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
+                                ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
                                 ${subchannel.adult === true ? `<div class="adult-marker"></div>`
                                     : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                             </div>`

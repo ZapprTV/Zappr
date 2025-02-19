@@ -468,19 +468,12 @@ const getChannelsListURL = (path) => {
 };
 
 const addChannels = (channels) => {
+    if (window.location.search === "?amazon-appstore") {
+        channels.filter(el => el.lcn === 7 || el.lcn === 29).forEach(el => {
+            channels.splice(channels.indexOf(el), 1);
+        });
+    };
     channels.forEach(channel => {
-        if (window.location.search === "?amazon-appstore") {
-            if (channel.lcn === 7) {
-                channel.type = "popup";
-                channel.url = "https://www.la7.it/dirette-tv";
-                
-                channel.hbbtv[0].type = "popup";
-                channel.hbbtv[0].url = "https://www.la7.it/live-eventi-la7";
-            } else if (channel.lcn === 29) {
-                channel.type = "popup";
-                channel.url = "https://www.la7.it/live-la7d";
-            };
-        };
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
                 <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""}>

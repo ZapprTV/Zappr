@@ -82,7 +82,7 @@ a {
 }
 #plyr {
     width: 100%;
-    height: 100vh;
+    height: 100%;
 }
 .channel {
     height: auto;
@@ -680,9 +680,6 @@ a#reopen-window svg {
     .plyr {
         height: auto;
         width: 100vw;
-    }
-    .plyr:not(:fullscreen) #plyr {
-        height: auto;
     }
     .plyr.hbbtv-app iframe {
         --plyr-wrapper-scale: 1;

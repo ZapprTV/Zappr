@@ -545,7 +545,7 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
 } else {
     window.channels = nationalChannels.channels;
     channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
-}
+};
 addChannels(channels);
 
 const returnErrorMessage = (errorCode) => {
@@ -781,50 +781,54 @@ document.querySelectorAll(".hbbtv-enabler").forEach(el => {
     el.addEventListener("click", () => el.classList.toggle("clicked"));
 });
 
-const selectChannel = (channel, zapping) => {
-    if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`.channel[data-lcn="${channel}"]`);
-    else if (typeof(channel) === "object") targetedChannel = channel;
-
-    if (targetedChannel === null) targetedChannel = document.querySelector(`.hbbtv-enabler[data-lcn="${channel}"]`);
-    setTimeout(() => {
-        targetedChannel.scrollIntoView({
-            block: "center",
-            behavior: "smooth"
-        });
-    }, targetedChannel != undefined && targetedChannel.dataset.lcn.includes(".") && !zapping ? 250 : 0);
-    targetedChannel.classList.add("highlighted");
-
-    if (zapping) {
-        if (targetedChannel.previousElementSibling != null) {
-            targetedChannel.previousElementSibling.classList.remove("highlighted");
-        }
-        if (targetedChannel.previousElementSibling != null && targetedChannel.previousElementSibling.querySelector(".channel") != null) {
-            targetedChannel.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
-        }
-        if (targetedChannel.parentElement.className === "hbbtv-container") {
-            if (targetedChannel.parentElement.previousElementSibling.querySelector(".channel") != null) {
-                targetedChannel.parentElement.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
-            } else {
-                targetedChannel.parentElement.previousElementSibling.classList.remove("highlighted");
+window.selectChannel = (channel, zapping) => {
+    try {
+        if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`.channel[data-lcn="${channel}"]`);
+        else if (typeof(channel) === "object") targetedChannel = channel;
+    
+        if (targetedChannel === null) targetedChannel = document.querySelector(`.hbbtv-enabler[data-lcn="${channel}"]`);
+        setTimeout(() => {
+            try {
+                targetedChannel.scrollIntoView({
+                    block: "center",
+                    behavior: "smooth"
+                });
+            } catch {};
+        }, targetedChannel != undefined && targetedChannel.dataset.lcn.includes(".") && !zapping ? 250 : 0);
+        targetedChannel.classList.add("highlighted");
+    
+        if (zapping) {
+            if (targetedChannel.previousElementSibling != null) {
+                targetedChannel.previousElementSibling.classList.remove("highlighted");
+            }
+            if (targetedChannel.previousElementSibling != null && targetedChannel.previousElementSibling.querySelector(".channel") != null) {
+                targetedChannel.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
+            }
+            if (targetedChannel.parentElement.className === "hbbtv-container") {
+                if (targetedChannel.parentElement.previousElementSibling.querySelector(".channel") != null) {
+                    targetedChannel.parentElement.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
+                } else {
+                    targetedChannel.parentElement.previousElementSibling.classList.remove("highlighted");
+                };
+            };
+            if (targetedChannel.nextElementSibling != null) {
+                targetedChannel.nextElementSibling.classList.remove("highlighted");
+            }
+            if (targetedChannel.nextElementSibling != null && targetedChannel.nextElementSibling.querySelector(".channel") != null) {
+                targetedChannel.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
+            }
+            if (targetedChannel.parentElement.className === "hbbtv-container") {
+                if (targetedChannel.parentElement.nextElementSibling.querySelector(".channel") != null) {
+                    targetedChannel.parentElement.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
+                } else {
+                    targetedChannel.parentElement.nextElementSibling.classList.remove("highlighted");
+                };
             };
         };
-        if (targetedChannel.nextElementSibling != null) {
-            targetedChannel.nextElementSibling.classList.remove("highlighted");
-        }
-        if (targetedChannel.nextElementSibling != null && targetedChannel.nextElementSibling.querySelector(".channel") != null) {
-            targetedChannel.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
-        }
-        if (targetedChannel.parentElement.className === "hbbtv-container") {
-            if (targetedChannel.parentElement.nextElementSibling.querySelector(".channel") != null) {
-                targetedChannel.parentElement.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
-            } else {
-                targetedChannel.parentElement.nextElementSibling.classList.remove("highlighted");
-            };
-        };
-    };
-
-    targetedChannel.focus();
-    targetedChannel.click();
+    
+        targetedChannel.focus();
+        targetedChannel.click();
+    } catch {};
 };
 
 const toggleNightAdultChannelsStyle = () => {
@@ -1066,4 +1070,7 @@ Promise.all(Array.from(document.images).filter(img => !img.complete).map(img => 
     document.querySelectorAll(".hbbtv-channels").forEach(el => {
         el.style.cssText = `--scroll-height: ${el.scrollHeight}px;`;
     });
+    if (new URLSearchParams(location.search).get("lcn") != null) {
+        selectChannel(new URLSearchParams(location.search).get("lcn"));
+    };
 });

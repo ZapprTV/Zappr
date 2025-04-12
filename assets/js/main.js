@@ -438,6 +438,17 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                     });
                 break;
 
+            case "wp-yt-iframe":
+                await fetch(`https://${parameter}/wp-json/wp/v2/pages/${url.split("/")[4]}`)
+                    .then(response => response.json())
+                    .then(json => {
+                        const iframeSrc = new DOMParser().parseFromString(json.content.rendered, "text/html").querySelector("iframe").src;
+                        const videoId = iframeSrc.replaceAll(new URL(iframeSrc).search, "").split("/")[4];
+
+                        loadStream("youtube", videoId, seek, false, name, lcn, logo, false, false);
+                    });
+                break;
+
         };
     } else if (license != undefined) {
         switch(license) {

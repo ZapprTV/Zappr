@@ -32,7 +32,8 @@ let currentType = "",
 const plyr = new Plyr("#plyr", {
     fullscreen: {
         iosNative: true
-    }
+    },
+    disableContextMenu: false
 });
 plyr.on("enterfullscreen", () => screen.orientation.lock("landscape-primary").catch(() => {}));
 plyr.on("exitfullscreen", () => screen.orientation.lock("natural").catch(() => {}));

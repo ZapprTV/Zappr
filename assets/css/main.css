@@ -69,6 +69,9 @@ html, body {
 .plyr {
     height: 100%;
 }
+.plyr__poster {
+    display: none;
+}
 a {
     cursor: pointer;
 }

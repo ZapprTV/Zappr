@@ -37,6 +37,7 @@ const plyr = new Plyr("#plyr", {
 });
 plyr.on("enterfullscreen", () => screen.orientation.lock("landscape-primary").catch(() => {}));
 plyr.on("exitfullscreen", () => screen.orientation.lock("natural").catch(() => {}));
+plyr.on("loadeddata", () => document.querySelector("#hide-plyr").media = "not all");
 
 const player = (document.querySelector("#plyr")),
       channelslist = (document.querySelector("#channels")),

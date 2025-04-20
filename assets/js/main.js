@@ -126,7 +126,7 @@ const createModal = async (title, text, buttons) => {
     (document.querySelector(".modal")).classList.add("is-visible");
 };
 
-const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand) => {
+const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand, feed) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
@@ -273,7 +273,7 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
                         window.hls = new Hls();
                     };
                     hls.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.details != "fragLoadError") {
+                        if (data.details != "fragLoadError" && !feed) {
                             createErrorModal(
                                 "Errore canale (HLS)",
                                 `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,
@@ -393,7 +393,7 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand)
     };
 };
 
-const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license, ondemand) => {
+const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license, ondemand, feed) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -402,7 +402,7 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 await fetch(`https://apid.sky.it/vdp/v1/getLivestream?id=${parameter}&isMobile=false`)
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.streaming_url, seek, false, name, lcn, logo, false, false);
+                        loadStream(type, json.streaming_url, seek, false, name, lcn, logo, false, false, false);
                     });
                 break;
 
@@ -410,7 +410,7 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}`)
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.main, seek, false, name, lcn, logo, false, false);
+                        loadStream(type, json.main, seek, false, name, lcn, logo, false, false, false);
                     });
                 break;
 
@@ -436,7 +436,7 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 })
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.srcs[0].uniqueStreamer, seek, false, name, lcn, logo, false, false);
+                        loadStream(type, json.srcs[0].uniqueStreamer, seek, false, name, lcn, logo, false, false, false);
                     });
                 break;
 
@@ -447,7 +447,7 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                         const iframeSrc = new DOMParser().parseFromString(json.content.rendered, "text/html").querySelector("iframe").src;
                         const videoId = iframeSrc.replaceAll(new URL(iframeSrc).search, "").split("/")[4];
 
-                        loadStream("youtube", videoId, seek, false, name, lcn, logo, false, false);
+                        loadStream("youtube", videoId, seek, false, name, lcn, logo, false, false, false);
                     });
                 break;
 
@@ -459,12 +459,12 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 await fetch("https://play.xdevel.com/was")
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, `${url}?wmsAuthSign=${json.was}`, seek, false, name, lcn, logo, false, false);
+                        loadStream(type, `${url}?wmsAuthSign=${json.was}`, seek, false, name, lcn, logo, false, false, false);
                     });
                 break;
 
         };
-    } else await loadStream(type, url, seek, api, name, lcn, logo, http, ondemand);
+    } else await loadStream(type, url, seek, api, name, lcn, logo, http, ondemand, feed);
 };
 
 const getChannelLogoURL = (logo) => {
@@ -489,13 +489,14 @@ const addChannels = (channels) => {
     channels.forEach(channel => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
                         <div class="channel-name">${channel.name}</div>
                         ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
                         ${channel.hbbtvmosaic ? `<div class="channel-subtitle">Mosaico HbbTV</div>` : ""}
+                        ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
                     </div>
                     ${channel.hd ? `<div class="hd"></div>` : ""}
                     ${channel.uhd ? `<div class="uhd"></div>` : ""}
@@ -515,12 +516,13 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.ondemand ? `data-ondemand="${subchannel.ondemand}"` : ""}>
+                            ? `<div class="channel ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.ondemand ? `data-ondemand="${subchannel.ondemand}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
                                     <div class="channel-name">${subchannel.name}</div>
                                     ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
+                                    ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
                                 </div>
                                 ${subchannel.hd ? `<div class="hd"></div>` : ""}
                                 ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
@@ -672,16 +674,16 @@ const scheduleProgram = (program) => {
         const timeUntilEnd = endTime.getTime() - now.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false);
+            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false, false, false);
             scheduleProgram(program);
         }, timeUntilEnd);
         
         state.timeouts.set(`${program.title}-end`, endTimeoutId);
-        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"), false);
+        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"), false, false, false);
         state.playingRegional = true;
         return;
     } else if (!state.playingRegional) {
-        loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false);
+        loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false, false, false);
     };
 
     const nextAirTime = getNextAirTime(program);
@@ -691,14 +693,14 @@ const scheduleProgram = (program) => {
     if (timeUntilAir <= 0) return;
 
     const timeoutId = setTimeout(() => {
-        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"), false);
+        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"), false, false, false);
         state.playingRegional = true;
         
         const endTime = new Date(nextAirTime.toDateString() + ' ' + program.to);
         const timeUntilEnd = endTime.getTime() - nextAirTime.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false);
+            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false, false, false);
             scheduleProgram(program);
         }, timeUntilEnd);
         
@@ -786,7 +788,7 @@ document.querySelectorAll(".channel").forEach(el => {
                     return;
                 };
             };
-            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http, el.dataset.license, el.dataset.ondemand);
+            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http, el.dataset.license, el.dataset.ondemand, el.dataset.feed);
         });
     };
 });

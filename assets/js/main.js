@@ -445,9 +445,10 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                     .then(response => response.json())
                     .then(json => {
                         const iframeSrc = new DOMParser().parseFromString(json.content.rendered, "text/html").querySelector("iframe").src;
-                        const videoId = iframeSrc.replaceAll(new URL(iframeSrc).search, "").split("/")[4];
+                        const videoURL = iframeSrc.replaceAll(new URL(iframeSrc).search, "");
+                        const videoId = videoURL.split("/")[4];
 
-                        loadStream("youtube", videoId, seek, false, name, lcn, logo, false, false, false);
+                        loadStream(type, type === "youtube" ? videoId : videoURL.replaceAll("/embed/", "/watch?v="), seek, false, name, lcn, logo, false, false, false);
                     });
                 break;
 

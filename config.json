@@ -12,9 +12,6 @@
         "logos": {
             "host": "https://channels.zappr.stream/logos",
             "optimized": true
-        },
-        "httpPlayer": {
-            "host": "http://http-player.zappr.stream"
         }
     }
 }

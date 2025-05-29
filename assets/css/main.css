@@ -403,6 +403,8 @@ iframe {
 #report-error, .modal-content p {
     min-width: 20rem;
     max-width: 37.5rem;
+    overflow: scroll;
+    max-height: 50vh;
 }
 .modal-buttons {
     margin-bottom: 0.5rem;

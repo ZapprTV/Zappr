@@ -209,24 +209,10 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
             
     };
 
-    let popupPlayerURL = "";
-
-    if (http || type === "popup") {
-        if (http) {
-            popupPlayerURL = `${window.zappr.config.httpPlayer.host}?${new URLSearchParams({
-                type: type,
-                url: url,
-                name: name,
-                lcn: lcn,
-                logo: img.src
-            }).toString()}`;
-        } else if (type === "popup") {
-            popupPlayerURL = url;
-        };
-
+    if (type === "popup") {
         window.popupPlayer = window.open(
-            popupPlayerURL,
-            "httpWindow",
+            url,
+            "popupWindow",
             new URLSearchParams({
                 left: document.querySelector("#channels-column").offsetWidth,
                 top: window.outerHeight - window.innerHeight,
@@ -241,7 +227,7 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
                 `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
                 [{
                     type: "primary",
-                    href: popupPlayerURL,
+                    href: url,
                     newtab: true,
                     text: "Apri in una nuova finestra"
                 },
@@ -273,7 +259,26 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
                         window.hls = new Hls();
                     };
                     hls.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.details != "fragLoadError" && !feed) {
+                        console.log(data.response.code, data.fatal, http)
+                        if (data.response.code === 0 && data.fatal && http) {
+                            createModal("Canali HTTP non attivi",
+                                `Questo è un canale di tipo HTTP. Clicca su "Attiva" qui sotto e segui le istruzioni per attivare la visione di questo tipo di canale.`,
+                                [{
+                                    type: "primary",
+                                    href: `/mixed${
+                                        navigator.userAgent.includes("Firefox") ? "#firefox" :
+                                            navigator.userAgent.includes("Android") ? "#android" : ""
+                                    }`,
+                                    text: "Attiva",
+                                    newtab: true
+                                },
+                                {
+                                    type: "secondary",
+                                    href: "javascript:closeModal();",
+                                    text: "Annulla"
+                                }]
+                            );
+                        } else if (data.details != "fragLoadError" && !feed) {
                             createErrorModal(
                                 "Errore canale (HLS)",
                                 `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,
@@ -461,6 +466,15 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
 
                         loadStream(type, videoURL, seek, false, name, lcn, logo, false, false, false);
                     });
+                break;
+
+            case "persidera":
+                await fetch("https://hbbtv.persidera.it/api/channels?action=getChannels&organizationId=15209")
+                    .then(response => response.json())
+                    .then(json => {
+                        loadStream(type, json.channels.filter(ch => ch.logicalChannel == parameter)[0].urls[0].url, seek, false, name, lcn, logo, false, false, false);
+                    });
+                break;
 
         };
     } else if (license != undefined) {
@@ -500,7 +514,7 @@ const addChannels = (channels) => {
     channels.forEach(channel => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -527,7 +541,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.ondemand ? `data-ondemand="${subchannel.ondemand}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.ondemand ? `data-ondemand="${subchannel.ondemand}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -576,7 +590,8 @@ addChannels(channels);
 
 const returnErrorMessage = (errorCode) => {
     return ({
-        "not-working": "Lo streaming di questo canale non funziona al momento."
+        "not-working": "Lo streaming di questo canale non funziona al momento.",
+        "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS."
     })[errorCode];
 };
 

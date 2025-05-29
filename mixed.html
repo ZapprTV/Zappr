@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            html, body {
+                background: #242424;
+                font-family: monospace;
+                margin: 1rem;
+                color: white;
+            }
+            li {
+                margin: 0.5rem 0;
+            }
+            a {
+                color: lightblue;
+            }
+            img {
+                width: 45rem;
+                max-width: 100%;
+            }
+            li div {
+                display: list-item;
+                list-style-position: inside;
+                list-style-type: disc;
+                padding-left: 1rem;
+            }
+            code {
+                background: black;
+                padding: 0.25rem 0.5rem;
+            }
+        </style>
+        <title>Zappr - Guida canali HTTP</title>
+    </head>
+    <body>
+        <h1>Come guardare i canali HTTP su Zappr</h1>
+        <h2>Desktop</h2>
+        <section id="chrome">
+            <h3>Chrome <i>(o browser derivati, come Opera, Brave, ecc.)</i></h3>
+            <ol>
+                <li>
+                    Clicca sull'icona delle impostazioni in alto a sinistra nella barra degli indirizzi.
+                    <br><br>
+                    <img src="mixed-assets/chrome/1.png">
+                </li>
+                <br>
+                <li>
+                    Nella finestra che compare, clicca su "Impostazioni".
+                    <br><br>
+                    <img src="mixed-assets/chrome/2.png">
+                    <br><br>
+                    <div>
+                        Se poi vedi una schermata come questa, clicca su "Altre impostazioni e autorizzazioni".<br><br><img src="mixed-assets/chrome/2bis.png">
+                    </div>
+                </li>
+                <br>
+                <li value="3">
+                    Scorri giù fino a trovare "Contenuti non sicuri", poi nel menù a tendina corrispondente seleziona "Consenti".
+                    <br><br>
+                    <img src="mixed-assets/chrome/3.png">
+                </li>
+            </ol>
+        </section>
+        <section id="firefox">
+            <h3>Firefox</h3>
+            <ol>
+                <li>
+                    Dopo aver provato a riprodurre un canale HTTP, clicca sull'icona del lucchetto in alto a sinistra nella barra degli indirizzi.
+                    <br><br>
+                    <img src="mixed-assets/firefox/1.png">
+                </li>
+                <br>
+                <li>
+                    Nella finestra che compare, clicca su "Connessione sicura".
+                    <br><br>
+                    <img src="mixed-assets/firefox/2.png">
+                </li>
+                <br>
+                <li value="3">
+                    Clicca su "Disattiva temporaneamente protezione".
+                    <br><br>
+                    <img src="mixed-assets/firefox/3.png">
+                </li>
+            </ol>
+        </section>
+        <h2>Mobile</h2>
+        <section id="android">
+            <h3>Android</h3>
+            Per vedere i canali HTTP su Android, dovrai accedere a Zappr tramite la versione beta o nightly del browser Firefox. L'impostazione che dovrai cambiare per permettere la visione di questi canali renderà il browser <b><i>leggermente</i> meno sicuro</b>, quindi se già usi una di queste versioni di Firefox come browser principale ti consigliamo di accedere a Zappr tramite un'altra variante di Firefox.
+            <ol>
+                <li>Installa <a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox_beta">Firefox Beta</a> o <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix">Firefox Nightly</a>.</li>
+                <li>
+                    Nella barra degli indirizzi, digita "about:config", e nella barra di ricerca in alto a destra inserisci <code>security.mixed_content.block_active_content</code>.
+                    <br><br>
+                    <img src="mixed-assets/android/1.png">
+                </li>
+                <br>
+                <li>
+                    Fai doppio clic su "security.mixed_content.block_active_content". Il valore dovrebbe cambiare da "true" a "false".
+                    <br><br>
+                    <img src="mixed-assets/android/2.png">
+                </li>
+            </ol>
+        </section>
+        <section id="ios">
+            <h3>iOS</h3>
+            I canali HTTP non sono visibili su iOS.
+        </section>
+    </body>
+</html>

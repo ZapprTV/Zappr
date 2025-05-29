@@ -35,10 +35,10 @@
     "mpegts.js": "^1.7.3"
   },
   "devDependencies": {
-    "@parcel/config-default": "^2.15.1",
-    "@parcel/core": "^2.15.1",
-    "@parcel/packager-raw-url": "2.15.1",
-    "@parcel/transformer-webmanifest": "2.15.1",
+    "@parcel/config-default": "^2.15.2",
+    "@parcel/core": "^2.15.2",
+    "@parcel/packager-raw-url": "^2.15.2",
+    "@parcel/transformer-webmanifest": "^2.15.2",
     "isomorphic-git": "^1.25.2",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "serve": "^14.2.4",

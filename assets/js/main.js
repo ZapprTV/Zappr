@@ -91,7 +91,11 @@ Per favore specifica qui sotto se il canale funziona da altre parti (su altri si
     </div>`;
 
     if (document.querySelector(".modal") === null) {
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
+        if (window.matchMedia("(max-width: 1023px) and (orientation: portrait)").matches) {
+            document.body.insertAdjacentHTML("beforeend", modalHTML);
+        } else {
+            plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
+        };
     } else {
         (document.querySelector(".modal")).outerHTML = modalHTML;
     };
@@ -116,7 +120,11 @@ const createModal = async (title, text, buttons) => {
     </div>`;
 
     if (document.querySelector(".modal") === null) {
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
+        if (window.matchMedia("(max-width: 1023px) and (orientation: portrait)").matches) {
+            document.body.insertAdjacentHTML("beforeend", modalHTML);
+        } else {
+            plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
+        };
     } else {
         (document.querySelector(".modal")).outerHTML = modalHTML;
     };
@@ -174,6 +182,8 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
 
     img.addEventListener("load", () => generateMetadataImage());
     if (img.complete) generateMetadataImage();
+
+    if (document.querySelector(".modal.is-visible") != null) document.querySelector(".modal").classList.remove("is-visible");
 
     switch(currentType) {
 
@@ -259,7 +269,6 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
                         window.hls = new Hls();
                     };
                     hls.on(Hls.Events.ERROR, (event, data) => {
-                        console.log(data.response.code, data.fatal, http)
                         if (data.response.code === 0 && data.fatal && http) {
                             createModal("Canali HTTP non attivi",
                                 `Questo è un canale di tipo HTTP. Clicca su "Attiva" qui sotto e segui le istruzioni per attivare la visione di questo tipo di canale.`,

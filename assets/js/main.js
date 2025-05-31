@@ -91,11 +91,7 @@ Per favore specifica qui sotto se il canale funziona da altre parti (su altri si
     </div>`;
 
     if (document.querySelector(".modal") === null) {
-        if (window.matchMedia("(max-width: 1023px) and (orientation: portrait)").matches) {
-            document.body.insertAdjacentHTML("beforeend", modalHTML);
-        } else {
-            plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
-        };
+        plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
     } else {
         (document.querySelector(".modal")).outerHTML = modalHTML;
     };
@@ -120,11 +116,7 @@ const createModal = async (title, text, buttons) => {
     </div>`;
 
     if (document.querySelector(".modal") === null) {
-        if (window.matchMedia("(max-width: 1023px) and (orientation: portrait)").matches) {
-            document.body.insertAdjacentHTML("beforeend", modalHTML);
-        } else {
-            plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
-        };
+        plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
     } else {
         (document.querySelector(".modal")).outerHTML = modalHTML;
     };
@@ -1094,7 +1086,6 @@ installButton.addEventListener("click", async e => {
 window.addEventListener("appinstalled", () => {
     disableInAppInstallPrompt();
 });
-
 
 window["closeModal"] = () => {
     document.querySelector(".modal").classList.remove("is-visible");

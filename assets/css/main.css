@@ -666,6 +666,9 @@ a#reopen-window svg {
     margin-left: 1rem;
 }
 @media screen and (max-width: 1023px) and (orientation: portrait) {
+    .modal {
+        position: fixed;
+    }
     #channels-column {
         display: flex !important;
         flex-direction: column !important;

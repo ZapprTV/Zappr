@@ -477,6 +477,16 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                     });
                 break;
 
+            case "rubidia":
+                if (url.split("/")[4] === "selector") {
+                    await fetch(`https://hbbtv.rubidia.it/API/v3/Frontend/${parameter}/Launcher/${url.split("/")[5]}`)
+                        .then(response => response.json())
+                        .then(json => {
+                            const videoURL = json.Data.Buttons.filter(el => el[0].Id == url.split("/")[6])[0][0].Media.HLS;
+                            loadStream(type, videoURL, seek, false, name, lcn, logo, false, false, false);
+                        });
+                }
+
         };
     } else if (license != undefined) {
         switch(license) {

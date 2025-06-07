@@ -186,7 +186,8 @@ a {
     height: 1.5rem;
     bottom: 0;
     width: auto;
-    background: #111111;
+    /* background: #111111; */
+    background: linear-gradient(90deg, hsla(0, 100%, 25%, 1) 0%, hsla(33, 100%, 25%, 1) 10%, hsla(67, 76%, 25%, 1) 20%, hsla(114, 63%, 25%, 1) 30%, hsla(179, 70%, 25%, 1) 40%, hsla(188, 74%, 25%, 1) 50%, hsla(213, 81%, 25%, 1) 60%, hsla(258, 91%, 25%, 1) 70%, hsla(288, 90%, 25%, 1) 80%, hsla(315, 96%, 25%, 1) 90%, hsla(0, 100%, 25%, 1) 100%);
     font-size: 1.325rem;
     font-weight: 700;
     display: flex;

@@ -1,11 +1,20 @@
-<h2 align="center"><i>ATTENZIONE: ZAPPR È ANCORA IN BETA.</i></h2>
-<h4 align="center">Inoltre, questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</h4>
+<h2 align="center">ATTENZIONE: ZAPPR È ANCORA IN BETA.</h2>
+<div align="center"><b>Inoltre, questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</b></div>
+<br><br>
+<div align="center">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="readme-assets/logo-dark.svg" />
+        <source media="(prefers-color-scheme: light)" srcset="readme-assets/logo-light.svg" />
+        <img alt="Zappr" src="readme-assets/logo-light.svg" width="50%" />
+    </picture>
+    <br>
+    <b><i>Guarda facilmente il digitale terrestre italiano, nazionale e locale.</i></b>
+</div>
 <br>
-<img width="100%" src="readme-assets/header.svg" max>
 <img width="100%" src="readme-assets/demo.gif">
 <h1 align="center">🎉 Provalo subito su <a href="https://zappr.stream">zappr.stream</a>! 🎉</h1>
 
-### _[[Salta alle informazioni sullo sviluppo](#informazioni-sullo-sviluppo-locale)]_
+### _[Salta alle informazioni sullo sviluppo](#informazioni-sullo-sviluppo-locale)_
 
 Con Zappr, puoi vedere facilmente il digitale terrestre, nazionale e della tua regione, gratuitamente e senza dover configurare niente! Non serve più andare a rintracciare liste e client IPTV fino a trovare qualcosa che funziona *abbastanza* bene - adesso guardare la TV in streaming è **facile**!
 

@@ -29,34 +29,46 @@ let currentType = "",
     targetedChannel = "",
     target = "";
 
-const plyr = new Plyr("#plyr", {
-    fullscreen: {
-        iosNative: true
+const player = videojs("tv", {
+    playbackRates: [0.25, 0.5, 1, 1.25, 1.5, 2, 4],
+    enableSmoothSeeking: true,
+    liveui: true,
+    retryOnError: true,
+    controlBar: {
+        skipButtons: {
+            backward: 5,
+            forward: 5
+        }
     },
-    disableContextMenu: false
+    errorDisplay: false,
+    html5: {
+        vhs: {
+            overrideNative: true,
+            useBandwidthFromLocalStorage: true
+        }
+    }
 });
-plyr.on("enterfullscreen", () => screen.orientation.lock("landscape-primary").catch(() => {}));
-plyr.on("exitfullscreen", () => screen.orientation.lock("natural").catch(() => {}));
-plyr.on("loadeddata", () => document.querySelector("#hide-plyr").media = "not all");
+window.player = player;
+player.qualityMenu();
+player.reloadSourceOnError();
+player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
+player.on("loadeddata", () => {
+    document.querySelector("#hide-player").media = "not all";
+});
 
-const player = (document.querySelector("#plyr")),
-      channelslist = (document.querySelector("#channels")),
-      plyrContainer = (document.querySelector(".plyr")),
-      plyrHideControls = (document.querySelector("#hide-controls")),
-      iframeControls = (document.querySelector("#iframe-controls")),
-      iframe = (document.querySelector("iframe")),
-      hideProgress = (document.querySelector("#hide-progress")),
+const channelslist = document.querySelector("#channels"),
+      overlays = document.querySelector("#overlays"),
+      iframe = document.querySelector("iframe"),
       nightAdultChannelsStyle = document.querySelector("#night-adult-channels");
 
-plyrContainer.insertAdjacentHTML("beforeend", `<div id="lcn-typing">
-    <div id="lcn-typed"></div>
-    <div id="controls">
-        Invio per confermare<br>
-        o Esc per annullare
-    </div>
-</div>`);
+window["closeModal"] = () => {
+    if (document.querySelector(".modal") != null) {
+        document.querySelector(".modal").classList.remove("is-visible");
+        document.querySelector(".modal").remove();
+    };
+};
 
-const createErrorModal = async (title, error, info, params) => {
+const createErrorModal = async ({ title, error, info, params }) => {
     let urlParams = new URLSearchParams(params).toString();
     const modalHTML = `<div class="modal">
         <div class="modal-content">
@@ -65,11 +77,13 @@ const createErrorModal = async (title, error, info, params) => {
                 <div class="close" onclick="closeModal()"></div>
             </div>
             <p>${error}</p>
+            ${info != undefined ? `
             <div class="technical-info">
                 <h3>Informazioni tecniche</h3>
                 <a onclick="copyInfo()">Copia</a>
             </div>
-            <div class="code" onclick="copyInfo()">${info}</div>
+            <div class="code" onclick="copyInfo()">${info}</div>    
+            ` : ""}
             <p id="report-error">Per favore segnala questo errore via GitHub o email. Cliccando su uno dei pulsanti qui sotto le informazioni principali dell'errore verranno compilate automaticamente.</p>
             <div class="modal-buttons">
                 <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new?${urlParams}" target="_blank">
@@ -91,17 +105,17 @@ Per favore specifica qui sotto se il canale funziona da altre parti (su altri si
     </div>`;
 
     if (document.querySelector(".modal") === null) {
-        plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
+        overlays.insertAdjacentHTML("beforeend", modalHTML);
     } else {
-        (document.querySelector(".modal")).outerHTML = modalHTML;
+        document.querySelector(".modal").outerHTML = modalHTML;
     };
 
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    (document.querySelector(".modal")).classList.add("is-visible");
+    document.querySelector(".modal").classList.add("is-visible");
 };
 
-const createModal = async (title, text, buttons) => {
+const createModal = async ({ title, text, buttons }) => {
     const modalHTML = `<div class="modal">
         <div class="modal-content">
             <div class="modal-title">
@@ -116,20 +130,131 @@ const createModal = async (title, text, buttons) => {
     </div>`;
 
     if (document.querySelector(".modal") === null) {
-        plyrContainer.insertAdjacentHTML("beforeend", modalHTML);
+        overlays.insertAdjacentHTML("beforeend", modalHTML);
     } else {
-        (document.querySelector(".modal")).outerHTML = modalHTML;
+        document.querySelector(".modal").outerHTML = modalHTML;
     };
 
     await new Promise(resolve => setTimeout(resolve, 1));
 
-    (document.querySelector(".modal")).classList.add("is-visible");
+    document.querySelector(".modal").classList.add("is-visible");
 };
 
-const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand, feed) => {
+const loadStream = async ({ type, url, api = false, name, lcn, logo, http = false, feed = false }) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
+
+    closeModal();
+    player.off("error");
+    player.on("error", async () => {
+        closeModal();
+        if (!feed) {
+            if (player.error().code === 2 && http) {
+                createModal({
+                    title: "Canali HTTP non attivi",
+                    text: `Questo è un canale di tipo HTTP. Clicca su "Attiva" qui sotto e segui le istruzioni per attivare la visione di questo tipo di canale.`,
+                    buttons: [{
+                        type: "primary",
+                        href: `/mixed${
+                            navigator.userAgent.includes("Firefox") ? "#firefox" :
+                                navigator.userAgent.includes("Android") ? "#android" : ""
+                        }`,
+                        text: "Attiva",
+                        newtab: true
+                    },
+                    {
+                        type: "secondary",
+                        href: "javascript:closeModal();",
+                        text: "Annulla"
+                    }]
+                });
+            } else if (player.error().code === 4) {
+                let httpError;
+
+                await fetch(player.src())
+                    .then(response => httpError = `${response.status} ${response.statusText}`)
+                    .catch(() => {});
+
+                createErrorModal({
+                    title: "Errore canale",
+                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un problema di formato/server${httpError ? `: <b>${httpError}</b>` : " sconosciuto."}`,
+                    params: {
+                        template: "errore.yml",
+                        labels: "Errore",
+                        title: `${lcn} - ${name}: Errore formato/server (${httpError ? httpError : "sconosciuto"})`,
+                        name: name,
+                        lcn: lcn,
+                        info: `MEDIA_ERR_SRC_NOT_SUPPORTED: ${httpError ? httpError : "Errore sconosciuto."}`
+                    }
+                });
+            } else if (player.error().code === 3 && !(new URL(url).host.endsWith("-dash-live.akamaized.net") && new URL(url).host.startsWith("rai")) && lcn != 3) {
+                let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
+
+                createErrorModal({
+                    title: "Errore canale",
+                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un problema di decoding.`,
+                    info: videojsLog,
+                    params: {
+                        template: "errore.yml",
+                        labels: "Errore",
+                        title: `${lcn} - ${name}: Errore decoding`,
+                        name: name,
+                        lcn: lcn,
+                        info: videojsLog
+                    }
+                });
+            } else if (player.error().code === 2) {
+                let httpError;
+
+                await fetch(player.src())
+                    .then(response => httpError = `${response.status} ${response.statusText}`)
+                    .catch(() => {});
+
+                createErrorModal({
+                    title: "Errore canale",
+                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un problema di server${httpError ? `: <b>${httpError}</b>` : " sconosciuto."}`,
+                    params: {
+                        template: "errore.yml",
+                        labels: "Errore",
+                        title: `${lcn} - ${name}: Errore server (${httpError ? httpError : "sconosciuto"})`,
+                        name: name,
+                        lcn: lcn,
+                        info: `MEDIA_ERR_NETWORK: ${httpError ? httpError : "Errore sconosciuto."}`
+                    }
+                });
+            } else {
+                let errors = {
+                    1: "MEDIA_ERR_ABORTED",
+                    2: "MEDIA_ERR_NETWORK",
+                    3: "MEDIA_ERR_DECODE",
+                    4: "MEDIA_ERR_SRC_NOT_SUPPORTED",
+                    5: "MEDIA_ERR_ENCRYPTED"
+                };
+                let httpStatus;
+
+                await fetch(player.src())
+                    .then(response => httpStatus = `${response.status} ${response.statusText}`)
+                    .catch(() => {});
+
+                let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
+                
+                createErrorModal({
+                    title: "Errore canale",
+                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un errore sconosciuto.`,
+                    info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`,
+                    params: {
+                        template: "errore.yml",
+                        labels: "Errore",
+                        title: `${lcn} - ${name}: Errore sconosciuto`,
+                        name: name,
+                        lcn: lcn,
+                        info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`
+                    }
+                });
+            };
+        };
+    });
 
     document.title = `${name} - Zappr`;
     const img = document.querySelector(`img[src="${logo}"]`);
@@ -178,56 +303,41 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
     if (document.querySelector(".modal.is-visible") != null) document.querySelector(".modal").classList.remove("is-visible");
 
     switch(currentType) {
-
-        case "hls":
-            hls.destroy();
-            break;
-
-        case "dash":
-            dash.reset();
-            break;
-
-        case "flv":
-            mpegtsPlayer.destroy();
-            break;
-
         case "twitch":
         case "youtube":
         case "iframe":
-            plyrHideControls.media = "not all";
-            document.querySelector("iframe").remove();
-            break;
-            
-        case "direct":
-            plyr.toggleControls();
-            player.src = "";
+            if (!["twitch", "youtube", "iframe"].includes(type)) document.querySelector("iframe").remove();
+            if (currentType === "iframe" && type != "iframe") {
+                document.querySelector("#fullscreen-button-container").remove();
+            };
             break;
 
         case "popup":
             document.querySelector("#reopen-window").remove();
-            document.querySelector(".plyr > button").classList.remove("is-hidden");
+            document.querySelector(".vjs-big-play-button").style.cssText = "";
             popupPlayer.close();
             break;
             
     };
 
     if (type === "popup") {
+        player.reset();
         window.popupPlayer = window.open(
             url,
             "popupWindow",
             new URLSearchParams({
                 left: document.querySelector("#channels-column").offsetWidth,
                 top: window.outerHeight - window.innerHeight,
-                width: document.querySelector("#tv").offsetWidth,
+                width: window.innerWidth - document.querySelector("#channels-column").offsetWidth,
                 height: window.innerHeight - (window.outerHeight - window.innerHeight)
             }).toString().replaceAll("&", ",")
         );
 
         if (!popupPlayer) {
-            createModal(
-                "Accesso ai popup negato",
-                `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
-                [{
+            createModal({
+                title: "Accesso ai popup negato",
+                text: `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
+                buttons: [{
                     type: "primary",
                     href: url,
                     newtab: true,
@@ -238,168 +348,87 @@ const loadStream = async (type, url, seek, api, name, lcn, logo, http, ondemand,
                     href: "javascript:closeModal();",
                     text: "Chiudi"
                 }]
-            );
+            });
         };
         window.addEventListener("unload", () => popupPlayer.close());
-        document.querySelector("#tv").insertAdjacentHTML("afterbegin", `<a href="#" id="reopen-window"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h6q.425 0 .713.288T12 4t-.288.713T11 5H5v14h14v-6q0-.425.288-.712T20 12t.713.288T21 13v6q0 .825-.587 1.413T19 21zM19 6.4L10.4 15q-.275.275-.7.275T9 15t-.275-.7t.275-.7L17.6 5H15q-.425 0-.712-.288T14 4t.288-.712T15 3h5q.425 0 .713.288T21 4v5q0 .425-.288.713T20 10t-.712-.288T19 9z"/></svg>Riapri player</a>`);
+        document.querySelector("#overlays").insertAdjacentHTML("afterbegin", `<a href="#" id="reopen-window"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h6q.425 0 .713.288T12 4t-.288.713T11 5H5v14h14v-6q0-.425.288-.712T20 12t.713.288T21 13v6q0 .825-.587 1.413T19 21zM19 6.4L10.4 15q-.275.275-.7.275T9 15t-.275-.7t.275-.7L17.6 5H15q-.425 0-.712-.288T14 4t.288-.712T15 3h5q.425 0 .713.288T21 4v5q0 .425-.288.713T20 10t-.712-.288T19 9z"/></svg>Riapri player</a>`);
         document.querySelector("#reopen-window").addEventListener("click", () => {
             if (popupPlayer.closed) document.querySelector(".channel.watching").click()
             else popupPlayer.focus();
         });
-        document.querySelector(".plyr > button").classList.add("is-hidden");
+        document.querySelector(".vjs-big-play-button").style.cssText = "display: none !important";
 
         currentType = "popup";
     } else {
         switch(type) {
             case "hls":
-                if (!Hls.isSupported()) {
-                    player.src = url;
-                } else {
-                    if (typeof(hls) != "undefined" && hls.url != null) {
-                        hls.detachMedia();
-                    } else {
-                        window.hls = new Hls();
-                    };
-                    hls.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.response.code === 0 && data.fatal && http) {
-                            createModal("Canali HTTP non attivi",
-                                `Questo è un canale di tipo HTTP. Clicca su "Attiva" qui sotto e segui le istruzioni per attivare la visione di questo tipo di canale.`,
-                                [{
-                                    type: "primary",
-                                    href: `/mixed${
-                                        navigator.userAgent.includes("Firefox") ? "#firefox" :
-                                            navigator.userAgent.includes("Android") ? "#android" : ""
-                                    }`,
-                                    text: "Attiva",
-                                    newtab: true
-                                },
-                                {
-                                    type: "secondary",
-                                    href: "javascript:closeModal();",
-                                    text: "Annulla"
-                                }]
-                            );
-                        } else if (data.details != "fragLoadError" && !feed) {
-                            createErrorModal(
-                                "Errore canale (HLS)",
-                                `Impossibile caricare <b>${name}</b> <i>(${data.response.url})</i>: ${data.response.code} ${data.response.text}`,
-                                JSON.stringify(data),
-                                {
-                                    template: "hls.yml",
-                                    labels: "Errore,HLS",
-                                    title: `${lcn} - ${name}: ${data.response.code} ${data.response.text}`,
-                                    name: name,
-                                    lcn: lcn,
-                                    info: JSON.stringify(data)
-                                }
-                            );
-                        };
-                    });
-                    hls.loadSource(url);
-                    hls.attachMedia(player);
-                };
-                player.play();
-                break;
-
             case "dash":
-                window.dash = dashjs.MediaPlayer().create();
-                dash.initialize(player, url, true);
-                dash.on("error", event => createErrorModal(
-                    "Errore canale (DASH)",
-                    `Impossibile caricare <b>${name}</b> <i>(${url})</i>: ${event.error.data.response.status} ${event.error.data.response.statusText}`,
-                    JSON.stringify(event),
-                    {
-                        template: "dash.yml",
-                        labels: "Errore,DASH",
-                        title: `${lcn} - ${name}: ${event.error.data.response.status} ${event.error.data.response.statusText}`,
-                        name: name,
-                        lcn: lcn,
-                        info: JSON.stringify(event)
-                    })
-                );
-                
-                break;
-
-            case "flv":
-                window.mpegtsPlayer = mpegts.createPlayer({
-                    type: "flv",
-                    isLive: true,
-                    url: url
+            case "audio":
+                player.src({
+                    src: url,
+                    type: type === "hls" ? "application/x-mpegURL"
+                        : type === "dash" ? "application/dash+xml"
+                        : type === "audio" ? "audio/mpeg"
+                        : ""
                 });
-
-                mpegtsPlayer.attachMediaElement(player)
-                mpegtsPlayer.load();
-                mpegtsPlayer.play();
-                break;
-
-            case "twitch":
-                plyrHideControls.media = "";
-                player.play();
-                new Twitch.Player(plyrContainer, {
-                    width: "100%",
-                    height: "100%",
-                    channel: url,
-                    parent: ["twitch.tv"]
-                });
-                break;
-
-            case "youtube":
-                plyrHideControls.media = "";
-                player.play();
-                const youtubeIFrame = document.createElement("iframe");
-                if (url.startsWith("UC") && url.length > 11) {
-                    youtubeIFrame.src = `https://www.youtube-nocookie.com/embed/live_stream?channel=${url}&autoplay=1&modestbranding=1&rel=0&hl=it-it`;
-                } else {
-                    youtubeIFrame.src = `https://www.youtube-nocookie.com/embed/${url}?autoplay=1&modestbranding=1&rel=0&hl=it-it`;
-                };
-                youtubeIFrame.allowFullscreen = true;
-                youtubeIFrame.allow = "autoplay";
-                plyrContainer.insertAdjacentElement("afterbegin", youtubeIFrame);
-                break;
-
-            case "iframe":
-                plyrHideControls.media = "";
-                player.play();
-                const iframe = document.createElement("iframe");
-                iframe.src = url;
-                iframe.allowFullscreen = true;
-                iframe.allow = "autoplay";
-                iframe.scrolling = "no";
-                plyrContainer.insertAdjacentElement("afterbegin", iframe);
                 break;
 
             case "direct":
-                player.addEventListener("error", e => {
-                    if (currentType === "direct") {
-                        createErrorModal(
-                            "Errore canale (Diretto)",
-                            `Impossibile caricare <b>${name}</b> <i>(${url})</i>.`,
-                            "Nessun'informazione disponibile",
-                            {
-                                template: "diretto.yml",
-                                labels: "Errore,Diretto",
-                                title: `${lcn} - ${name}`,
-                                name: name,
-                                lcn: lcn,
-                                info: url
-                            }
-                        );
+                player.src(url);
+                break;
+
+            case "twitch":
+            case "youtube":
+            case "iframe":
+                if (!["twitch", "youtube", "iframe"].includes(currentType)) player.reset();
+                
+                let iframe;
+                if (document.querySelector("iframe") === null) {
+                    iframe = document.createElement("iframe");
+                } else {
+                    iframe = document.querySelector("iframe");
+                };
+                
+                iframe.allowFullscreen = true;
+                iframe.allow = "autoplay";
+                iframe.scrolling = "no";
+                if (type === "twitch") {
+                    iframe.src = `https://player.twitch.tv/?channel=${url}&parent=${location.hostname}`;
+                } else if (type === "youtube") {
+                    if (url.startsWith("UC") && url.length > 11) {
+                        iframe.src = `https://www.youtube-nocookie.com/embed/live_stream?channel=${url}&autoplay=1&modestbranding=1&rel=0&hl=it-it`;
+                    } else {
+                        iframe.src = `https://www.youtube-nocookie.com/embed/${url}?autoplay=1&modestbranding=1&rel=0&hl=it-it`;
                     };
-                });
-                player.src = url;
-                player.play();
+                } else if (type === "iframe") {
+                    iframe.src = url;
+                    if (document.querySelector("#fullscreen-button-container") === null) {
+                        const fullscreenButtonContainer = document.createElement("div");
+                        fullscreenButtonContainer.id = "fullscreen-button-container";
+                        const fullscreenButton = document.createElement("div");
+                        fullscreenButton.id = "fullscreen-button";
+                        fullscreenButtonContainer.insertAdjacentElement("afterbegin", fullscreenButton);
+                        fullscreenButton.addEventListener("click", () => {
+                            if (document.fullscreenElement === null) {
+                                overlays.requestFullscreen();
+                            } else {
+                                document.exitFullscreen();
+                            };
+                        })
+
+                        overlays.insertAdjacentElement("beforeend", fullscreenButtonContainer);
+                    };
+                };
+
+                if (document.querySelector("iframe") === null) overlays.insertAdjacentElement("afterbegin", iframe);
+                break;
         };
         currentType = type;
-    };
-
-    if (seek === "false" || type === "dash" || type === "flv" || (type === "direct" && ondemand != "true")) {
-        hideProgress.media = "";
-    } else {
-        hideProgress.media = "not all";
+        player.play();
     };
 };
 
-const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license, ondemand, feed) => {
+const loadChannel = async ({ type, url, api = false, name, lcn, logo, http = false, license = false, feed = false }) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -408,7 +437,13 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 await fetch(`https://apid.sky.it/vdp/v1/getLivestream?id=${parameter}&isMobile=false`)
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.streaming_url, seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: json.streaming_url,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
@@ -416,7 +451,13 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}`)
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.main, seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: json.main,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
@@ -442,7 +483,13 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 })
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.srcs[0].uniqueStreamer, seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: json.srcs[0].uniqueStreamer,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
@@ -454,7 +501,13 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                         const videoURL = iframeSrc.replaceAll(new URL(iframeSrc).search, "");
                         const videoId = videoURL.split("/")[4];
 
-                        loadStream(type, type === "youtube" ? videoId : videoURL.replaceAll("/embed/", "/watch?v="), seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: type === "youtube" ? videoId : videoURL.replaceAll("/embed/", "/watch?v="),
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
@@ -463,9 +516,14 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                     .then(response => response.text())
                     .then(text => {
                         const xml = new DOMParser().parseFromString(text, "application/xml");
-                        const videoURL = xml.querySelector("url").textContent;
 
-                        loadStream(type, videoURL, seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: xml.querySelector("url").textContent,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
@@ -473,7 +531,13 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                 await fetch("https://hbbtv.persidera.it/api/channels?action=getChannels&organizationId=15209")
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, json.channels.filter(ch => ch.logicalChannel == parameter)[0].urls[0].url, seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: json.channels.filter(ch => ch.logicalChannel == parameter)[0].urls[0].url,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
@@ -482,25 +546,38 @@ const loadChannel = async (type, url, seek, api, name, lcn, logo, http, license,
                     await fetch(`https://hbbtv.rubidia.it/API/v3/Frontend/${parameter}/Launcher/${url.split("/")[5]}`)
                         .then(response => response.json())
                         .then(json => {
-                            const videoURL = json.Data.Buttons.filter(el => el[0].Id == url.split("/")[6])[0][0].Media.HLS;
-                            loadStream(type, videoURL, seek, false, name, lcn, logo, false, false, false);
+                            loadStream({
+                                type: type,
+                                url: json.Data.Buttons.filter(el => el[0].Id == url.split("/")[6])[0][0].Media.HLS,
+                                name: name,
+                                lcn: lcn,
+                                logo: logo
+                            });
                         });
                 }
 
         };
-    } else if (license != undefined) {
+    } else if (license) {
         switch(license) {
             
             case "xdevel-wms":
                 await fetch("https://play.xdevel.com/was")
                     .then(response => response.json())
                     .then(json => {
-                        loadStream(type, `${url}?wmsAuthSign=${json.was}`, seek, false, name, lcn, logo, false, false, false);
+                        loadStream({
+                            type: type,
+                            url: `${url}?wmsAuthSign=${json.was}`,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
                     });
                 break;
 
         };
-    } else await loadStream(type, url, seek, api, name, lcn, logo, http, ondemand, feed);
+    } else {
+        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, http: http, feed: feed })
+    };
 };
 
 const getChannelLogoURL = (logo) => {
@@ -525,7 +602,7 @@ const addChannels = (channels) => {
     channels.forEach(channel => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.ondemand ? `data-ondemand="${channel.ondemand}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -536,7 +613,7 @@ const addChannels = (channels) => {
                     </div>
                     ${channel.hd ? `<div class="hd"></div>` : ""}
                     ${channel.uhd ? `<div class="uhd"></div>` : ""}
-                    ${channel.radio ? `<div class="radio"></div>` : ""}
+                    ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
                     ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
                     ${channel.type === "popup" ? `<div class="external"></div>` : ""}
                     ${channel.adult === true ? `<div class="adult-marker"></div>`
@@ -552,7 +629,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.ondemand ? `data-ondemand="${subchannel.ondemand}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -562,7 +639,7 @@ const addChannels = (channels) => {
                                 </div>
                                 ${subchannel.hd ? `<div class="hd"></div>` : ""}
                                 ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
-                                ${subchannel.radio ? `<div class="radio"></div>` : ""}
+                                ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
                                 ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
                                 ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
                                 ${subchannel.adult === true ? `<div class="adult-marker"></div>`
@@ -607,11 +684,12 @@ const returnErrorMessage = (errorCode) => {
 };
 
 const adultChannelConfirmation = async (night = false) => {
-    createModal("Attenzione!",
-        `${night ? `In questa fascia oraria (23:00 - 07:00), questo canale potrebbe trasmettere contenuti vietati ai minori di 18 anni.`
+    createModal({
+        title: "Attenzione!",
+        text: `${night ? `In questa fascia oraria (23:00 - 07:00), questo canale potrebbe trasmettere contenuti vietati ai minori di 18 anni.`
             : `Questo canale trasmette contenuti vietati ai minori di 18 anni.`}
             <br><br>Cliccando sul pulsante <b>Continua</b> qui sotto, confermi di essere consapevole della natura del materiale trasmesso e di avere l'età necessaria per poter guardarlo. Inoltre, accetti di assumerti la piena responsabilità della visione di questo canale, esonerando Zappr e i suoi affiliati da qualsiasi conseguenza derivante da un uso improprio o non autorizzato.<br><br><b>Continuare?</b>`,
-        [{
+        buttons: [{
             type: "primary",
             href: "#",
             text: "Continua"
@@ -621,7 +699,7 @@ const adultChannelConfirmation = async (night = false) => {
             href: "javascript:closeModal();",
             text: "Annulla"
         }]
-    );
+    });
 
     document.querySelector(".modal .button.primary").addEventListener("click", () => {
         window.sessionStorage.setItem(`${night ? "nightAdult" : "adult"}ChannelConfirmation`, true);
@@ -711,16 +789,34 @@ const scheduleProgram = (program) => {
         const timeUntilEnd = endTime.getTime() - now.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false, false, false);
+            loadStream({
+                type: "dash",
+                url: channels.filter(el => el.lcn === 103)[0].url,
+                name: "Rai 3",
+                lcn: 103,
+                logo: getChannelLogoURL("rai3.svg")
+            });
             scheduleProgram(program);
         }, timeUntilEnd);
         
         state.timeouts.set(`${program.title}-end`, endTimeoutId);
-        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"), false, false, false);
+        loadStream({
+            type: "dash",
+            url: channels.filter(el => el.lcn === 3)[0].url,
+            name: channels.filter(el => el.lcn === 3)[0].name,
+            lcn: 3,
+            logo: getChannelLogoURL("rai3.svg")
+        });
         state.playingRegional = true;
         return;
     } else if (!state.playingRegional) {
-        loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false, false, false);
+        loadStream({
+            type: "dash",
+            url: channels.filter(el => el.lcn === 103)[0].url,
+            name: "Rai 3",
+            lcn: 103,
+            logo: getChannelLogoURL("rai3.svg")
+        });
     };
 
     const nextAirTime = getNextAirTime(program);
@@ -730,14 +826,26 @@ const scheduleProgram = (program) => {
     if (timeUntilAir <= 0) return;
 
     const timeoutId = setTimeout(() => {
-        loadStream("dash", channels.filter(el => el.lcn === 3)[0].url, false, false, channels.filter(el => el.lcn === 3)[0].name, 3, getChannelLogoURL("rai3.svg"), false, false, false);
+        loadStream({
+            type: "dash",
+            url: channels.filter(el => el.lcn === 3)[0].url,
+            name: channels.filter(el => el.lcn === 3)[0].name,
+            lcn: 3,
+            logo: getChannelLogoURL("rai3.svg")
+        });
         state.playingRegional = true;
         
         const endTime = new Date(nextAirTime.toDateString() + ' ' + program.to);
         const timeUntilEnd = endTime.getTime() - nextAirTime.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream("dash", channels.filter(el => el.lcn === 103)[0].url, false, false, "Rai 3", 103, getChannelLogoURL("rai3.svg"), false, false, false);
+            loadStream({
+                type: "dash",
+                url: channels.filter(el => el.lcn === 103)[0].url,
+                name: "Rai 3",
+                lcn: 103,
+                logo: getChannelLogoURL("rai3.svg")
+            });
             scheduleProgram(program);
         }, timeUntilEnd);
         
@@ -798,9 +906,9 @@ document.querySelectorAll(".channel").forEach(el => {
             };
 
             if (el.classList.contains("hbbtv-app")) {
-                plyrContainer.classList.add("hbbtv-app");
-            } else if (plyrContainer.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
-                plyrContainer.classList.remove("hbbtv-app");
+                overlays.classList.add("hbbtv-app");
+            } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
+                overlays.classList.remove("hbbtv-app");
             };
 
             if (document.querySelector(".watching") != null) {
@@ -825,7 +933,17 @@ document.querySelectorAll(".channel").forEach(el => {
                     return;
                 };
             };
-            await loadChannel(el.dataset.type, el.dataset.url, el.dataset.seek, el.dataset.api, el.dataset.name, el.dataset.lcn, el.dataset.logo, el.dataset.http, el.dataset.license, el.dataset.ondemand, el.dataset.feed);
+            await loadChannel({
+                type: el.dataset.type,
+                url: el.dataset.url,
+                api: el.dataset.api,
+                name: el.dataset.name,
+                lcn: el.dataset.lcn,
+                logo: el.dataset.logo,
+                http: el.dataset.http,
+                license: el.dataset.license,
+                feed: el.dataset.feed
+            });
         });
     };
 });
@@ -833,7 +951,7 @@ document.querySelectorAll(".hbbtv-enabler").forEach(el => {
     el.addEventListener("click", () => el.classList.toggle("clicked"));
 });
 
-window.selectChannel = (channel, zapping) => {
+const selectChannel = (channel, zapping) => {
     try {
         if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`.channel[data-lcn="${channel}"]`);
         else if (typeof(channel) === "object") targetedChannel = channel;
@@ -1033,11 +1151,6 @@ const keydownHandler = (e) => {
 };
 
 window.addEventListener("keydown", keydownHandler);
-plyrContainer.addEventListener("keydown", keydownHandler);
-
-document.querySelector('[data-plyr="fullscreen"]').addEventListener("focus", () => {
-    document.querySelector('[data-plyr="fullscreen"]').blur();
-});
 
 document.querySelectorAll(".tooltip").forEach(el => {
     el.addEventListener("click", () => {
@@ -1096,10 +1209,6 @@ installButton.addEventListener("click", async e => {
 window.addEventListener("appinstalled", () => {
     disableInAppInstallPrompt();
 });
-
-window["closeModal"] = () => {
-    document.querySelector(".modal").classList.remove("is-visible");
-};
 
 window["copyInfo"] = () => {
     document.querySelector(".modal .technical-info a").innerText = "Copiato!";

@@ -27,7 +27,7 @@ html, body {
     width: 100vw;
     height: 100%;
     overflow: hidden;
-    background-color: #242424;
+    background-color: #000;
     color: white;
     margin: 0;
 }
@@ -66,12 +66,6 @@ html, body {
     line-height: 1.5rem;
     letter-spacing: -0.5px;
 }
-.plyr {
-    height: 100%;
-}
-.plyr__poster {
-    display: none;
-}
 a {
     cursor: pointer;
 }
@@ -83,9 +77,18 @@ a {
 #tv {
     background: #000;
 }
-#plyr {
-    width: 100%;
-    height: 100%;
+.vjs-menu-content {
+    overflow-x: hidden !important;
+}
+#overlays {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    pointer-events: none;
+}
+#overlays * {
+    pointer-events: all;
 }
 .channel {
     height: auto;
@@ -98,7 +101,11 @@ a {
 .channel:not(:last-of-type) {
     border-bottom: 2px #373737 solid;
 }
+#channels-column {
+    z-index: 1;
+}
 #channels {
+    background-color: #242424;
     height: calc(100% - 3rem);
     overflow-y: scroll;
 }
@@ -224,6 +231,8 @@ a {
 }
 iframe {
     border: 0;
+    width: 100%;
+    height: 100%;
 }
 #lcn-typing {
     display: none;
@@ -303,34 +312,30 @@ iframe {
     border-radius: 1rem;
 }
 .modal, .modal-content {
-    transition: 500ms all;
+    transition: 400ms;
 }
 .modal {
-    width: 0;
-    height: 0;
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 0;
+    left: 0;
     backdrop-filter: blur(5px);
     display: flex;
     justify-content: center;
     align-items: center;
     opacity: 0;
+    width: 100%;
+    height: 100%;
 }
 .modal.is-visible {
     opacity: 1;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
     z-index: 3;
 }
 .modal.is-visible .modal-content {
     transform: scale(1);
 }
 .modal-content {
-    transform: scale(0);
-    background: #121212;
+    transform: scale(0.8);
+    background: #000;
     padding: 1.5rem;
     border-radius: 0.25rem;
     max-width: min(80vw, 100%);
@@ -347,6 +352,7 @@ iframe {
     width: 24px;
     height: 24px;
     cursor: pointer;
+    display: none;
 }
 .close::before, .close::after {
     position: relative;
@@ -395,7 +401,7 @@ iframe {
     background: #000;
     padding: 1rem;
     max-width: 37.5rem;
-    overflow-x: scroll;
+    overflow-x: auto;
     max-height: 25vh;
 }
 .modal-content i {
@@ -404,7 +410,7 @@ iframe {
 #report-error, .modal-content p {
     min-width: 20rem;
     max-width: 37.5rem;
-    overflow: scroll;
+    overflow: auto;
     max-height: 50vh;
 }
 .modal-buttons {
@@ -591,24 +597,55 @@ iframe {
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
 }
-.plyr.hbbtv-app .plyr__controls, .plyr.hbbtv-app .plyr__controls [data-plyr="fullscreen"] {
-    display: flex !important;
-    background: none;
+#overlays.hbbtv-app {
+    background: #000;
+    pointer-events: all;
+    user-select: none;
 }
-.plyr.hbbtv-app .plyr__controls > *:not([data-plyr="fullscreen"]) {
-    display: none;
+#overlays.hbbtv-app #fullscreen-button-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10%;
+    height: 10%;
 }
-.plyr.hbbtv-app iframe {
+#overlays.hbbtv-app #fullscreen-button {
+    content: "";
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 45%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='1 1 16 16'%3E%3Cpolygon points='10 3 13.6 3 9.6 7 11 8.4 15 4.4 15 8 17 8 17 1 10 1'%3E%3C/polygon%3E%3Cpolygon points='7 9.6 3 13.6 3 10 1 10 1 17 8 17 8 15 4.4 15 8.4 11'%3E%3C/polygon%3E%3C/svg%3E");
+    width: calc(2rem * 1.1);
+    height: calc(2rem * 1.1);
+    display: block;
+    cursor: pointer;
+    border-radius: 0.25em;
+    transition: 400ms ease-in-out;
+    transform: translateY(calc(2rem * 1.1 + 16px));
+    position: absolute;
+    bottom: 8px;
+    right: 6px;
+}
+#overlays.hbbtv-app:fullscreen #fullscreen-button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0.6 0.6 16.8 16.8'%3E%3Cpolygon points='1 12 4.6 12 0.6 16 2 17.4 6 13.4 6 17 8 17 8 10 1 10'%3E%3C/polygon%3E%3Cpolygon points='16 0.6 12 4.6 12 1 10 1 10 8 17 8 17 6 13.4 6 17.4 2'%3E%3C/polygon%3E%3C/svg%3E");
+}
+#overlays.hbbtv-app #fullscreen-button:hover {
+    background-color: #00b2ff;
+}
+#overlays.hbbtv-app #fullscreen-button-container:hover #fullscreen-button {
+    transform: translateY(0);
+}
+#overlays.hbbtv-app iframe {
     aspect-ratio: 16 / 9;
     width: 100vw;
     height: auto;
     position: absolute;
     top: 50%;
-    --plyr-wrapper-scale: 0.75;
-    transform: translateY(-50%) scale(calc(var(--plyr-wrapper-scale) * var(--plyr-wrapper-scale-multiplier, 1)));
+    --hbbtv-wrapper-scale: 75%;
+    transform: translate(calc((100% - var(--hbbtv-wrapper-scale)) / 2 * -1), -50%) scale(calc(var(--hbbtv-wrapper-scale) * var(--hbbtv-wrapper-scale-multiplier, 1)));
 }
-.plyr.hbbtv-app:fullscreen iframe {
-    --plyr-wrapper-scale: 1;
+#overlays.hbbtv-app:fullscreen iframe {
+    --hbbtv-wrapper-scale: 100%;
 }
 canvas {
     width: 0;
@@ -666,9 +703,15 @@ a#reopen-window svg {
 .modal-buttons .button svg {
     margin-left: 1rem;
 }
-@media screen and (max-width: 1023px) and (orientation: portrait) {
+@media screen and (max-width: 100vh) {
+    .channel.hbbtv-app {
+        display: none;
+    }
     .modal {
         position: fixed;
+    }
+    .video-js {
+        font-size: 0.8em !important;
     }
     #channels-column {
         display: flex !important;
@@ -686,12 +729,11 @@ a#reopen-window svg {
         display: flex;
         justify-content: center;
     }
-    .plyr {
-        height: auto;
+    #overlays {
         width: 100vw;
     }
-    .plyr.hbbtv-app iframe {
-        --plyr-wrapper-scale: 1;
+    #overlays.hbbtv-app iframe {
+        --hbbtv-wrapper-scale: 100%;
     }
     .modal-buttons {
         flex-direction: column;
@@ -699,6 +741,18 @@ a#reopen-window svg {
     .modal-buttons .button {
         margin-right: 0 !important;
         margin-bottom: 0.5rem;
+    }
+    .close {
+        display: block;
+    }
+    #reopen-window {
+        width: 100% !important;
+        aspect-ratio: 16 / 9;
+        height: auto !important;
+        justify-content: center;
+        top: 0 !important;
+        transform: none !important;
+        left: 0 !important;
     }
 }
 @media screen and (min-width: 769px) {
@@ -709,8 +763,11 @@ a#reopen-window svg {
         flex: none;
         width: 40%;
     }
-    .plyr.hbbtv-app iframe {
-        --plyr-wrapper-scale: 0.6;
+    #overlays {
+        width: 60%;
+    }
+    #overlays.hbbtv-app iframe {
+        --hbbtv-wrapper-scale: 60%;
     }
 }
 @media screen and (min-width: 1024px) {
@@ -718,8 +775,11 @@ a#reopen-window svg {
         flex: none;
         width: 40%;
     }
-    .plyr.hbbtv-app iframe {
-        --plyr-wrapper-scale: 0.6;
+    #overlays {
+        width: 60%;
+    }
+    #overlays.hbbtv-app iframe {
+        --hbbtv-wrapper-scale: 60%;
     }
 }
 @media screen and (min-width: 1216px) {
@@ -727,8 +787,11 @@ a#reopen-window svg {
         flex: none;
         width: 33.3333%;
     }
-    .plyr.hbbtv-app iframe {
-        --plyr-wrapper-scale: 0.66666666;
+    #overlays {
+        width: 66.6666%;
+    }
+    #overlays.hbbtv-app iframe {
+        --hbbtv-wrapper-scale: 66.66666%;
     }
 }
 @media screen and (min-width: 1408px) {
@@ -736,8 +799,11 @@ a#reopen-window svg {
         flex: none;
         width: 25%;
     }
-    .plyr.hbbtv-app iframe {
-        --plyr-wrapper-scale: 0.75;
+    #overlays {
+        width: 75%;
+    }
+    #overlays.hbbtv-app iframe {
+        --hbbtv-wrapper-scale: 75%;
     }
 }
 @media screen and (max-width: 1023px) {

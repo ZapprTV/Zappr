@@ -29,10 +29,9 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.0.8",
-    "@zappr/plyr": "^3.7.8-final",
-    "dashjs": "^4.7.4",
-    "hls.js": "^1.5.18",
-    "mpegts.js": "^1.7.3"
+    "video.js": "^8.23.3",
+    "videojs-contrib-quality-menu": "^1.0.4",
+    "videojs-plyr": "^1.0.3"
   },
   "devDependencies": {
     "@parcel/config-default": "^2.15.2",

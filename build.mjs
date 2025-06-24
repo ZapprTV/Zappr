@@ -1,11 +1,9 @@
-import { Parcel } from "@parcel/core";
+import { build } from "vite";
 import { join as joinPath } from "path";
 import { clone as gitClone } from "isomorphic-git";
 import * as http from "isomorphic-git/http/node/index.cjs";
 import * as fs from "fs";
-import { fileURLToPath } from "url";
 
-// visto che pnpm run è una MERDA non passa gli argomenti in linea di comando come environment variable e quindi devo fare queste cagate con l'argv >:(
 const parseArgv = (argv) => {
     const result = {};
     for (let i = 0; i < argv.length; i++) {
@@ -19,34 +17,7 @@ const parseArgv = (argv) => {
 };
 const argv = parseArgv(process.argv);
 
-let config = await fs.promises.readFile("config.json", "utf8", err => {
-    if (err) throw err;
-});
-config = JSON.parse(config);
-
-console.log("rimozione in corso della build precedente...")
-await fs.promises.rm(joinPath(process.cwd(), "dist"), { recursive: true, force: true }, err => {
-    if (err) throw err;
-});
-
-console.log("bundling in corso...");
-let bundler = new Parcel({
-    entries: ["index.html", "offline-pwa.html", "privacy.html", "mixed.html"],
-    defaultConfig: "@parcel/config-default",
-    mode: "production",
-    additionalReporters: [{
-        packageName: "parcel-reporter-static-files-copy",
-        resolveFrom: fileURLToPath(import.meta.url)
-    }]
-});
-
-try {
-    let { bundleGraph, buildTime } = await bundler.run();
-    let bundles = bundleGraph.getBundles();
-    console.log(`creati ${bundles.length} bundle in ${buildTime}ms nella cartella dist`);
-} catch (err) {
-    console.log(err.diagnostics);
-};
+await build();
 
 if (argv.bundleChannels === true) {
     const dir = joinPath(process.cwd(), "dist", "channels"),

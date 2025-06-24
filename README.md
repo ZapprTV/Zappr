@@ -33,13 +33,13 @@ Se vuoi usare subito Zappr, è già pronto all'uso su [zappr.stream](https://zap
 ## Prepara l'ambiente di sviluppo
 1. Clona la repo: `git clone https://github.com/ZapprTV/Zappr`
 2. Installa le dipendenze: `npm install` (o `pnpm install`)
-3. Modifica il file `config.json` se necessario
+3. Modifica il file `public/config.json` se necessario
 
-Il file `config.json` è il file dove, oltre agli URL delle API, sono anche presenti gli URL delle liste dei canali e ai loghi. Di default sono presenti quelli hostati da Zappr (`channels.zappr.stream`), ma se ti serve utilizzare una copia locale, clona la repo relativa:
+Il file `public/config.json` è il file dove, oltre agli URL delle API, sono anche presenti gli URL delle liste dei canali e ai loghi. Di default sono presenti quelli hostati da Zappr (`channels.zappr.stream`), ma se ti serve utilizzare una copia locale, clona la repo relativa:
 
 `git clone https://github.com/ZapprTV/channels`
 
-E poi modifica `config.json` per farlo puntare alla tua versione locale:
+E poi modifica `public/config.json` per farlo puntare alla tua versione locale:
 ```json
     "channels": {
         "host": "/channels"

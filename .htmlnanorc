@@ -1,7 +1,0 @@
-{
-    "minifySvg": {
-        "plugins": [{
-            "removeViewBox": false
-        }]
-    }
-}

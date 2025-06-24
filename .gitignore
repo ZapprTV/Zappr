@@ -3,5 +3,4 @@ dist/
 logos/
 node_modules/
 testing/
-.parcel-cache/
 package-lock.json

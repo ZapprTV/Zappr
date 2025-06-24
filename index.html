@@ -114,11 +114,11 @@
                             Installa
                             <img src="/assets/icons/install.svg">
                         </a>
-                        <a href="mailto:zappr@francescoro.si" target="_blank">
-                            <img src="/assets/icons/mail.svg">
+                        <a class="tooltip" data-target="#news">
+                            <img src="/assets/icons/news.svg">
                         </a>
-                        <a href="https://github.com/ZapprTV/Zappr" target="_blank">
-                            <img src="/assets/icons/github.svg">
+                        <a class="tooltip" data-target="#info-tooltip">
+                            <img src="/assets/icons/info.svg">
                         </a>
                         <a id="settings-icon" class="tooltip" data-target="#settings">
                             <img src="/assets/icons/settings.svg">
@@ -158,7 +158,23 @@
                                         </optgroup>
                                     </select>
                                 </div>
-                                <a id="save-and-reload" class="non-bulma-button">Salva e ricarica</a>
+                                <a id="save-and-reload" class="tooltip-button">Salva e ricarica</a>
+                            </div>
+                        </div>
+                        <div class="tooltip-content" id="info-tooltip">
+                            <div class="tooltip-content-box">
+                                Zappr è il nuovo modo di guardare la TV italiana. Guarda la maggior parte dei canali nazionali e locali del digitale terrestre italiano, online, gratuitamente e senza configurazioni complesse.
+                                <br><br>
+                                <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">Visualizza il codice sorgente su GitHub</a>
+                                <div class="tooltip-link" id="news-links">Rimani aggiornato sulle ultime novità seguendoci su <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> o <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
+                                <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contattaci via email</a>
+                            </div>
+                        </div>
+                        <div class="tooltip-content news-not-loaded" id="news">
+                            <div class="tooltip-content-box">
+                                <div id="news-powered-by">Hosting del feed fornito da <a href="https://mastodon.uno" target="_blank">mastodon.uno</a></div>
+                                <div id="news-list"></div>
+                                <a rel="me" href="https://mastodon.uno/@zappr" hidden id="mastodon-verification"></a>
                             </div>
                         </div>
                     </div>

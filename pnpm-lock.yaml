@@ -8,6 +8,9 @@ dependencies:
   '@fontsource/ibm-plex-mono':
     specifier: ^5.0.8
     version: 5.0.8
+  luxon:
+    specifier: ^3.6.1
+    version: 3.6.1
   video.js:
     specifier: ^8.23.3
     version: 8.23.3
@@ -590,6 +593,11 @@ packages:
       sha.js: 2.4.11
       simple-get: 4.0.1
     dev: true
+
+  /luxon@3.6.1:
+    resolution: {integrity: sha512-tJLxrKJhO2ukZ5z0gyjY1zPh3Rh88Ej9P7jNrZiHMUXHae1yvI2imgOZtL1TO8TW6biMMKfTtAOoEJANgtWBMQ==}
+    engines: {node: '>=12'}
+    dev: false
 
   /m3u8-parser@7.2.0:
     resolution: {integrity: sha512-CRatFqpjVtMiMaKXxNvuI3I++vUumIXVVT/JpCpdU/FynV/ceVw1qpPyyBNindL+JlPMSesx+WX1QJaZEJSaMQ==}

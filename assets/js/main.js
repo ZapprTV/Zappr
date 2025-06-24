@@ -1,5 +1,6 @@
 import videojs from "video.js";
 import "videojs-contrib-quality-menu";
+import { DateTime } from "luxon";
 
 await fetch("/config.json")
     .then(response => response.json())
@@ -51,7 +52,6 @@ const player = videojs("tv", {
         }
     }
 });
-window.player = player;
 player.qualityMenu();
 player.reloadSourceOnError();
 player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
@@ -191,7 +191,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                         info: `MEDIA_ERR_SRC_NOT_SUPPORTED: ${httpError ? httpError : "Errore sconosciuto."}`
                     }
                 });
-            } else if (player.error().code === 3 && !(new URL(url).host.endsWith("-dash-live.akamaized.net") && new URL(url).host.startsWith("rai")) && lcn != 3) {
+            } else if (player.error().code === 3 && (!new URL(url).host.endsWith("-dash-live.akamaized.net") && !new URL(url).host.startsWith("rai")) || lcn === 3) {
                 let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
 
                 createErrorModal({
@@ -226,7 +226,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                         info: `MEDIA_ERR_NETWORK: ${httpError ? httpError : "Errore sconosciuto."}`
                     }
                 });
-            } else {
+            } else if (player.error().code === 1 || player.error().code === 5) {
                 let errors = {
                     1: "MEDIA_ERR_ABORTED",
                     2: "MEDIA_ERR_NETWORK",
@@ -255,6 +255,9 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                         info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`
                     }
                 });
+            } else {
+                player.src(player.currentSource());
+                player.play();
             };
         };
     });
@@ -1156,8 +1159,48 @@ const keydownHandler = (e) => {
 window.addEventListener("keydown", keydownHandler);
 
 document.querySelectorAll(".tooltip").forEach(el => {
-    el.addEventListener("click", () => {
+    el.addEventListener("click", async () => {
+        document.querySelectorAll(`.tooltip-content:not(${el.dataset.target})`).forEach(el => {
+            el.classList.remove("visible");
+        });
         document.querySelector(el.dataset.target).classList.toggle("visible");
+        if (el.dataset.target === "#news" && document.querySelector("#news").classList.contains("news-not-loaded")) {
+            await fetch("https://mastodon.uno/@zappr.rss")
+                .then(response => response.text())
+                .then(xml => {
+                    const rss = new DOMParser().parseFromString(xml, "application/xml");
+                    const posts = rss.querySelectorAll("item");
+                    posts.forEach(post => {
+                        const postContent = new DOMParser().parseFromString(post.querySelector("description").textContent, "text/html");
+                        const postLink = postContent.querySelector("a:not(.mention, .hashtag)") != null ? postContent.querySelector("a:not(.mention, .hashtag)").getAttribute("href") : post.querySelector("link").textContent;
+                        if (postContent.querySelector("a:not(.mention, .hashtag)") != null) {
+                            postContent.querySelectorAll("a:not(.mention, .hashtag)").forEach(link => {
+                                link.remove();
+                            });
+                        };
+                        if (postContent.querySelector(":empty") != null) {
+                            postContent.querySelectorAll(":empty").forEach(paragraph => {
+                                paragraph.remove();
+                            });
+                        };
+
+                        document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
+                            <a class="news-item" href="${postLink}" target="_blank">
+                                <div class="news-content">
+                                    <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale("it").toLocaleString()}</span>
+                                    ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>")}
+                                </div>
+                                ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
+                                    ? `<div class="news-image" style="background-image: url(${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")});"></div>`
+                                    : ""
+                                }
+                            </a>
+                        `)
+                    });
+                });
+
+            document.querySelector("#news").classList.remove("news-not-loaded");
+        };
     });
 });
 

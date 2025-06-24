@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.0.8",
+    "luxon": "^3.6.1",
     "video.js": "^8.23.3",
     "videojs-contrib-quality-menu": "^1.0.4",
     "videojs-plyr": "^1.0.3"

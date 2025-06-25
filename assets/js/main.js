@@ -1185,30 +1185,32 @@ document.querySelectorAll(".tooltip").forEach(el => {
                     const posts = rss.querySelectorAll("item");
                     posts.forEach(post => {
                         const postContent = new DOMParser().parseFromString(post.querySelector("description").textContent, "text/html");
-                        const postLink = postContent.querySelector("a:not(.mention, .hashtag)") != null ? postContent.querySelector("a:not(.mention, .hashtag)").getAttribute("href") : post.querySelector("link").textContent;
-                        if (postContent.querySelector("a:not(.mention, .hashtag)") != null) {
-                            postContent.querySelectorAll("a:not(.mention, .hashtag)").forEach(link => {
-                                link.remove();
-                            });
+                        if (!postContent.body.innerText.includes("⠀")) {
+                            const postLink = postContent.querySelector("a:not(.mention, .hashtag)") != null ? postContent.querySelector("a:not(.mention, .hashtag)").getAttribute("href") : post.querySelector("link").textContent;
+                            if (postContent.querySelector("a:not(.mention, .hashtag)") != null) {
+                                postContent.querySelectorAll("a:not(.mention, .hashtag)").forEach(link => {
+                                    link.remove();
+                                });
+                            };
+                            if (postContent.querySelector(":empty") != null) {
+                                postContent.querySelectorAll(":empty").forEach(paragraph => {
+                                    paragraph.remove();
+                                });
+                            };
+    
+                            document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
+                                <div class="news-item">
+                                    <a class="news-content" href="${postLink}" target="_blank">
+                                        <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale("it").toLocaleString()}</span>
+                                        ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>")}
+                                    </a>
+                                    ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
+                                        ? `<img class="news-image" src="${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")}" data-zoom-src="${post.children[post.children.length - 1].getAttribute("url")}">`
+                                        : ""
+                                    }
+                                </div>
+                            `)
                         };
-                        if (postContent.querySelector(":empty") != null) {
-                            postContent.querySelectorAll(":empty").forEach(paragraph => {
-                                paragraph.remove();
-                            });
-                        };
-
-                        document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
-                            <div class="news-item">
-                                <a class="news-content" href="${postLink}" target="_blank">
-                                    <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale("it").toLocaleString()}</span>
-                                    ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>")}
-                                </a>
-                                ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
-                                    ? `<img class="news-image" src="${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")}" data-zoom-src="${post.children[post.children.length - 1].getAttribute("url")}">`
-                                    : ""
-                                }
-                            </div>
-                        `)
                     });
                 });
             

@@ -126,9 +126,9 @@ const createModal = async ({ title, text, buttons }) => {
                 <div class="close" onclick="closeModal()"></div>
             </div>
             <p>${text}</p>
-            <div class="modal-buttons">
+            ${buttons ? `<div class="modal-buttons">
                 ${buttons.map(button => `<a class="button ${button.type}" href="${button.href}" ${button.newtab ? `target="_blank"` : ""}>${button.text}</a>`).join(" ")}
-            </div>
+            </div>` : ""}
         </div>
     </div>`;
 
@@ -141,6 +141,15 @@ const createModal = async ({ title, text, buttons }) => {
     await new Promise(resolve => setTimeout(resolve, 1));
 
     document.querySelector(".modal").classList.add("is-visible");
+};
+
+if (new URLSearchParams(location.search).get("geoblock-warning") != null) {
+    createModal({
+        title: "Attenzione!",
+        text: `Il tuo indirizzo IP non risulta essere italiano. Ciò significa che alcuni canali, soprattutto quelli "principali" (di Rai, Mediaset, Sky, Warner Bros. Discovery, ecc.), non saranno visibili.
+        <br><br>
+        Se ti trovi all'estero, usa una VPN con dei server in Italia. Altrimenti, se ti trovi in Italia, controlla di non avere una VPN o proxy attiva.`
+    });
 };
 
 const loadStream = async ({ type, url, api = false, name, lcn, logo, http = false, feed = false }) => {
@@ -606,9 +615,11 @@ const addChannels = (channels) => {
         });
     };
     channels.forEach(channel => {
+        const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isGeoblocked = new URLSearchParams(location.search).get("geoblock-warning") != null;
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined ? `data-type="${channel.type}"` : ""} ${channel.url != undefined ? `data-url="${channel.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked ? `disabled data-disabled="geoblock"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -635,7 +646,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && /iPad|iPhone|iPod/.test(navigator.userAgent) ? `disabled data-disabled="http-ios"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked ? `disabled data-disabled="geoblock"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -685,7 +696,8 @@ addChannels(channels);
 const returnErrorMessage = (errorCode) => {
     return ({
         "not-working": "Lo streaming di questo canale non funziona al momento.",
-        "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS."
+        "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS.",
+        "geoblock": "Questo canale non è visibile al di fuori dell'Italia."
     })[errorCode];
 };
 

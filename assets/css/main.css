@@ -527,6 +527,9 @@ a.tooltip-link {
 .modal-buttons {
     margin-bottom: 0.5rem;
 }
+.modal-content p:last-child {
+    margin-bottom: 0;
+}
 .button {
     padding: 0.5rem 0.75rem;
     text-decoration: none;

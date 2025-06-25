@@ -1,6 +1,7 @@
 import videojs from "video.js";
 import "videojs-contrib-quality-menu";
 import { DateTime } from "luxon";
+import mediumZoom from "medium-zoom";
 
 await fetch("/config.json")
     .then(response => response.json())
@@ -1197,20 +1198,21 @@ document.querySelectorAll(".tooltip").forEach(el => {
                         };
 
                         document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
-                            <a class="news-item" href="${postLink}" target="_blank">
-                                <div class="news-content">
+                            <div class="news-item">
+                                <a class="news-content" href="${postLink}" target="_blank">
                                     <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale("it").toLocaleString()}</span>
                                     ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>")}
-                                </div>
+                                </a>
                                 ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
-                                    ? `<div class="news-image" style="background-image: url(${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")});"></div>`
+                                    ? `<img class="news-image" src="${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")}" data-zoom-src="${post.children[post.children.length - 1].getAttribute("url")}">`
                                     : ""
                                 }
-                            </a>
+                            </div>
                         `)
                     });
                 });
-
+            
+            mediumZoom(".news-image", { background: "rgba(0, 0, 0, 0.8)", margin: 32 });
             document.querySelector("#news").classList.remove("news-not-loaded");
         };
     });

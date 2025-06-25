@@ -11,6 +11,9 @@ dependencies:
   luxon:
     specifier: ^3.6.1
     version: 3.6.1
+  medium-zoom:
+    specifier: ^1.1.0
+    version: 1.1.0
   video.js:
     specifier: ^8.23.3
     version: 8.23.3
@@ -605,6 +608,10 @@ packages:
       '@babel/runtime': 7.27.6
       '@videojs/vhs-utils': 4.1.1
       global: 4.4.0
+    dev: false
+
+  /medium-zoom@1.1.0:
+    resolution: {integrity: sha512-ewyDsp7k4InCUp3jRmwHBRFGyjBimKps/AJLjRSox+2q/2H4p/PNpQf+pwONWlJiOudkBXtbdmVbFjqyybfTmQ==}
     dev: false
 
   /mimic-response@3.1.0:

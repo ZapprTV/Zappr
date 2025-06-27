@@ -53,11 +53,15 @@ const player = videojs("tv", {
         }
     }
 });
+window.player = player;
 player.qualityMenu();
 player.reloadSourceOnError();
 player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
 player.on("loadeddata", () => {
     document.querySelector("#hide-player").media = "not all";
+    if (player.liveTracker.isLive() && !player.scrubbing() && !player.seeking()) {
+        player.liveTracker.seekToLiveEdge();
+    };
 });
 
 const channelslist = document.querySelector("#channels"),

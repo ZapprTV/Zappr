@@ -27,6 +27,18 @@
             #tv {
                 display: none !important;
             }
+            @media screen and (max-width: 100vh) {
+                #channels {
+                    margin-top: 0%;
+                }
+                #tv {
+                    display: block !important;
+                    transform: translateY(-100%);
+                }
+                #news {
+                    height: 100vh;
+                }
+            }
         </style>
         <style id="night-adult-channels">
             .adult-marker.at-night {
@@ -97,6 +109,7 @@
                 animation: servizistreaming-embed-fix 1s forwards 1s;
             }
         </style>
+        <style id="search"></style>
         <title>Zappr</title>
     </head>
     <body>
@@ -104,6 +117,9 @@
         <div class="columns">
             <div class="column is-one-third-widescreen is-one-quarter-fullhd is-two-fifths-desktop is-two-fifths-tablet p-0" id="channels-column">
                 <div id="channels" class="menu"></div>
+                <div id="search-input">
+                    <input type="text" placeholder="Cerca canale...">
+                </div>
                 <div id="bottom">
                     <div id="info">
                         <b>Zappr</b>
@@ -113,6 +129,9 @@
                         <a href="#" id="install" hidden>
                             Installa
                             <img src="/assets/icons/install.svg">
+                        </a>
+                        <a id="search-icon">
+                            <img src="/assets/icons/search.svg">
                         </a>
                         <a class="tooltip" data-target="#news">
                             <img src="/assets/icons/news.svg">

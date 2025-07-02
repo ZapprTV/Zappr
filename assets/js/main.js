@@ -57,8 +57,10 @@ window.player = player;
 player.qualityMenu();
 player.reloadSourceOnError();
 player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
-player.on("loadeddata", () => {
+player.on("play", () => {
     document.querySelector("#hide-player").media = "not all";
+});
+player.on("loadeddata", () => {
     if (player.liveTracker.isLive() && !player.scrubbing() && !player.seeking()) {
         player.liveTracker.seekToLiveEdge();
     };
@@ -625,7 +627,7 @@ const addChannels = (channels) => {
 
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api ? `data-api="${channel.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -652,7 +654,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api ? `data-api="${subchannel.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -977,6 +979,9 @@ document.querySelectorAll(".hbbtv-enabler").forEach(el => {
 
 const selectChannel = (channel, zapping) => {
     try {
+        document.querySelector("input").value = "";
+        document.querySelector("#search").innerHTML = "";
+
         if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`.channel[data-lcn="${channel}"]`);
         else if (typeof(channel) === "object") targetedChannel = channel;
     
@@ -1050,127 +1055,129 @@ const toggleNightAdultChannelsStyle = () => {
 toggleNightAdultChannelsStyle();
 
 const keydownHandler = (e) => {
-    if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) closeModal();
+    if (document.activeElement != document.querySelector("input")) {
+        if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) closeModal();
 
-    if (["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        e.stopPropagation();
-    };
-    const lcnTypingElement = document.querySelector("#lcn-typing"),
-          lcnTypedElement = document.querySelector("#lcn-typed"),
-          controlsElement = document.querySelector("#controls");
-    
-    let matchedChannel = channels.filter(ch => ch.lcn === parseInt(lcnTypedElement.innerText));
-
-    if ((lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && matchedChannel[0].hbbtv && matchedChannel[0].hbbtv.filter(subch => subch.sublcn == lcnTypedElement.innerText.split(".")[1]).length === 0) || (lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && !matchedChannel[0].hbbtv)) {
-        matchedChannel = [];
-    };
-    
-    if (!multipleChannelSelection && e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7) || e.key === "." || e.code === "NumpadDecimal") {
-        typingLCN = true;
-        lcnTypingElement.style.display = "block";
-        if (!(e.key === "." && lcnTypedElement.innerText.includes("."))) {
-            lcnTypedElement.innerText += e.code.startsWith("Digit") || e.key === "." ? e.key : e.code.replaceAll("Numpad", "").replaceAll("Decimal", ".");
+        if (["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
         };
-    };
+        const lcnTypingElement = document.querySelector("#lcn-typing"),
+            lcnTypedElement = document.querySelector("#lcn-typed"),
+            controlsElement = document.querySelector("#controls");
+        
+        let matchedChannel = channels.filter(ch => ch.lcn === parseInt(lcnTypedElement.innerText));
 
-    if (typingLCN) {
-        switch(e.code) {
-            case "Backspace":
-            case "Delete":
-            case "NumpadDivide":
-            case "NumpadMultiply":
-            case "NumpadSubtract":
-                if (lcnTypedElement.innerText.slice(0, -1) === "") {
-                    lcnTypingElement.style.display = "none";
-                };
-                lcnTypedElement.innerText = lcnTypedElement.innerText.slice(0, -1);
-                break;
+        if ((lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && matchedChannel[0].hbbtv && matchedChannel[0].hbbtv.filter(subch => subch.sublcn == lcnTypedElement.innerText.split(".")[1]).length === 0) || (lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && !matchedChannel[0].hbbtv)) {
+            matchedChannel = [];
+        };
+        
+        if (!multipleChannelSelection && e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7) || e.key === "." || e.code === "NumpadDecimal") {
+            typingLCN = true;
+            lcnTypingElement.style.display = "block";
+            if (!(e.key === "." && lcnTypedElement.innerText.includes("."))) {
+                lcnTypedElement.innerText += e.code.startsWith("Digit") || e.key === "." ? e.key : e.code.replaceAll("Numpad", "").replaceAll("Decimal", ".");
+            };
+        };
 
-            case "NumpadEnter":
-            case "Enter":
-                if (matchedChannel.length != 0 && lcnTypedElement.innerText.slice(-1) != ".") {
-                    if (matchedChannel.length > 1) {
-                        multipleChannelSelection = true;
-                    } else {
-                        selectChannel(lcnTypedElement.innerText);
+        if (typingLCN) {
+            switch(e.code) {
+                case "Backspace":
+                case "Delete":
+                case "NumpadDivide":
+                case "NumpadMultiply":
+                case "NumpadSubtract":
+                    if (lcnTypedElement.innerText.slice(0, -1) === "") {
                         lcnTypingElement.style.display = "none";
-                        lcnTypedElement.innerText = "";
-                        typingLCN = false;
                     };
-                } else {
-                    lcnTypingElement.classList.add("shaking");
-                    setTimeout(() => {
-                        lcnTypingElement.classList.remove("shaking");
-                    }, 500);
-                };
-                break;
+                    lcnTypedElement.innerText = lcnTypedElement.innerText.slice(0, -1);
+                    break;
 
-            case "Escape":
-                lcnTypingElement.style.display = "none";
-                lcnTypedElement.innerText = "";
-                typingLCN = false;
-                break;
+                case "NumpadEnter":
+                case "Enter":
+                    if (matchedChannel.length != 0 && lcnTypedElement.innerText.slice(-1) != ".") {
+                        if (matchedChannel.length > 1) {
+                            multipleChannelSelection = true;
+                        } else {
+                            selectChannel(lcnTypedElement.innerText);
+                            lcnTypingElement.style.display = "none";
+                            lcnTypedElement.innerText = "";
+                            typingLCN = false;
+                        };
+                    } else {
+                        lcnTypingElement.classList.add("shaking");
+                        setTimeout(() => {
+                            lcnTypingElement.classList.remove("shaking");
+                        }, 500);
+                    };
+                    break;
+
+                case "Escape":
+                    lcnTypingElement.style.display = "none";
+                    lcnTypedElement.innerText = "";
+                    typingLCN = false;
+                    break;
+
+            };
 
         };
 
-    };
+        if (multipleChannelSelection) {
+            controlsElement.innerHTML = `<b>Premi ${matchedChannel.map((channel, index) => `${index + 1} per ${channel.name}`).join(",<br>")}<br>oppure Esc per annullare</b>`;
 
-    if (multipleChannelSelection) {
-        controlsElement.innerHTML = `<b>Premi ${matchedChannel.map((channel, index) => `${index + 1} per ${channel.name}`).join(",<br>")}<br>oppure Esc per annullare</b>`;
+            if (e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
+                const number = e.code.startsWith("Digit") ? e.key : e.code.replaceAll("Numpad", "");
 
-        if (e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
-            const number = e.code.startsWith("Digit") ? e.key : e.code.replaceAll("Numpad", "");
-
-            if (number <= matchedChannel.length && number != 0 && [number - 1] != undefined) {
-                selectChannel(document.querySelector(`.channel[data-name="${matchedChannel[number - 1].name}"][data-lcn="${matchedChannel[number - 1].lcn}"]`));
+                if (number <= matchedChannel.length && number != 0 && [number - 1] != undefined) {
+                    selectChannel(document.querySelector(`.channel[data-name="${matchedChannel[number - 1].name}"][data-lcn="${matchedChannel[number - 1].lcn}"]`));
+                    lcnTypingElement.style.display = "none";
+                    lcnTypedElement.innerText = "";
+                    controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
+                    typingLCN = false;
+                    multipleChannelSelection = false;
+                };
+            } else if (e.code === "Escape") {
                 lcnTypingElement.style.display = "none";
                 lcnTypedElement.innerText = "";
                 controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
                 typingLCN = false;
                 multipleChannelSelection = false;
             };
-        } else if (e.code === "Escape") {
-            lcnTypingElement.style.display = "none";
-            lcnTypedElement.innerText = "";
-            controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
-            typingLCN = false;
-            multipleChannelSelection = false;
         };
-    };
 
-    if (e.code === "PageUp" || e.code === "PageDown") {
-        if (currentlyPlaying === "") {
-            selectChannel(1);
-        } else {
-            const firstChannel = document.querySelectorAll(".channel")[0];
-            const lastChannel = document.querySelectorAll(".channel")[document.querySelectorAll(".channel").length - 1];
-            if (currentlyPlaying === firstChannel) {
-                target = e.code === "PageUp" ? lastChannel : currentlyPlaying.nextElementSibling;
-            } else if (currentlyPlaying === lastChannel) {
-                target = e.code === "PageDown" ? firstChannel : currentlyPlaying.previousElementSibling;
-            } else if (currentlyPlaying.parentElement.classList.contains("hbbtv-container")) {
-                target = e.code === "PageUp" ? currentlyPlaying.parentElement.previousElementSibling : currentlyPlaying.parentElement.nextElementSibling;
-            } else if (currentlyPlaying.parentElement.classList.contains("hbbtv-channels") && currentlyPlaying.previousElementSibling === null) {
-                target = e.code === "PageUp" ? currentlyPlaying.parentElement.parentElement.querySelector(".channel") : currentlyPlaying.nextElementSibling;
+        if (e.code === "PageUp" || e.code === "PageDown") {
+            if (currentlyPlaying === "") {
+                selectChannel(1);
             } else {
-                target = e.code === "PageUp" ? currentlyPlaying.previousElementSibling : currentlyPlaying.nextElementSibling;
+                const firstChannel = document.querySelectorAll(".channel")[0];
+                const lastChannel = document.querySelectorAll(".channel")[document.querySelectorAll(".channel").length - 1];
+                if (currentlyPlaying === firstChannel) {
+                    target = e.code === "PageUp" ? lastChannel : currentlyPlaying.nextElementSibling;
+                } else if (currentlyPlaying === lastChannel) {
+                    target = e.code === "PageDown" ? firstChannel : currentlyPlaying.previousElementSibling;
+                } else if (currentlyPlaying.parentElement.classList.contains("hbbtv-container")) {
+                    target = e.code === "PageUp" ? currentlyPlaying.parentElement.previousElementSibling : currentlyPlaying.parentElement.nextElementSibling;
+                } else if (currentlyPlaying.parentElement.classList.contains("hbbtv-channels") && currentlyPlaying.previousElementSibling === null) {
+                    target = e.code === "PageUp" ? currentlyPlaying.parentElement.parentElement.querySelector(".channel") : currentlyPlaying.nextElementSibling;
+                } else {
+                    target = e.code === "PageUp" ? currentlyPlaying.previousElementSibling : currentlyPlaying.nextElementSibling;
+                };
+
+                if (target.classList.contains("hbbtv-container")) {
+                    target = target.querySelector(".channel");
+                } else if (target.classList.contains("hbbtv-enabler")) {
+                    target = target.parentElement.nextElementSibling;
+                } else if (target.classList.contains("category")) {
+                    target = e.code === "PageUp" ? target.previousElementSibling : target.nextElementSibling;
+                };
+
+                if (target != undefined) {
+                    selectChannel(target, true);
+                };
             };
 
-            if (target.classList.contains("hbbtv-container")) {
-                target = target.querySelector(".channel");
-            } else if (target.classList.contains("hbbtv-enabler")) {
-                target = target.parentElement.nextElementSibling;
-            } else if (target.classList.contains("category")) {
-                target = e.code === "PageUp" ? target.previousElementSibling : target.nextElementSibling;
-            };
-
-            if (target != undefined) {
-                selectChannel(target, true);
-            };
         };
-
     };
 };
 
@@ -1290,6 +1297,29 @@ window["copyInfo"] = () => {
     window.getSelection().addRange(range);
     navigator.clipboard.writeText(document.querySelector(".modal .code").innerText);
 };
+
+document.querySelector("input").addEventListener("input", e => {
+    const search = encodeURIComponent(e.target.value.toLowerCase());
+    document.querySelector("#search").innerHTML = search ? `#channels > .channel:not([data-lowercase-name*="${search}"]), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])) + .hbbtv-enabler, .hbbtv-mosaic:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .category, .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .category {
+    display: none;
+}
+.hbbtv-channels:has([data-lowercase-name*="${search}"]) {
+    height: var(--scroll-height);
+    border-bottom: 2px #373737 solid;
+}
+.hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) > .channel + .hbbtv-enabler {
+    height: 2.5rem;
+    padding: 0.5rem 0 0.5rem 1rem;
+    border-bottom: 2px #373737 solid;
+}
+.hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) .hbbtv-enabler-arrow {
+    transform: rotate(90deg);
+}` : "";
+});
+document.querySelector("#search-icon").addEventListener("click", () => {
+    if (!document.querySelector("#channels-column").classList.contains("search-visible")) document.querySelector("input").focus();
+    document.querySelector("#channels-column").classList.toggle("search-visible");
+});
 
 // https://stackoverflow.com/a/60949881
 Promise.all(Array.from(document.images).filter(img => !img.complete).map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))).then(() => {

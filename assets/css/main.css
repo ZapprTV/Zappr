@@ -31,7 +31,7 @@ html, body {
     color: white;
     margin: 0;
 }
-.lcn, .logo, .channel-name, #bottom .tooltip img, #loading, .channel-subtitle, .hbbtv-enabler-text, .category, .hbbtv-enabler-arrow {
+.lcn, .logo, .channel-name, #bottom #icons > a > img, #loading, .channel-subtitle, .hbbtv-enabler-text, .category, .hbbtv-enabler-arrow {
     user-select: none;
     pointer-events: none;
 }
@@ -76,6 +76,8 @@ a {
 }
 #tv {
     background: #000;
+    transition: 500ms;
+    transform: none;
 }
 .vjs-menu-content {
     overflow-x: hidden !important;
@@ -101,13 +103,48 @@ a {
 .channel:not(:last-of-type) {
     border-bottom: 2px #373737 solid;
 }
+#search-input {
+    order: 1;
+    padding: 1rem 2rem;
+    position: absolute;
+    width: calc(25% - 4.5rem);
+    background: rgb(0 0 0 / 75%);
+    border-top: 1px solid rgba(0, 0, 0, 1);
+    box-shadow: 0 -4px 30px rgb(0 0 0 / 10%);
+    backdrop-filter: blur(5px);
+    bottom: -0.75rem;
+    pointer-events: none;
+    transition: 500ms;
+}
+#search-input input {
+    width: calc(100% - 2.5rem - 2px);
+    background-image: url(/assets/icons/search.svg);
+    background-color: transparent;
+    height: 1.5rem;
+    background-size: 1rem;
+    background-repeat: no-repeat;
+    background-position: 0.75rem center;
+    border: none;
+    padding-left: 2.5rem;
+    border-radius: 8px;
+    color: #fff;
+}
 #channels-column {
     z-index: 1;
+}
+#channels-column.search-visible #channels {
+    height: calc(100% - 6.5rem - 4px);
+    padding-bottom: calc(3.5rem + 4px);
+}
+#channels-column.search-visible #search-input {
+    bottom: 3rem;
+    pointer-events: all;
 }
 #channels {
     background-color: #242424;
     height: calc(100% - 3rem);
-    overflow-y: scroll;
+    overflow-y: auto;
+    transition: 500ms;
 }
 .channel:not([disabled]):hover {
     background: #333 !important;
@@ -193,7 +230,6 @@ a {
     height: 1.5rem;
     bottom: 0;
     width: auto;
-    box-shadow: 0 0 20px 0px black;
     /* background: #111111; */
     background: linear-gradient(90deg, hsla(0, 100%, 25%, 1) 0%, hsla(33, 100%, 25%, 1) 10%, hsla(67, 76%, 25%, 1) 20%, hsla(114, 63%, 25%, 1) 30%, hsla(179, 70%, 25%, 1) 40%, hsla(188, 74%, 25%, 1) 50%, hsla(213, 81%, 25%, 1) 60%, hsla(258, 91%, 25%, 1) 70%, hsla(288, 90%, 25%, 1) 80%, hsla(315, 96%, 25%, 1) 90%, hsla(0, 100%, 25%, 1) 100%);
     font-size: 1.325rem;
@@ -210,7 +246,7 @@ a {
     padding: 0.1rem 0.325rem;
     font-size: 1rem;
 }
-#bottom a.tooltip img, #icons > a {
+#bottom #icons > a > img, #icons > a {
     width: 24px;
     height: 24px;
     display: inline-block;
@@ -807,6 +843,7 @@ a#reopen-window svg {
     color: white;
     text-decoration: none;
     border-radius: 0.5rem;
+    user-select: none;
 }
 #icons #install img {
     margin-right: 0;
@@ -840,12 +877,16 @@ a#reopen-window svg {
     .video-js {
         font-size: 0.8em !important;
     }
+    #search-input {
+        border-bottom: 0;
+        border-top: 2px #373737 solid;
+    }
     #channels-column {
         display: flex !important;
         flex-direction: column !important;
     }
     #channels {
-        margin-top: 56.25% !important;
+        margin-top: 56.25%;
     }
     #tv {
         position: fixed;
@@ -884,6 +925,9 @@ a#reopen-window svg {
     #news {
         height: calc(100vh - 56.25vw);
     }
+    #search-input {
+        width: calc(100% - 4.5rem);
+    }
 }
 @media screen and (min-width: 769px) {
     .columns {
@@ -892,6 +936,9 @@ a#reopen-window svg {
     .column.is-two-fifths-tablet {
         flex: none;
         width: 40%;
+    }
+    #search-input {
+        width: calc(40% - 4.5rem);
     }
     #overlays {
         width: 60%;
@@ -905,6 +952,9 @@ a#reopen-window svg {
         flex: none;
         width: 40%;
     }
+    #search-input {
+        width: calc(40% - 4.5rem);
+    }
     #overlays {
         width: 60%;
     }
@@ -917,6 +967,9 @@ a#reopen-window svg {
         flex: none;
         width: 33.3333%;
     }
+    #search-input {
+        width: calc(33.3333% - 4.5rem);
+    }
     #overlays {
         width: 66.6666%;
     }
@@ -928,6 +981,9 @@ a#reopen-window svg {
     .column.is-one-quarter-fullhd {
         flex: none;
         width: 25%;
+    }
+    #search-input {
+        width: calc(25% - 4.5rem);
     }
     #overlays {
         width: 75%;

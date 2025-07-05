@@ -51,11 +51,16 @@ const player = videojs("tv", {
             overrideNative: true,
             useBandwidthFromLocalStorage: true
         }
+    },
+    plugins: {
+        qualityMenu: {},
+        reloadSourceOnError: {}
     }
 });
+
 window.player = player;
-player.qualityMenu();
-player.reloadSourceOnError();
+window.videojs = videojs;
+
 player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
 player.on("play", () => {
     document.querySelector("#hide-player").media = "not all";

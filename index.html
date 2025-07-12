@@ -109,6 +109,92 @@
                 animation: servizistreaming-embed-fix 1s forwards 1s;
             }
         </style>
+        <style id="tv-style" media="not all">
+            #tv-settings {
+                font-size: 0.825rem;
+                text-align: right;
+                line-height: 1;
+                font-weight: 400;
+                width: 100%;
+                text-wrap-style: balance;
+                margin-right: 0.75rem;
+                opacity: 0.75;
+                display: block;
+            }
+            #tv-settings * {
+                line-height: 1;
+            }
+            #tv-settings img {
+                height: 0.825rem;
+            }
+            #icons > *:not(#settings-icon, #settings, #tv-settings) {
+                display: none;
+            }
+            .vjs-skip-backward-5, .vjs-skip-forward-5, .vjs-volume-panel, .vjs-menu-button, .vjs-picture-in-picture-control, .vjs-fullscreen-control, #search-input {
+                display: none !important;
+            }
+            #settings-icon, .tv-settings-open, .tv-settings-open *, #tv, #tv * {
+                pointer-events: none !important;
+                user-select: none !important;
+            }
+            .channel.hbbtv-app {
+                display: none;
+            }
+            #settings {
+                position: fixed;
+                top: 0;
+                right: 0;
+                padding-left: 33.33333vw;
+                width: 100vw;
+                display: flex;
+                align-items: center;
+                background: transparent;
+            }
+            #settings .tooltip-content-box {
+                position: relative;
+                top: 0;
+                right: 0;
+                width: calc(66.6666vw - 4rem);
+                margin: 0.5rem 1rem;
+                padding: 1.5rem 1rem;
+                background: #000000bf;
+                backdrop-filter: blur(1rem);
+                border-radius: 1rem;
+            }
+            #region-selector {
+                flex-direction: row;
+                align-items: center;
+            }
+            #region-selector div {
+                display: flex;
+                max-width: 100%;
+            }
+            #region-selector .regions {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            #region-selector input[type="radio"] {
+                margin: 0;
+                margin-right: 0.3333rem;
+            }
+            .region {
+                background: #111;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.5rem;
+                font-weight: 400;
+                margin: 0.25rem;
+            }
+            #region {
+                min-width: none !important;
+                margin-top: 1rem;
+                align-items: center;
+            }
+            .region-group {
+                flex-direction: column;
+                width: 100%;
+            }
+        </style>
         <style id="search"></style>
         <title>Zappr</title>
     </head>
@@ -139,6 +225,7 @@
                         <a class="tooltip" data-target="#info-tooltip">
                             <img src="/assets/icons/info.svg">
                         </a>
+                        <span id="tv-settings">Premi <img src="assets/icons/back.svg"> <b>BACK</b> per cambiare regione</span>
                         <a id="settings-icon" class="tooltip" data-target="#settings">
                             <img src="/assets/icons/settings.svg">
                         </a>

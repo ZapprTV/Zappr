@@ -16,7 +16,8 @@ await fetch("/config.json")
                 "backend": {
                     "host": {
                         "vercel": "https://vercel-api.zappr.stream",
-                        "cloudflare": "https://cloudflare-api.zappr.stream"
+                        "cloudflare": "https://cloudflare-api.zappr.stream",
+                        "alwaysdata": "https://zappr.alwaysdata.net"
                     }
                 },
                 "logos": {
@@ -58,8 +59,8 @@ const player = videojs("tv", {
     }
 });
 
-window.player = player;
-window.videojs = videojs;
+window.zappr.player = player;
+window.zappr.videojs = videojs;
 
 player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
 player.on("play", () => {
@@ -73,10 +74,9 @@ player.on("loadeddata", () => {
 
 const channelslist = document.querySelector("#channels"),
       overlays = document.querySelector("#overlays"),
-      iframe = document.querySelector("iframe"),
       nightAdultChannelsStyle = document.querySelector("#night-adult-channels");
 
-window["closeModal"] = () => {
+window.zappr.closeModal = () => {
     if (document.querySelector(".modal") != null) {
         document.querySelector(".modal").classList.remove("is-visible");
         document.querySelector(".modal").remove();
@@ -89,7 +89,7 @@ const createErrorModal = async ({ title, error, info, params }) => {
         <div class="modal-content">
             <div class="modal-title">
                 <h1>${title}</h1>
-                <div class="close" onclick="closeModal()"></div>
+                <div class="close" onclick="window.zappr.closeModal()"></div>
             </div>
             <p>${error}</p>
             ${info != undefined ? `
@@ -135,7 +135,7 @@ const createModal = async ({ title, text, buttons }) => {
         <div class="modal-content">
             <div class="modal-title">
                 <h1>${title}</h1>
-                <div class="close" onclick="closeModal()"></div>
+                <div class="close" onclick="window.zappr.closeModal()"></div>
             </div>
             <p>${text}</p>
             ${buttons ? `<div class="modal-buttons">
@@ -163,17 +163,77 @@ if (new URLSearchParams(location.search).get("geoblock-warning") != null) {
         Se ti trovi all'estero, usa una VPN con dei server in Italia. Altrimenti, se ti trovi in Italia, controlla di non avere una VPN o proxy attiva.`
     });
 };
+if (new URLSearchParams(location.search).get("androidtv") != null) {
+    document.querySelector("#tv-style").media = "";
 
-const loadStream = async ({ type, url, api = false, name, lcn, logo, http = false, feed = false }) => {
+    window.addEventListener("keydown", e => {
+        if (window.location.hash != "#canPressBack") window.location.hash = "canPressBack";
+        if (!document.querySelector("#settings").classList.contains("visible")) {
+            if (e.key === "Enter" || e.key === " ") {
+                if (document.querySelector("#channels-column").style.width === "0%") {
+                    if (player.paused()) player.play()
+                    else player.pause()
+                } else if (document.querySelector("#channels-column").style.width != "0%") {
+                    if (document.querySelector(":focus") != null) document.querySelector(":focus").click();
+                };
+            } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && document.querySelector("#channels-column").style.width === "0%") {
+                player.userActive(true);
+                if (e.key === "ArrowLeft") player.currentTime(player.currentTime() - 5)
+                else if (e.key === "ArrowRight") player.currentTime(player.currentTime() + 5);
+            } else if (e.key === "ArrowRight" && document.querySelector("#channels-column").style.width != "0%" && document.querySelector("iframe") === null && document.querySelector("#hide-player").media === "not all") {
+                document.querySelector("#channels-column").style.width = "0%";
+                document.querySelector("#channels-column").style.transform = "translateX(-33.3333vw)";
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                if (document.querySelector(".channel.watching") != null && document.querySelector("#channels-column").style.width === "0%") document.querySelector(".channel.watching").focus();
+                document.querySelector("#channels-column").style.width = "33.3333%";
+                document.querySelector("#channels-column").style.transform = "translateX(0)";
+            };
+        } else {
+            if (e.key === "Enter" || e.key === " ") {
+                if (document.querySelector(":focus") != null) document.querySelector(":focus").click()
+            };
+        };
+    });
+    window.addEventListener("hashchange", e => {
+        if (new URL(e.oldURL).hash === "#canPressBack" && new URL(e.newURL).hash === "") {
+            if (document.querySelector("#channels-column").style.width != "0%") {
+                document.querySelector("#settings").classList.toggle("visible");
+                document.querySelector("#channels").classList.toggle("tv-settings-open");
+                if (document.querySelector(":focus") != null) document.querySelector(":focus").blur();
+            } else if (document.querySelector("#channels-column").style.width === "0%") {
+                if (document.querySelector(".channel.watching") != null) document.querySelector(".channel.watching").focus();
+                document.querySelector("#channels-column").style.width = "33.3333%";
+                document.querySelector("#channels-column").style.transform = "translateX(0)";
+            };
+            window.location.hash = "canPressBack";
+        };
+    });
+
+    player.on("play", () => {
+        document.querySelector("#channels-column").style.width = "0%";
+        document.querySelector("#channels-column").style.transform = "translateX(-33.3333vw)";
+    });
+
+    document.querySelector("#region").outerHTML = `<div class="region national"><input type="radio" value="national" id="national" name="region"><label for="national">Nessuna (solo canali nazionali)</label></div><div id="region">${document.querySelector("#region").innerHTML}</div>`;
+    document.querySelectorAll("#region option").forEach(el => {
+        if (el.value === "national") el.remove()
+        else el.outerHTML = `<div class="region"><input type="radio" value="${el.value}" id="${el.value}" name="region"><label for="${el.value}">${el.innerText}</label></div>`
+    });
+    document.querySelectorAll("#region optgroup").forEach(el => {
+        el.outerHTML = `<div class="region-group"><span class="region-group-name">${el.label}</span><div class="regions">${el.innerHTML}</div></div>`
+    });
+};
+
+const loadStream = async ({ type, url, api = false, name, lcn, logo, http = false, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
 
-    closeModal();
+    window.zappr.closeModal();
     player.off("error");
     player.on("error", async () => {
-        closeModal();
-        if (!feed) {
+        window.zappr.closeModal();
+        if (!feed && fallbackType === null) {
             if (player.error().code === 2 && http) {
                 createModal({
                     title: "Canali HTTP non attivi",
@@ -189,7 +249,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                     },
                     {
                         type: "secondary",
-                        href: "javascript:closeModal();",
+                        href: "javascript:window.zappr.closeModal();",
                         text: "Annulla"
                     }]
                 });
@@ -212,7 +272,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                         info: `MEDIA_ERR_SRC_NOT_SUPPORTED: ${httpError ? httpError : "Errore sconosciuto."}`
                     }
                 });
-            } else if (player.error().code === 3 && (!new URL(url).host.endsWith("-dash-live.akamaized.net") && !new URL(url).host.startsWith("rai")) || lcn === 3) {
+            } else if (player.error().code === 3) {
                 let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
 
                 createErrorModal({
@@ -276,10 +336,16 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                         info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`
                     }
                 });
-            } else {
-                player.src(player.currentSource());
-                player.play();
             };
+        } else if (fallbackType != null && fallbackURL != null) {
+            loadStream({
+                type: fallbackType,
+                url: fallbackURL,
+                name: name,
+                lcn: lcn,
+                logo: logo,
+                api: fallbackAPI
+            });
         };
     });
 
@@ -342,14 +408,14 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
         case "popup":
             document.querySelector("#reopen-window").remove();
             document.querySelector(".vjs-big-play-button").style.cssText = "";
-            popupPlayer.close();
+            window.zappr.popupPlayer.close();
             break;
             
     };
 
     if (type === "popup") {
         player.reset();
-        window.popupPlayer = window.open(
+        window.zappr.popupPlayer = window.open(
             url,
             "popupWindow",
             new URLSearchParams({
@@ -360,7 +426,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
             }).toString().replaceAll("&", ",")
         );
 
-        if (!popupPlayer) {
+        if (!window.zappr.popupPlayer) {
             createModal({
                 title: "Accesso ai popup negato",
                 text: `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
@@ -372,16 +438,16 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
                 },
                 {
                     type: "secondary",
-                    href: "javascript:closeModal();",
+                    href: "javascript:window.zappr.closeModal();",
                     text: "Chiudi"
                 }]
             });
         };
-        window.addEventListener("unload", () => popupPlayer.close());
+        window.addEventListener("unload", () => window.zappr.popupPlayer.close());
         document.querySelector("#overlays").insertAdjacentHTML("afterbegin", `<a href="#" id="reopen-window"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h6q.425 0 .713.288T12 4t-.288.713T11 5H5v14h14v-6q0-.425.288-.712T20 12t.713.288T21 13v6q0 .825-.587 1.413T19 21zM19 6.4L10.4 15q-.275.275-.7.275T9 15t-.275-.7t.275-.7L17.6 5H15q-.425 0-.712-.288T14 4t.288-.712T15 3h5q.425 0 .713.288T21 4v5q0 .425-.288.713T20 10t-.712-.288T19 9z"/></svg>Riapri player</a>`);
         document.querySelector("#reopen-window").addEventListener("click", () => {
-            if (popupPlayer.closed) document.querySelector(".channel.watching").click()
-            else popupPlayer.focus();
+            if (window.zappr.popupPlayer.closed) document.querySelector(".channel.watching").click()
+            else window.zappr.popupPlayer.focus();
         });
         document.querySelector(".vjs-big-play-button").style.cssText = "display: none !important";
 
@@ -455,7 +521,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, http = fals
     };
 };
 
-const loadChannel = async ({ type, url, api = false, name, lcn, logo, http = false, license = false, feed = false }) => {
+const loadChannel = async ({ type, url, api = false, name, lcn, logo, http = false, license = false, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -601,9 +667,36 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, http = fal
                     });
                 break;
 
+            case "rai-akamai":
+                let auth;
+                if (window.zappr.raiAkamai != undefined && window.zappr.raiAkamai.expiration - Math.floor(Date.now() / 1000) > 10) {
+                    auth = window.zappr.raiAkamai.auth;
+                } else {
+                    await fetch(`${window["zappr"].config.backend.host["alwaysdata"]}/rai-akamai`, { method: "POST" })
+                        .then(response => response.text())
+                        .then(search => auth = search);
+                    
+                    window.zappr.raiAkamai = {
+                        auth: auth,
+                        expiration: parseInt(new URLSearchParams(auth).get("hdnea").split("~").filter(el => el.startsWith("exp"))[0].split("=")[1])
+                    };
+                };
+
+                loadStream({
+                    type: type,
+                    url: `${url}${auth}`,
+                    name: name,
+                    lcn: lcn,
+                    logo: logo,
+                    fallbackType: fallbackType,
+                    fallbackURL: fallbackURL,
+                    fallbackAPI: fallbackAPI
+                });
+                break;
+
         };
     } else {
-        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, http: http, feed: feed })
+        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI })
     };
 };
 
@@ -632,7 +725,7 @@ const addChannels = (channels) => {
 
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""}>
                     <div class="lcn">${channel.lcn}</div>
                     <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
                     <div class="channel-title-subtitle">
@@ -659,7 +752,7 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""}>
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""}>
                                 <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                 <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" crossorigin="anonymous">
                                 <div class="channel-title-subtitle">
@@ -685,26 +778,28 @@ const addChannels = (channels) => {
 
 await fetch(getChannelsListURL("it/dtt/national"))
     .then(response => response.json())
-    .then(channels => {
-        window.nationalChannels = channels;
+    .then(nationalChannels => {
+        window.zappr.nationalChannels = nationalChannels.channels;
     });
 
+if (new URLSearchParams(location.search).get("androidtv") != null && localStorage.getItem("region") === "national") document.querySelector(`input[value="national"]`).checked = true;
 if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
-    document.querySelector("select").value = localStorage.getItem("region");
+    if (new URLSearchParams(location.search).get("androidtv") === null) document.querySelector("select").value = localStorage.getItem("region")
+    else document.querySelector(`input[value="${localStorage.getItem("region")}"]`).checked = true;
 
     await fetch(getChannelsListURL(`it/dtt/regional/${localStorage.getItem("region")}`))
         .then(response => response.json())
         .then(json => {
-            window.regionalChannels = json.channels;
+            window.zappr.regionalChannels = json.channels;
             
-            window.channels = nationalChannels.channels.concat(regionalChannels);
-            window.channels.sort((a, b) => a.lcn - b.lcn);
+            window.zappr.channels = window.zappr.nationalChannels.concat(window.zappr.regionalChannels);
+            window.zappr.channels.sort((a, b) => a.lcn - b.lcn);
         });
 } else {
-    window.channels = nationalChannels.channels;
-    channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
+    window.zappr.channels = window.zappr.nationalChannels;
+    window.zappr.channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
 };
-addChannels(channels);
+addChannels(window.zappr.channels);
 
 const returnErrorMessage = (errorCode) => {
     return ({
@@ -727,14 +822,14 @@ const adultChannelConfirmation = async (night = false) => {
         },
         {
             type: "secondary",
-            href: "javascript:closeModal();",
+            href: "javascript:window.zappr.closeModal();",
             text: "Annulla"
         }]
     });
 
     document.querySelector(".modal .button.primary").addEventListener("click", () => {
         window.sessionStorage.setItem(`${night ? "nightAdult" : "adult"}ChannelConfirmation`, true);
-        closeModal();
+        window.zappr.closeModal();
         document.querySelector(".channel.watching").click();
     });
 };
@@ -821,8 +916,8 @@ const scheduleProgram = (program) => {
         
         const endTimeoutId = setTimeout(() => {
             loadStream({
-                type: "dash",
-                url: channels.filter(el => el.lcn === 103)[0].url,
+                type: "hls",
+                url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
                 name: "Rai 3",
                 lcn: 103,
                 logo: getChannelLogoURL("rai3.svg")
@@ -832,9 +927,9 @@ const scheduleProgram = (program) => {
         
         state.timeouts.set(`${program.title}-end`, endTimeoutId);
         loadStream({
-            type: "dash",
-            url: channels.filter(el => el.lcn === 3)[0].url,
-            name: channels.filter(el => el.lcn === 3)[0].name,
+            type: window.zappr.channels.filter(el => el.lcn === 3)[0].type,
+            url: window.zappr.channels.filter(el => el.lcn === 3)[0].url,
+            name: window.zappr.channels.filter(el => el.lcn === 3)[0].name,
             lcn: 3,
             logo: getChannelLogoURL("rai3.svg")
         });
@@ -842,8 +937,8 @@ const scheduleProgram = (program) => {
         return;
     } else if (!state.playingRegional) {
         loadStream({
-            type: "dash",
-            url: channels.filter(el => el.lcn === 103)[0].url,
+            type: "hls",
+            url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
             name: "Rai 3",
             lcn: 103,
             logo: getChannelLogoURL("rai3.svg")
@@ -858,9 +953,9 @@ const scheduleProgram = (program) => {
 
     const timeoutId = setTimeout(() => {
         loadStream({
-            type: "dash",
-            url: channels.filter(el => el.lcn === 3)[0].url,
-            name: channels.filter(el => el.lcn === 3)[0].name,
+            type: window.zappr.channels.filter(el => el.lcn === 3)[0].type,
+            url: window.zappr.channels.filter(el => el.lcn === 3)[0].url,
+            name: window.zappr.channels.filter(el => el.lcn === 3)[0].name,
             lcn: 3,
             logo: getChannelLogoURL("rai3.svg")
         });
@@ -871,8 +966,8 @@ const scheduleProgram = (program) => {
         
         const endTimeoutId = setTimeout(() => {
             loadStream({
-                type: "dash",
-                url: channels.filter(el => el.lcn === 103)[0].url,
+                type: "hls",
+                url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
                 name: "Rai 3",
                 lcn: 103,
                 logo: getChannelLogoURL("rai3.svg")
@@ -973,7 +1068,10 @@ document.querySelectorAll(".channel").forEach(el => {
                 logo: el.dataset.logo,
                 http: el.dataset.http,
                 license: el.dataset.license,
-                feed: el.dataset.feed
+                feed: el.dataset.feed,
+                fallbackType: el.dataset.fallbackType,
+                fallbackURL: el.dataset.fallbackUrl,
+                fallbackAPI: el.dataset.fallbackApi
             });
         });
     };
@@ -1061,7 +1159,7 @@ toggleNightAdultChannelsStyle();
 
 const keydownHandler = (e) => {
     if (document.activeElement != document.querySelector("input")) {
-        if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) closeModal();
+        if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) window.zappr.closeModal();
 
         if (["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
             e.preventDefault();
@@ -1072,7 +1170,7 @@ const keydownHandler = (e) => {
             lcnTypedElement = document.querySelector("#lcn-typed"),
             controlsElement = document.querySelector("#controls");
         
-        let matchedChannel = channels.filter(ch => ch.lcn === parseInt(lcnTypedElement.innerText));
+        let matchedChannel = window.zappr.channels.filter(ch => ch.lcn === parseInt(lcnTypedElement.innerText));
 
         if ((lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && matchedChannel[0].hbbtv && matchedChannel[0].hbbtv.filter(subch => subch.sublcn == lcnTypedElement.innerText.split(".")[1]).length === 0) || (lcnTypedElement.innerText.includes(".") && matchedChannel[0] != undefined && !matchedChannel[0].hbbtv)) {
             matchedChannel = [];
@@ -1214,7 +1312,6 @@ document.querySelectorAll(".tooltip").forEach(el => {
                                     paragraph.remove();
                                 });
                             };
-    
                             document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
                                 <div class="news-item">
                                     <a class="news-content" href="${postLink}" target="_blank">
@@ -1257,11 +1354,13 @@ const updateSelectWidth = (e) => {
     tempSelect.remove();
 };
 
-updateSelectWidth();
-document.querySelector("select").addEventListener("change", e => updateSelectWidth(e));
+if (new URLSearchParams(location.search).get("androidtv") === null) {
+    updateSelectWidth();
+    document.querySelector("select").addEventListener("change", e => updateSelectWidth(e));
+};
 
 document.querySelector("#save-and-reload").addEventListener("click", () => {
-    localStorage.setItem("region", document.querySelector("select").value);
+    localStorage.setItem("region", new URLSearchParams(location.search).get("androidtv") === null ? document.querySelector("select").value : document.querySelector("input:checked").value);
     location.reload();
 });
 
@@ -1289,7 +1388,7 @@ window.addEventListener("appinstalled", () => {
     disableInAppInstallPrompt();
 });
 
-window["copyInfo"] = () => {
+window.zappr.copyInfo = () => {
     document.querySelector(".modal .technical-info a").innerText = "Copiato!";
     document.querySelector(".modal .technical-info a").classList.add("copied");
     setTimeout(() => {

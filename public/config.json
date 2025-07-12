@@ -6,7 +6,8 @@
         "backend": {
             "host": {
                 "vercel": "https://vercel-api.zappr.stream",
-                "cloudflare": "https://cloudflare-api.zappr.stream"
+                "cloudflare": "https://cloudflare-api.zappr.stream",
+                "alwaysdata": "https://zappr.alwaysdata.net"
             }
         },
         "logos": {

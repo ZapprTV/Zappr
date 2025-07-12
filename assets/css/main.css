@@ -19,6 +19,7 @@
     font-size: 7.5vw;
     font-weight: 900;
     transition: 2s all;
+    will-change: transform;
 }
 .loaded {
     animation: loaded 1s cubic-bezier(0.22, 0.61, 0.36, 1) forwards
@@ -61,6 +62,14 @@ html, body {
 ::-webkit-scrollbar-corner {
     background: transparent;
 }
+:root {
+    --videojs-plyr-quality-text: "Qualità";
+    --videojs-plyr-captions-text: "Sottotitoli";
+    --videojs-plyr-audiotracks-text: "Traccia audio";
+    --videojs-plyr-subtitles-disabled-text: "Disattivati";
+    --videojs-plyr-settings-text: "Impostazioni";
+    --videojs-plyr-playback-speed-text: "Velocità";
+}
 * {
     font-family: "IBM Plex Mono", monospace;
     line-height: 1.5rem;
@@ -78,9 +87,11 @@ a {
     background: #000;
     transition: 500ms;
     transform: none;
+    will-change: width, transform;
 }
 .vjs-menu-content {
     overflow-x: hidden !important;
+    min-width: max-content !important;
 }
 #overlays {
     position: absolute;
@@ -99,6 +110,7 @@ a {
     align-items: center;
     font-size: 1.5rem;
     transition: .25s all ease-in-out;
+    will-change: background;
 }
 .channel:not(:last-of-type) {
     border-bottom: 2px #373737 solid;
@@ -114,6 +126,7 @@ a {
     backdrop-filter: blur(5px);
     bottom: -0.75rem;
     pointer-events: none;
+    will-change: bottom;
     transition: 500ms;
 }
 #search-input input {
@@ -131,6 +144,8 @@ a {
 }
 #channels-column {
     z-index: 1;
+    transition: 500ms;
+    will-change: width, transform;
 }
 #channels-column.search-visible #channels {
     height: calc(100% - 6.5rem - 4px);
@@ -145,6 +160,7 @@ a {
     height: calc(100% - 3rem);
     overflow-y: auto;
     transition: 500ms;
+    will-change: height;
 }
 .channel:not([disabled]):hover {
     background: #333 !important;
@@ -324,6 +340,12 @@ iframe {
     position: relative;
     display: inline-block;
 }
+#info {
+    width: 100%;
+}
+#tv-settings {
+    display: none;
+}
 #info-tooltip {
     background: linear-gradient(360deg, black 6.25%, transparent);
 }
@@ -465,6 +487,7 @@ a.tooltip-link {
 }
 .modal, .modal-content {
     transition: 400ms;
+    will-change: opacity, transform;
 }
 .modal {
     position: absolute;
@@ -707,6 +730,7 @@ a.tooltip-link {
     font-size: 1.25rem;
     height: auto;
     transition: .25s all ease-in-out;
+    will-change: transform;
 }
 .hbbtv-mosaic .hbbtv-enabler-arrow {
     margin-right: 0.188rem;
@@ -926,7 +950,7 @@ a#reopen-window svg {
         height: calc(100vh - 56.25vw);
     }
     #search-input {
-        width: calc(100% - 4.5rem);
+        width: calc(100vw - 4.5rem);
     }
 }
 @media screen and (min-width: 769px) {
@@ -938,7 +962,7 @@ a#reopen-window svg {
         width: 40%;
     }
     #search-input {
-        width: calc(40% - 4.5rem);
+        width: calc(40vw - 4.5rem);
     }
     #overlays {
         width: 60%;
@@ -953,7 +977,7 @@ a#reopen-window svg {
         width: 40%;
     }
     #search-input {
-        width: calc(40% - 4.5rem);
+        width: calc(40vw - 4.5rem);
     }
     #overlays {
         width: 60%;
@@ -968,7 +992,7 @@ a#reopen-window svg {
         width: 33.3333%;
     }
     #search-input {
-        width: calc(33.3333% - 4.5rem);
+        width: calc(33.3333vw - 4.5rem);
     }
     #overlays {
         width: 66.6666%;
@@ -983,7 +1007,7 @@ a#reopen-window svg {
         width: 25%;
     }
     #search-input {
-        width: calc(25% - 4.5rem);
+        width: calc(25vw - 4.5rem);
     }
     #overlays {
         width: 75%;

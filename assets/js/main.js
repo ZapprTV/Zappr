@@ -169,17 +169,17 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
     window.addEventListener("keydown", e => {
         if (window.location.hash != "#canPressBack") window.location.hash = "canPressBack";
         if (!document.querySelector("#settings").classList.contains("visible")) {
-            if (e.key === "Enter" || e.key === " ") {
+            if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {
                 if (document.querySelector("#channels-column").style.width === "0%") {
                     if (player.paused()) player.play()
                     else player.pause()
-                } else if (document.querySelector("#channels-column").style.width != "0%") {
+                } else if (document.querySelector("#channels-column").style.width != "0%" && e.key != "MediaPlayPause") {
                     if (document.querySelector(":focus") != null) document.querySelector(":focus").click();
                 };
-            } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && document.querySelector("#channels-column").style.width === "0%") {
+            } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "MediaRewind" || e.key === "MediaFastForward") && document.querySelector("#channels-column").style.width === "0%") {
                 player.userActive(true);
-                if (e.key === "ArrowLeft") player.currentTime(player.currentTime() - 5)
-                else if (e.key === "ArrowRight") player.currentTime(player.currentTime() + 5);
+                if (e.key === "ArrowLeft" || e.key === "MediaRewind") player.currentTime(player.currentTime() - 5)
+                else if (e.key === "ArrowRight" || e.key === "MediaFastForward") player.currentTime(player.currentTime() + 5);
             } else if (e.key === "ArrowRight" && document.querySelector("#channels-column").style.width != "0%" && document.querySelector("iframe") === null && document.querySelector("#hide-player").media === "not all") {
                 document.querySelector("#channels-column").style.width = "0%";
                 document.querySelector("#channels-column").style.transform = "translateX(-33.3333vw)";

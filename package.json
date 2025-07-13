@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "isomorphic-git": "^1.25.2",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-top-level-await": "^1.5.0"
   }
 }

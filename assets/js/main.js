@@ -668,30 +668,41 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, http = fal
                 break;
 
             case "rai-akamai":
-                let auth;
-                if (window.zappr.raiAkamai != undefined && window.zappr.raiAkamai.expiration - Math.floor(Date.now() / 1000) > 10) {
-                    auth = window.zappr.raiAkamai.auth;
-                } else {
-                    await fetch(`${window["zappr"].config.backend.host["alwaysdata"]}/rai-akamai`, { method: "POST" })
-                        .then(response => response.text())
-                        .then(search => auth = search);
-                    
-                    window.zappr.raiAkamai = {
-                        auth: auth,
-                        expiration: parseInt(new URLSearchParams(auth).get("hdnea").split("~").filter(el => el.startsWith("exp"))[0].split("=")[1])
+                if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                    let auth;
+                    if (window.zappr.raiAkamai != undefined && window.zappr.raiAkamai.expiration - Math.floor(Date.now() / 1000) > 10) {
+                        auth = window.zappr.raiAkamai.auth;
+                    } else {
+                        await fetch(`${window["zappr"].config.backend.host["alwaysdata"]}/rai-akamai`, { method: "POST" })
+                            .then(response => response.text())
+                            .then(search => auth = search);
+                        
+                        window.zappr.raiAkamai = {
+                            auth: auth,
+                            expiration: parseInt(new URLSearchParams(auth).get("hdnea").split("~").filter(el => el.startsWith("exp"))[0].split("=")[1])
+                        };
                     };
+    
+                    loadStream({
+                        type: type,
+                        url: `${url}${auth}`,
+                        name: name,
+                        lcn: lcn,
+                        logo: logo,
+                        fallbackType: fallbackType,
+                        fallbackURL: fallbackURL,
+                        fallbackAPI: fallbackAPI
+                    });
+                } else {
+                    loadStream({
+                        type: type,
+                        url: url,
+                        name: name,
+                        lcn: lcn,
+                        logo: logo,
+                        api: api
+                    });
                 };
-
-                loadStream({
-                    type: type,
-                    url: `${url}${auth}`,
-                    name: name,
-                    lcn: lcn,
-                    logo: logo,
-                    fallbackType: fallbackType,
-                    fallbackURL: fallbackURL,
-                    fallbackAPI: fallbackAPI
-                });
                 break;
 
         };

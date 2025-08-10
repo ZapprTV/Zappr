@@ -1,7 +1,7 @@
 import { build } from "vite";
 import { join as joinPath } from "path";
 import { clone as gitClone } from "isomorphic-git";
-import * as http from "isomorphic-git/http/node/index.cjs";
+import * as http from "isomorphic-git/http/node";
 import * as fs from "fs";
 
 const parseArgv = (argv) => {

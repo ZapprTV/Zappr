@@ -789,14 +789,14 @@ a.tooltip-link {
     pointer-events: all;
     user-select: none;
 }
-#overlays.hbbtv-app #fullscreen-button-container {
+#overlays.hbbtv-app #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {
     position: absolute;
     bottom: 0;
     right: 0;
     width: 10%;
     height: 10%;
 }
-#overlays.hbbtv-app #fullscreen-button {
+#overlays.hbbtv-app #fullscreen-button, #overlays.radio-overlay #fullscreen-button {
     content: "";
     background-repeat: no-repeat;
     background-position: center;
@@ -813,13 +813,13 @@ a.tooltip-link {
     bottom: 8px;
     right: 6px;
 }
-#overlays.hbbtv-app:fullscreen #fullscreen-button {
+#overlays.hbbtv-app:fullscreen #fullscreen-button, #overlays.radio-overlay:fullscreen #fullscreen-button {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0.6 0.6 16.8 16.8'%3E%3Cpolygon points='1 12 4.6 12 0.6 16 2 17.4 6 13.4 6 17 8 17 8 10 1 10'%3E%3C/polygon%3E%3Cpolygon points='16 0.6 12 4.6 12 1 10 1 10 8 17 8 17 6 13.4 6 17.4 2'%3E%3C/polygon%3E%3C/svg%3E");
 }
-#overlays.hbbtv-app #fullscreen-button:hover {
+#overlays.hbbtv-app #fullscreen-button:hover, #overlays.radio-overlay #fullscreen-button:hover {
     background-color: #00b2ff;
 }
-#overlays.hbbtv-app #fullscreen-button-container:hover #fullscreen-button {
+#overlays.hbbtv-app #fullscreen-button-container:hover #fullscreen-button, #overlays.radio-overlay:not(:fullscreen) #fullscreen-button-container #fullscreen-button, #overlays.radio-overlay:fullscreen #fullscreen-button-container:hover #fullscreen-button {
     transform: translateY(0);
 }
 #overlays.hbbtv-app iframe {
@@ -833,6 +833,57 @@ a.tooltip-link {
 }
 #overlays.hbbtv-app:fullscreen iframe {
     --hbbtv-wrapper-scale: 100%;
+}
+#overlays #radio-overlay {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden;
+}
+#overlays #radio-overlay * {
+    pointer-events: none;
+    user-select: none;
+}
+@keyframes radioOverlayImageSpin {
+    0% {
+        transform: rotate(10deg);
+    }
+    100% {
+        transform: rotate(370deg);
+    }
+}
+@keyframes radioOverlayImageMove {
+    0% {
+        left: -33.33333%;
+    }
+    50% {
+        left: 33.33333%;
+    }
+    100% {
+        left: -33.33333%;
+    }
+}
+#overlays #radio-overlay img {
+    opacity: 0.05;
+    height: 125%;
+    top: 0%;
+    left: -33.333%;
+    position: relative;
+    transform: rotate(10deg);
+    animation: radioOverlayImageSpin 240s linear infinite, radioOverlayImageMove 240s linear infinite;
+}
+#overlays #radio-overlay-info {
+    padding: 1rem 2rem;
+    position: absolute;
+}
+#overlays #radio-overlay-radio {
+    margin: 0.25rem 0;
+    font-size: 5vh;
+    line-height: 1;
 }
 canvas {
     width: 0;
@@ -923,6 +974,8 @@ a#reopen-window svg {
     }
     #overlays {
         width: 100vw;
+        height: auto;
+        aspect-ratio: 16 / 9;
     }
     #overlays.hbbtv-app iframe {
         --hbbtv-wrapper-scale: 100%;

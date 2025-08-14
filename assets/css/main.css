@@ -796,6 +796,10 @@ a.tooltip-link {
     width: 10%;
     height: 10%;
 }
+#overlays.radio-overlay:not(:fullscreen) #fullscreen-button-container {
+    width: 0;
+    height: 0;
+}
 #overlays.hbbtv-app #fullscreen-button, #overlays.radio-overlay #fullscreen-button {
     content: "";
     background-repeat: no-repeat;

@@ -23,6 +23,9 @@ await fetch("/config.json")
                 "logos": {
                     "host": "https://channels.zappr.stream/logos",
                     "optimized": true
+                },
+                "epg": {
+                    "host": "https://epg.zappr.stream"
                 }
             }
         };
@@ -770,6 +773,12 @@ const getChannelsListURL = (path) => {
     return `${config.host}/${path}.json`;
 };
 
+const getEPGURL = (path) => {
+    const config = zappr.config.epg;
+
+    return `${config.host}/${path}.json`;
+};
+
 const addChannels = (channels) => {
     if (window.location.search === "?amazon-appstore") {
         channels.filter(el => el.lcn === 7 || el.lcn === 29).forEach(el => {
@@ -782,24 +791,34 @@ const addChannels = (channels) => {
 
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""}>
-                    <div class="lcn">${channel.lcn}</div>
-                    <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
-                    <div class="channel-title-subtitle">
-                        <div class="channel-name">${channel.name}</div>
-                        ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
-                        ${channel.hbbtvmosaic ? `<div class="channel-subtitle">Mosaico HbbTV</div>` : ""}
-                        ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""}>
+                    <div class="channel-info">
+                        <div class="lcn">${channel.lcn}</div>
+                        <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
+                        <div class="channel-title-subtitle">
+                            <div class="channel-name">${channel.name}</div>
+                            ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
+                            ${channel.hbbtvmosaic ? `<div class="channel-subtitle">Mosaico HbbTV</div>` : ""}
+                            ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
+                            ${channel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                        </div>
+                        ${channel.hd ? `<div class="hd"></div>` : ""}
+                        ${channel.uhd ? `<div class="uhd"></div>` : ""}
+                        ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
+                        ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
+                        ${channel.type === "popup" ? `<div class="external"></div>` : ""}
+                        ${channel.adult === true ? `<div class="adult-marker"></div>`
+                            : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                     </div>
-                    ${channel.hd ? `<div class="hd"></div>` : ""}
-                    ${channel.uhd ? `<div class="uhd"></div>` : ""}
-                    ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
-                    ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
-                    ${channel.type === "popup" ? `<div class="external"></div>` : ""}
-                    ${channel.adult === true ? `<div class="adult-marker"></div>`
-                        : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
-
                     ${channel.hbbtvmosaic ? `<div class="hbbtv-enabler-arrow">&gt;</div>` : ""}
+                    ${channel.epg ? `
+                        <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
+                        <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
+                        <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
+                            <div class="channel-program-start-time"></div>
+                            <div class="channel-program-end-time"></div>
+                        </div>
+                    ` : ""}
                 </div>
 
                 ${channel.hbbtv && !channel.hbbtvmosaic ? `<div class="hbbtv-enabler">
@@ -809,21 +828,32 @@ const addChannels = (channels) => {
                 ${channel.hbbtv ? `<div class="hbbtv-channels">
                     ${channel.hbbtv.map(subchannel =>
                         subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""}>
-                                <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
-                                <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous">
-                                <div class="channel-title-subtitle">
-                                    <div class="channel-name">${subchannel.name}</div>
-                                    ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
-                                    ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
+                                <div class="channel-info">
+                                    <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
+                                    <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous">
+                                    <div class="channel-title-subtitle">
+                                        <div class="channel-name">${subchannel.name}</div>
+                                        ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
+                                        ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
+                                        ${subchannel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                                    </div>
+                                    ${subchannel.hd ? `<div class="hd"></div>` : ""}
+                                    ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
+                                    ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
+                                    ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
+                                    ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
+                                    ${subchannel.adult === true ? `<div class="adult-marker"></div>`
+                                        : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                                 </div>
-                                ${subchannel.hd ? `<div class="hd"></div>` : ""}
-                                ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
-                                ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
-                                ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
-                                ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
-                                ${subchannel.adult === true ? `<div class="adult-marker"></div>`
-                                    : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
+                                ${subchannel.epg ? `
+                                    <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
+                                    <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
+                                    <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
+                                        <div class="channel-program-start-time"></div>
+                                        <div class="channel-program-end-time"></div>
+                                    </div>
+                                ` : ""}
                             </div>`
                             : `<div class="category">${subchannel.categorySeparator}</div>`
                     ).join("")}
@@ -898,7 +928,7 @@ const state = {
 };
   
 const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    const [hours, minutes] = timeStr.split(":").map(Number);
     return hours * 60 + minutes;
 };
   
@@ -935,7 +965,7 @@ const getNextAirTime = (program) => {
     if (isSpecificDate(program)) {
         const programDate = new Date(program.day);
         if (programDate >= now && (programDate.getDate() !== now.getDate() || currentTime < startTime)) {
-            return new Date(program.day + ' ' + program.from);
+            return new Date(program.day + " " + program.from);
         };
         return null;
     };
@@ -961,14 +991,14 @@ const getNextAirTime = (program) => {
     };
 
     nextDate.setDate(nextDate.getDate() + daysToAdd);
-    nextDate.setHours(...program.from.split(':'), 0, 0);
+    nextDate.setHours(...program.from.split(":"), 0, 0);
     return nextDate;
 };
 
 const scheduleProgram = (program) => {
     if (isProgramActive(program)) {
         const now = new Date();
-        const endTime = new Date(now.toDateString() + ' ' + program.to);
+        const endTime = new Date(now.toDateString() + " " + program.to);
         const timeUntilEnd = endTime.getTime() - now.getTime();
         
         const endTimeoutId = setTimeout(() => {
@@ -1018,7 +1048,7 @@ const scheduleProgram = (program) => {
         });
         state.playingRegional = true;
         
-        const endTime = new Date(nextAirTime.toDateString() + ' ' + program.to);
+        const endTime = new Date(nextAirTime.toDateString() + " " + program.to);
         const timeUntilEnd = endTime.getTime() - nextAirTime.getTime();
         
         const endTimeoutId = setTimeout(() => {
@@ -1065,73 +1095,149 @@ document.querySelectorAll(".channel").forEach(el => {
         el.title = returnErrorMessage(el.dataset.disabled);
         el.addEventListener("click", () => alert(returnErrorMessage(el.dataset.disabled)));
     } else {
-        el.addEventListener("click", async () => {
-            currentlyPlaying = el;
-
-            if (state.schedule != {}) {
-                createScheduler("").remove();
-            };
-
-            if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
-                const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
-                    .then(response => response.json());
-
-                createScheduler(regionalPrograms).start();
-                return;
-            };
-
-            if (document.querySelector(`style.cssfix[media=""]`) != null) {
-                document.querySelector(`style.cssfix[media=""]`).media = "not all";
-            };
-
-            if (el.dataset.cssfix != undefined) {
-                document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
-            };
-
-            if (el.classList.contains("hbbtv-app")) {
-                overlays.classList.add("hbbtv-app");
-            } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
-                overlays.classList.remove("hbbtv-app");
-            };
-
-            if (document.querySelector(".watching") != null) {
-                document.querySelector(".watching").classList.remove("watching");
-            };
-            if (document.querySelector(".watching-hbbtv") != null) {
-                document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
-            };
-            if (el.dataset.lcn.includes(".")) {
-                el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
-                if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
-                    el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
+        el.addEventListener("click", async e => {
+            if (!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") {
+                currentlyPlaying = el;
+    
+                if (state.schedule != {}) {
+                    createScheduler("").remove();
                 };
-            };
-            el.classList.add("watching");
-            if (el.classList.contains("adult")) {
-                if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
-                    adultChannelConfirmation();
-                    return;
-                } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
-                    adultChannelConfirmation(true);
+    
+                if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
+                    const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
+                        .then(response => response.json());
+    
+                    createScheduler(regionalPrograms).start();
                     return;
                 };
+    
+                if (document.querySelector(`style.cssfix[media=""]`) != null) {
+                    document.querySelector(`style.cssfix[media=""]`).media = "not all";
+                };
+    
+                if (el.dataset.cssfix != undefined) {
+                    document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
+                };
+    
+                if (el.classList.contains("hbbtv-app")) {
+                    overlays.classList.add("hbbtv-app");
+                } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
+                    overlays.classList.remove("hbbtv-app");
+                };
+    
+                if (document.querySelector(".watching") != null) {
+                    document.querySelector(".watching").classList.remove("watching");
+                };
+                if (document.querySelector(".watching-hbbtv") != null) {
+                    document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
+                };
+                if (el.dataset.lcn.includes(".")) {
+                    el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
+                    if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
+                        el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
+                    };
+                };
+                el.classList.add("watching");
+                if (el.classList.contains("adult")) {
+                    if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
+                        adultChannelConfirmation();
+                        return;
+                    } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
+                        adultChannelConfirmation(true);
+                        return;
+                    };
+                };
+                await loadChannel({
+                    type: el.dataset.type,
+                    url: el.dataset.url,
+                    api: el.dataset.api,
+                    name: el.dataset.name,
+                    lcn: el.dataset.lcn,
+                    logo: el.dataset.logo,
+                    fullLogo: el.dataset.fullLogo,
+                    radio: el.dataset.radio,
+                    http: el.dataset.http,
+                    license: el.dataset.license,
+                    feed: el.dataset.feed,
+                    fallbackType: el.dataset.fallbackType,
+                    fallbackURL: el.dataset.fallbackUrl,
+                    fallbackAPI: el.dataset.fallbackApi
+                });
+            } else {
+                document.querySelector("#epg-channel").innerText = el.dataset.name;
+                document.querySelector("#channels-column").classList.add("epg-visible");
+                document.querySelector("#epg-date").className = "first-day";
+                document.querySelectorAll(".epg-items").forEach(el => el.remove());
+                document.querySelector("#epg").classList.remove("long-channel-name");
+                document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
+                document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
+                const epgByDays = nationalEPG[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
+                    const startDate = entry.startTime.iso.split("T")[0];
+                    const endDate = entry.endTime.iso.split("T")[0];
+                    if (!accumulator[startDate]) accumulator[startDate] = [];
+                    accumulator[startDate].push(entry);
+                    if (!accumulator[endDate]) accumulator[endDate] = [];
+                    accumulator[endDate].push(entry);
+                    return accumulator;
+                }, {});
+                Object.keys(epgByDays).forEach(day => {
+                    epgByDays[day] = [...new Set(epgByDays[day])];
+                    if (epgByDays[day].length <= 3) delete epgByDays[day];
+                });
+                for (const day in epgByDays) {
+                    document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
+                        ${epgByDays[day].map(entry => {
+                            const image = entry.image ? entry.image : `${zappr.config.epg.host}/noimage.png`;
+                            const now = Date.now();
+                            return `<div class="epg-item-container${entry.description && entry.description.length > 75 ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}" style="background-image: url('${image}');" data-start-time="${entry.startTime.unix}">
+                                <div class="epg-item">
+                                    <img src="${image}" class="epg-image${!entry.image ? " no-image" : ""}">
+                                    <div class="epg-info">
+                                        <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
+                                        ${!entry.link ?
+                                            `<h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>`
+                                            : `<a href="${entry.link}" target="_blank" class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</a>`
+                                        }
+                                        ${entry.subtitle ?
+                                            !entry.link ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : `<a href="${entry.link}" target="_blank" class="epg-subtitle">${entry.subtitle}</a>`
+                                            : ""}
+                                        ${entry.description ? `<div class="epg-description">
+                                            <p>${entry.description}</p>
+                                        </div>` : ""}
+                                    </div>
+                                </div>
+                            </div>`
+                        }).join("")}
+                    </div>`);
+                    if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
+                };
+                document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
+                document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
+                document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
+                    el.addEventListener("click", () => {
+                        el.closest(".epg-item-container").classList.toggle("expanded");
+                    });
+                });
+                document.querySelector(".epg-items").animate({
+                    left: "0"
+                }, {
+                    duration: 0, fill: "forwards", easing: "ease"
+                });
+                document.querySelector(".epg-item-container.on-air").scrollIntoView({
+                    block: "center",
+                    inline: "center"
+                });
+                document.querySelector("#channels").scrollIntoView({
+                    block: "center",
+                    inline: "center"
+                });
+                document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
+                if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
+                setTimeout(() => {
+                    document.querySelector("#epg").scrollIntoView();
+                }, 600);
+                mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
             };
-            await loadChannel({
-                type: el.dataset.type,
-                url: el.dataset.url,
-                api: el.dataset.api,
-                name: el.dataset.name,
-                lcn: el.dataset.lcn,
-                logo: el.dataset.logo,
-                fullLogo: el.dataset.fullLogo,
-                radio: el.dataset.radio,
-                http: el.dataset.http,
-                license: el.dataset.license,
-                feed: el.dataset.feed,
-                fallbackType: el.dataset.fallbackType,
-                fallbackURL: el.dataset.fallbackUrl,
-                fallbackAPI: el.dataset.fallbackApi
-            });
         });
     };
 });
@@ -1482,6 +1588,132 @@ document.querySelector("input").addEventListener("input", e => {
 document.querySelector("#search-icon").addEventListener("click", () => {
     if (!document.querySelector("#channels-column").classList.contains("search-visible")) document.querySelector("input").focus();
     document.querySelector("#channels-column").classList.toggle("search-visible");
+});
+
+let nationalEPG = await fetch(getEPGURL("it/dtt/national"))
+    .then(response => response.json());
+
+const updateCurrentlyPlayingEPG = () => {
+    for (const channel in Array.from(document.querySelectorAll(".channel[data-epg-source]"))) {
+        const currentChannel = document.querySelectorAll(".channel[data-epg-source]")[channel];
+        const epgSource = currentChannel.dataset.epgSource;
+        const epgID = currentChannel.dataset.epgId;
+        if (nationalEPG[epgSource] && nationalEPG[epgSource][epgID]) {
+            const now = Date.now();
+            const nowOnAir = nationalEPG[epgSource][epgID].filter(entry => entry.startTime.unix <= now && entry.endTime.unix >= now)[0];
+            if (nowOnAir) {
+                currentChannel.querySelector(".channel-program").innerHTML = `${nowOnAir.name}${nowOnAir.season ? ` <b>S${nowOnAir.season}</b>` : " "}${nowOnAir.episode ? `<b>E${nowOnAir.episode}</b>` : ""}`;
+    
+                currentChannel.querySelector(".channel-program-start-time").innerText = DateTime.fromMillis(nowOnAir.startTime.unix).toFormat("HH:mm");
+                currentChannel.querySelector(".channel-program-end-time").innerText = DateTime.fromMillis(nowOnAir.endTime.unix).toFormat("HH:mm");
+    
+                const progressPercentage = ((now - nowOnAir.startTime.unix) / (nowOnAir.endTime.unix - nowOnAir.startTime.unix)) * 100;
+                currentChannel.querySelector(".channel-program-progress").style.width = `${progressPercentage}%`;
+
+                if (document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container.on-air`) != null) document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container.on-air`).classList.remove("on-air");
+                if (document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container[data-start-time="${nowOnAir.startTime.unix}"]`) != null) document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container[data-start-time="${nowOnAir.startTime.unix}"]`).classList.add("on-air");
+            };
+        };
+    };
+};
+updateCurrentlyPlayingEPG();
+const now = DateTime.now();
+const nextQuarter = Math.ceil(now.second / 15) * 15;
+const secondTarget = nextQuarter === 60 ? now.plus({ minutes: 1 }).set({ second: 0, millisecond: 0 }) : now.set({ second: nextQuarter, millisecond: 0 });
+const delay = secondTarget.ts - now.ts;
+setTimeout(() => {
+    updateCurrentlyPlayingEPG();
+    setInterval(updateCurrentlyPlayingEPG, 15000);
+}, delay);
+
+setInterval(async () => {
+    nationalEPG = await fetch(getEPGURL("it/dtt/national"))
+        .then(response => response.json());
+}, 3600000);
+
+document.querySelector("#epg-exit").addEventListener("click", () => {
+    document.querySelector("#channels-column").classList.remove("epg-visible");
+    document.querySelector("#channels-column").classList.remove("epg-expanded");
+    setTimeout(() => document.querySelector("#channels").scrollIntoView(), 600);
+});
+document.querySelector("#epg-resize").addEventListener("click", () => document.querySelector("#channels-column").classList.toggle("epg-expanded"));
+document.querySelector("#epg-next-day").addEventListener("click", () => {
+    const active = document.querySelector(".epg-items.active");
+    const next = active.nextElementSibling;
+
+    active.animate({
+        left: "-100%"
+    }, {
+        duration: 750, fill: "forwards", easing: "ease"
+    });
+    if (next != null) {
+        if (next.nextElementSibling === null) document.querySelector("#epg-date").classList.add("last-day");
+            else document.querySelector("#epg-date").classList.remove("last-day");
+        if (next.previousElementSibling && next.previousElementSibling.id === "epg-header") document.querySelector("#epg-date").classList.add("first-day");
+            else document.querySelector("#epg-date").classList.remove("first-day");
+
+        next.animate({
+            left: "0"
+        }, {
+            duration: 750, fill: "forwards", easing: "ease"
+        });
+        next.classList.add("active");
+        active.classList.remove("active");
+        document.querySelector("#epg-date span").animate({
+            transform: "translateX(-25%)", opacity: 0
+        }, {
+            duration: 500, fill: "forwards", easing: "ease"
+        });
+        setTimeout(() => {
+            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(next.dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
+            document.querySelector("#epg-date span").animate([
+                { transform: "translateX(25%)", opacity: 0 },
+                { transform: "translateX(0)", opacity: 1 }
+            ],
+            {
+                duration: 500, fill: "forwards", easing: "ease"
+            });
+        }, 250);
+    };
+});
+document.querySelector("#epg-previous-day").addEventListener("click", () => {
+    const active = document.querySelector(".epg-items.active");
+    const prev = active.previousElementSibling;
+
+    active.animate({
+        left: "100%"
+    }, {
+        duration: 750, fill: "forwards", easing: "ease"
+    });
+    if (prev != null) {
+        if (prev.nextElementSibling === null) document.querySelector("#epg-date").classList.add("last-day");
+            else document.querySelector("#epg-date").classList.remove("last-day");
+        if (prev.previousElementSibling && prev.previousElementSibling.id === "epg-header") document.querySelector("#epg-date").classList.add("first-day");
+            else document.querySelector("#epg-date").classList.remove("first-day");
+
+        prev.animate({
+            left: "0"
+        }, {
+            duration: 750, fill: "forwards", easing: "ease"
+        });
+        active.classList.remove("active");
+        prev.classList.add("active");
+        document.querySelector("#epg-date span").animate({
+            transform: "translateX(25%)", opacity: 0
+        }, {
+            duration: 500, fill: "forwards", easing: "ease"
+        });
+        setTimeout(() => {
+            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(prev.dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
+            document.querySelector("#epg-date span").animate([
+                { transform: "translateX(-25%)", opacity: 0 },
+                { transform: "translateX(0%)", opacity: 1 }
+            ],
+            {
+                duration: 500, fill: "forwards", easing: "ease"
+            });
+        }, 250);
+    };
 });
 
 // https://stackoverflow.com/a/60949881

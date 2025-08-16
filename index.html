@@ -28,7 +28,7 @@
                 display: none !important;
             }
             @media screen and (max-width: 100vh) {
-                #channels {
+                #channels, #epg {
                     margin-top: 0%;
                 }
                 #tv {
@@ -203,6 +203,19 @@
         <div class="columns">
             <div class="column is-one-third-widescreen is-one-quarter-fullhd is-two-fifths-desktop is-two-fifths-tablet p-0" id="channels-column">
                 <div id="channels" class="menu"></div>
+                <div id="epg">
+                    <h1 id="epg-header">
+                        <img src="/assets/icons/exit.svg" alt="Esci" id="epg-exit">
+                        <div>Guida TV di <span id="epg-channel"></span></div>
+                        <span id="epg-date" class="first-day">
+                            <img src="/assets/icons/previous.svg" alt="Giorno precedente" id="epg-previous-day">
+                            <span></span>
+                            <img src="/assets/icons/next.svg" alt="Giorno successivo" id="epg-next-day">
+                        </span>
+                        <img src="/assets/icons/resize.svg" alt="Esci" id="epg-resize">
+                    </h1>
+                    <div class="epg-items"></div>
+                </div>
                 <div id="search-input">
                     <input type="text" placeholder="Cerca canale...">
                 </div>

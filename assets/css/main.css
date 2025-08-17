@@ -1,13 +1,13 @@
 @keyframes loaded {
     100% {
-        transform: translateY(-100vh);
+        transform: translateY(-100svh);
         display: none;
     }
 }
 
 #loading {
     width: 100vw;
-    height: 100vh;
+    height: 100svh;
     z-index: 90;
     position: absolute;
     top: 0;
@@ -97,7 +97,7 @@ a {
     position: absolute;
     top: 0;
     right: 0;
-    height: 100vh;
+    height: 100svh;
     pointer-events: none;
 }
 #overlays * {
@@ -228,14 +228,16 @@ a {
 }
 #search-input {
     order: 1;
-    padding: 1rem 2rem;
     position: absolute;
     width: calc(25% - 4.5rem);
     background: rgb(0 0 0 / 75%);
     border-top: 1px solid rgba(0, 0, 0, 1);
     box-shadow: 0 -4px 30px rgb(0 0 0 / 10%);
     backdrop-filter: blur(5px);
-    bottom: -0.75rem;
+    bottom: 0;
+    height: 0;
+    padding: 0 2rem;
+    overflow: hidden;
     pointer-events: none;
     will-change: bottom;
     transition: 500ms;
@@ -267,6 +269,8 @@ a {
 #channels-column.search-visible #search-input {
     bottom: 3rem;
     pointer-events: all;
+    height: 1.75rem;
+    padding: 1rem 2rem;
 }
 #channels-column.epg-visible #channels {
     transform: translateX(-100%);
@@ -761,7 +765,7 @@ iframe {
     z-index: 9;
     transition: 250ms all;
     text-align: right;
-    height: 100vh;
+    height: 100svh;
     width: 100%;
     background: linear-gradient(360deg, black, transparent);
     left: 0;
@@ -905,7 +909,7 @@ a.tooltip-link {
     padding: 1rem;
     max-width: 37.5rem;
     overflow-x: auto;
-    max-height: 25vh;
+    max-height: 25svh;
 }
 .modal-content i {
     line-break: anywhere;
@@ -914,7 +918,7 @@ a.tooltip-link {
     min-width: 20rem;
     max-width: 37.5rem;
     overflow: auto;
-    max-height: 50vh;
+    max-height: 50svh;
 }
 .modal-buttons {
     margin-bottom: 0.5rem;
@@ -1215,7 +1219,7 @@ a.tooltip-link {
 }
 #overlays #radio-overlay-radio {
     margin: 0.25rem 0;
-    font-size: 5vh;
+    font-size: 5svh;
     line-height: 1;
 }
 canvas {
@@ -1293,6 +1297,8 @@ a#reopen-window svg {
         display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
+        height: 100svh;
+        overflow: hidden;
     }
     #epg-resize {
         display: none;
@@ -1305,6 +1311,22 @@ a#reopen-window svg {
     }
     #channels, #epg {
         margin-top: 56.25%;
+    }
+    #epg {
+        height: -webkit-fill-available;
+        margin-bottom: 3rem;
+    }
+    @supports (-moz-appearance: none) {
+        #epg {
+            margin-top: 0;
+            position: sticky;
+            height: 1000000vh;
+            display: none;
+            margin-bottom: 0;
+        }
+        #channels-column.epg-visible #epg {
+            display: block;
+        }
     }
     #tv {
         position: fixed;

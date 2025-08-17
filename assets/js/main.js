@@ -1223,19 +1223,11 @@ document.querySelectorAll(".channel").forEach(el => {
                 }, {
                     duration: 0, fill: "forwards", easing: "ease"
                 });
-                document.querySelector(".epg-item-container.on-air").scrollIntoView({
-                    block: "center",
-                    inline: "center"
-                });
-                document.querySelector("#channels").scrollIntoView({
-                    block: "center",
-                    inline: "center"
-                });
+                document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
+                document.querySelector("#channels").scrollIntoView();
+                document.querySelector("#channels-column").scrollIntoView();
                 document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
                 if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
-                setTimeout(() => {
-                    document.querySelector("#epg").scrollIntoView();
-                }, 600);
                 mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
             };
         });
@@ -1634,7 +1626,6 @@ setInterval(async () => {
 document.querySelector("#epg-exit").addEventListener("click", () => {
     document.querySelector("#channels-column").classList.remove("epg-visible");
     document.querySelector("#channels-column").classList.remove("epg-expanded");
-    setTimeout(() => document.querySelector("#channels").scrollIntoView(), 600);
 });
 document.querySelector("#epg-resize").addEventListener("click", () => document.querySelector("#channels-column").classList.toggle("epg-expanded"));
 document.querySelector("#epg-next-day").addEventListener("click", () => {

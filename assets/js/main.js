@@ -1166,7 +1166,6 @@ document.querySelectorAll(".channel").forEach(el => {
             } else {
                 document.querySelector("#epg-channel").innerText = el.dataset.name;
                 document.querySelector("#channels-column").classList.add("epg-visible");
-                document.querySelector("#epg-date").className = "first-day";
                 document.querySelectorAll(".epg-items").forEach(el => el.remove());
                 document.querySelector("#epg").classList.remove("long-channel-name");
                 document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
@@ -1180,6 +1179,8 @@ document.querySelectorAll(".channel").forEach(el => {
                     accumulator[endDate].push(entry);
                     return accumulator;
                 }, {});
+                if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
+                    else document.querySelector("#epg-date").className = "first-day last-day";
                 Object.keys(epgByDays).forEach(day => {
                     epgByDays[day] = [...new Set(epgByDays[day])];
                     if (epgByDays[day].length <= 3) delete epgByDays[day];

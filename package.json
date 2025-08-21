@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.0.8",
+    "lodash": "^4.17.21",
     "luxon": "^3.6.1",
     "medium-zoom": "^1.1.0",
     "video.js": "8.14.0",

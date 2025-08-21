@@ -141,14 +141,8 @@ a {
     padding: 1.5rem 0;
     padding-left: 1rem;
 }
-.hbbtv-channels:has(.channel[data-epg-source]:hover) {
+.hbbtv-channels:has(.channel[data-epg-source]:hover, .channel[data-epg-source].watching) {
     height: calc(var(--scroll-height) + 24px) !important;
-}
-.channel[data-epg-source]:hover .channel-subtitle {
-    line-height: 0;
-    overflow: hidden;
-    margin-top: 0;
-    opacity: 0;
 }
 .channel-program {
     color: grey;
@@ -400,6 +394,9 @@ a {
     display: flex;
     flex-direction: column;
 }
+.epg-item-container.no-image .epg-info {
+    padding-left: 1rem;
+}
 .epg-start-time {
     line-height: 1;
     padding-right: 1rem;
@@ -558,9 +555,11 @@ a {
 }
 .channel-subtitle {
     margin-top: 0.25rem;
-    font-size: 1rem;
     color: grey;
     line-height: 1;
+    font-style: italic;
+    font-size: 0.9rem;
+    font-weight: bold;
 }
 .logo {
     max-height: 7.5rem;
@@ -575,7 +574,6 @@ a {
     height: 1.5rem;
     bottom: 0;
     width: auto;
-    /* background: #111111; */
     background: linear-gradient(90deg, hsla(0, 100%, 25%, 1) 0%, hsla(33, 100%, 25%, 1) 10%, hsla(67, 76%, 25%, 1) 20%, hsla(114, 63%, 25%, 1) 30%, hsla(179, 70%, 25%, 1) 40%, hsla(188, 74%, 25%, 1) 50%, hsla(213, 81%, 25%, 1) 60%, hsla(258, 91%, 25%, 1) 70%, hsla(288, 90%, 25%, 1) 80%, hsla(315, 96%, 25%, 1) 90%, hsla(0, 100%, 25%, 1) 100%);
     font-size: 1.325rem;
     font-weight: 700;

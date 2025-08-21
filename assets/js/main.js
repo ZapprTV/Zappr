@@ -2,6 +2,7 @@ import videojs from "video.js";
 import "videojs-contrib-quality-menu";
 import { DateTime } from "luxon";
 import mediumZoom from "medium-zoom";
+import { merge } from "lodash";
 
 await fetch("/config.json")
     .then(response => response.json())
@@ -1170,7 +1171,7 @@ document.querySelectorAll(".channel").forEach(el => {
                 document.querySelector("#epg").classList.remove("long-channel-name");
                 document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
                 document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
-                const epgByDays = nationalEPG[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
+                const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
                     const startDate = entry.startTime.iso.split("T")[0];
                     const endDate = entry.endTime.iso.split("T")[0];
                     if (!accumulator[startDate]) accumulator[startDate] = [];
@@ -1188,11 +1189,13 @@ document.querySelectorAll(".channel").forEach(el => {
                 for (const day in epgByDays) {
                     document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
                         ${epgByDays[day].map(entry => {
-                            const image = entry.image ? entry.image : `${zappr.config.epg.host}/noimage.png`;
                             const now = Date.now();
-                            return `<div class="epg-item-container${entry.description && entry.description.length > 75 ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}" style="background-image: url('${image}');" data-start-time="${entry.startTime.unix}">
+                            const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
+                                !entry.image && entry.description && entry.description.length > 145 ? true : false;
+
+                            return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
                                 <div class="epg-item">
-                                    <img src="${image}" class="epg-image${!entry.image ? " no-image" : ""}">
+                                    ${entry.image ? `<img src="${entry.image}" class="epg-image">` : ""}
                                     <div class="epg-info">
                                         <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
                                         ${!entry.link ?
@@ -1583,17 +1586,28 @@ document.querySelector("#search-icon").addEventListener("click", () => {
     document.querySelector("#channels-column").classList.toggle("search-visible");
 });
 
-let nationalEPG = await fetch(getEPGURL("it/dtt/national"))
+window.zappr.nationalEPG = await fetch(getEPGURL("it/dtt/national"))
     .then(response => response.json());
+
+if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
+    await fetch(getEPGURL(`it/dtt/regional/${localStorage.getItem("region")}`))
+        .then(response => response.json())
+        .then(json => {
+            window.zappr.regionalEPG = json;
+            window.zappr.epg = merge({}, window.zappr.nationalEPG, window.zappr.regionalEPG);
+        });
+} else {
+    window.zappr.epg = window.zappr.nationalEPG;
+};
 
 const updateCurrentlyPlayingEPG = () => {
     for (const channel in Array.from(document.querySelectorAll(".channel[data-epg-source]"))) {
         const currentChannel = document.querySelectorAll(".channel[data-epg-source]")[channel];
         const epgSource = currentChannel.dataset.epgSource;
         const epgID = currentChannel.dataset.epgId;
-        if (nationalEPG[epgSource] && nationalEPG[epgSource][epgID]) {
+        if (window.zappr.epg[epgSource] && window.zappr.epg[epgSource][epgID]) {
             const now = Date.now();
-            const nowOnAir = nationalEPG[epgSource][epgID].filter(entry => entry.startTime.unix <= now && entry.endTime.unix >= now)[0];
+            const nowOnAir = window.zappr.epg[epgSource][epgID].filter(entry => entry.startTime.unix <= now && entry.endTime.unix >= now)[0];
             if (nowOnAir) {
                 currentChannel.querySelector(".channel-program").innerHTML = `${nowOnAir.name}${nowOnAir.season ? ` <b>S${nowOnAir.season}</b>` : " "}${nowOnAir.episode ? `<b>E${nowOnAir.episode}</b>` : ""}`;
     
@@ -1620,8 +1634,19 @@ setTimeout(() => {
 }, delay);
 
 setInterval(async () => {
-    nationalEPG = await fetch(getEPGURL("it/dtt/national"))
+    window.zappr.nationalEPG = await fetch(getEPGURL("it/dtt/national"))
         .then(response => response.json());
+
+    if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
+        await fetch(getEPGURL(`it/dtt/regional/${localStorage.getItem("region")}`))
+            .then(response => response.json())
+            .then(json => {
+                window.zappr.regionalEPG = json;
+                window.zappr.epg = merge({}, window.zappr.nationalEPG, window.zappr.regionalEPG);
+            });
+    } else {
+        window.zappr.epg = window.zappr.nationalEPG;
+    };
 }, 3600000);
 
 document.querySelector("#epg-exit").addEventListener("click", () => {

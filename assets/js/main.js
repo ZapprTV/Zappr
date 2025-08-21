@@ -1595,7 +1595,8 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
         .then(json => {
             window.zappr.regionalEPG = json;
             window.zappr.epg = merge({}, window.zappr.nationalEPG, window.zappr.regionalEPG);
-        });
+        })
+        .catch(() => window.zappr.epg = window.zappr.nationalEPG);
 } else {
     window.zappr.epg = window.zappr.nationalEPG;
 };

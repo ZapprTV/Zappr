@@ -125,10 +125,13 @@ a {
     width: calc(100% - 1rem);
     position: relative;
 }
-.channel[data-epg-source] .channel-info {
+.channel[data-epg-source]:not(.epg-disabled) .channel-info {
     padding: 1.5rem 0;
 }
-.hbbtv-channels .channel[data-epg-source] {
+.channel.epg-disabled[data-epg-source] .channel-program-progress, .channel.epg-disabled[data-epg-source] .channel-program-progress-background, .channel.epg-disabled[data-epg-source] .channel-program-times, .channel.epg-disabled[data-epg-source] .channel-program {
+    display: none !important;
+}
+.hbbtv-channels .channel[data-epg-source]:not(.epg-disabled) {
     display: block;
     padding: 0;
 }
@@ -136,12 +139,12 @@ a {
     width: 100%;
     padding: 0;
 }
-.hbbtv-channels .channel[data-epg-source] .channel-info {
+.hbbtv-channels .channel[data-epg-source]:not(.epg-disabled) .channel-info {
     width: calc(100% - 2rem);
     padding: 1.5rem 0;
     padding-left: 1rem;
 }
-.hbbtv-channels:has(.channel[data-epg-source]:hover, .channel[data-epg-source].watching) {
+.hbbtv-channels:has(.channel[data-epg-source]:not(.epg-disabled):hover, .channel[data-epg-source]:not(.epg-disabled).watching) {
     height: calc(var(--scroll-height) + 24px) !important;
 }
 .channel-program {

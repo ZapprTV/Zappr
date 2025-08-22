@@ -1180,12 +1180,12 @@ document.querySelectorAll(".channel").forEach(el => {
                     accumulator[endDate].push(entry);
                     return accumulator;
                 }, {});
-                if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
-                    else document.querySelector("#epg-date").className = "first-day last-day";
                 Object.keys(epgByDays).forEach(day => {
                     epgByDays[day] = [...new Set(epgByDays[day])];
                     if (epgByDays[day].length <= 3) delete epgByDays[day];
                 });
+                if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
+                    else document.querySelector("#epg-date").className = "first-day last-day";
                 for (const day in epgByDays) {
                     document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
                         ${epgByDays[day].map(entry => {
@@ -1610,6 +1610,7 @@ const updateCurrentlyPlayingEPG = () => {
             const now = Date.now();
             const nowOnAir = window.zappr.epg[epgSource][epgID].filter(entry => entry.startTime.unix <= now && entry.endTime.unix >= now)[0];
             if (nowOnAir) {
+                currentChannel.classList.remove("epg-disabled");
                 currentChannel.querySelector(".channel-program").innerHTML = `${nowOnAir.name}${nowOnAir.season ? ` <b>S${nowOnAir.season}</b>` : " "}${nowOnAir.episode ? `<b>E${nowOnAir.episode}</b>` : ""}`;
     
                 currentChannel.querySelector(".channel-program-start-time").innerText = DateTime.fromMillis(nowOnAir.startTime.unix).toFormat("HH:mm");
@@ -1620,8 +1621,8 @@ const updateCurrentlyPlayingEPG = () => {
 
                 if (document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container.on-air`) != null) document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container.on-air`).classList.remove("on-air");
                 if (document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container[data-start-time="${nowOnAir.startTime.unix}"]`) != null) document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container[data-start-time="${nowOnAir.startTime.unix}"]`).classList.add("on-air");
-            };
-        };
+            } else currentChannel.classList.add("epg-disabled");
+        } else currentChannel.classList.add("epg-disabled");
     };
 };
 updateCurrentlyPlayingEPG();

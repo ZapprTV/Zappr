@@ -212,9 +212,11 @@ a {
 }
 .channel-program-start-time {
     color: black;
+}
+body:not(.androidtv) .channel-program-start-time {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
-.channel-program-end-time {
+body:not(.androidtv) .channel-program-end-time {
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 .channel:hover .channel-program-times, .channel.watching .channel-program-times {
@@ -493,7 +495,7 @@ a {
 .epg-item-container.expandable.expanded .epg-item {
     backdrop-filter: blur(1rem) brightness(0.5);
 }
-.channel:not([disabled]):hover {
+body:not(.androidtv) .channel:not([disabled]):hover, .androidtv .channel:focus, .androidtv .channel:has(.channel-program:focus) {
     background: #333 !important;
 }
 .channel[disabled] {

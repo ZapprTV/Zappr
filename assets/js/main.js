@@ -158,6 +158,23 @@ const createModal = async ({ title, text, buttons }) => {
 
     document.querySelector(".modal").classList.add("is-visible");
 };
+const waitForSelector = (selector) => {
+    return new Promise((resolve) => {
+        if (document.querySelector(selector)) return resolve(document.querySelector(selector));
+
+        const observer = new MutationObserver(() => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document, {
+            childList: true,
+            subtree: true
+        });
+    });
+};
 
 if (new URLSearchParams(location.search).get("geoblock-warning") != null) {
     createModal({
@@ -168,9 +185,13 @@ if (new URLSearchParams(location.search).get("geoblock-warning") != null) {
     });
 };
 if (new URLSearchParams(location.search).get("androidtv") != null) {
+    document.body.classList.add("androidtv");
     document.querySelector("#tv-style").media = "";
+    waitForSelector(".channel").then(el => el.focus());
 
     window.addEventListener("keydown", e => {
+        if (document.activeElement.classList.contains("channel-program") || document.activeElement.classList.contains("channel")) document.activeElement.closest(".channel").scrollIntoView({ block: "center" });
+        if (document.activeElement.classList.contains("hbbtv-enabler") && (e.key === "Enter" || e.key === " ")) document.activeElement.click()
         if (window.location.hash != "#canPressBack") window.location.hash = "canPressBack";
         if (!document.querySelector("#settings").classList.contains("visible")) {
             if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {
@@ -188,7 +209,10 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
                 document.querySelector("#channels-column").style.width = "0%";
                 document.querySelector("#channels-column").style.transform = "translateX(-33.3333vw)";
             } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                if (document.querySelector(".channel.watching") != null && document.querySelector("#channels-column").style.width === "0%") document.querySelector(".channel.watching").focus();
+                if (document.querySelector(".channel.watching") != null && document.querySelector("#channels-column").style.width === "0%") {
+                    if (document.querySelector(".channel.watching .channel-program")) document.querySelector(".channel.watching .channel-program").focus()
+                        else document.querySelector(".channel.watching").focus();
+                };
                 document.querySelector("#channels-column").style.width = "33.3333%";
                 document.querySelector("#channels-column").style.transform = "translateX(0)";
             };
@@ -205,7 +229,10 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
                 document.querySelector("#channels").classList.toggle("tv-settings-open");
                 if (document.querySelector(":focus") != null) document.querySelector(":focus").blur();
             } else if (document.querySelector("#channels-column").style.width === "0%") {
-                if (document.querySelector(".channel.watching") != null) document.querySelector(".channel.watching").focus();
+                if (document.querySelector(".channel.watching") != null) {
+                    if (document.querySelector(".channel.watching .channel-program")) document.querySelector(".channel.watching .channel-program").focus()
+                        else document.querySelector(".channel.watching").focus();
+                };
                 document.querySelector("#channels-column").style.width = "33.3333%";
                 document.querySelector("#channels-column").style.transform = "translateX(0)";
             };
@@ -1097,7 +1124,7 @@ document.querySelectorAll(".channel").forEach(el => {
         el.addEventListener("click", () => alert(returnErrorMessage(el.dataset.disabled)));
     } else {
         el.addEventListener("click", async e => {
-            if (!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") {
+            if ((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") || new URLSearchParams(location.search).get("androidtv") != null) {
                 currentlyPlaying = el;
     
                 if (state.schedule != {}) {

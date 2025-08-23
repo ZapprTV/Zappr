@@ -195,6 +195,16 @@
                 flex-direction: column;
                 width: 100%;
             }
+            .channel-program-times, .channel-program-progress, .channel-program-progress-background {
+                user-select: none;
+                pointer-events: none;
+            }
+            .channel-program {
+                outline: none;
+            }
+            *:not(.channel-program):focus, .channel:has(.channel-program:focus) {
+                outline: #00B2FF auto 1px;
+            }
         </style>
         <style id="search"></style>
         <title>Zappr</title>
@@ -203,7 +213,7 @@
         <div id="loading">Caricamento...</div>
         <div class="columns">
             <div class="column is-one-third-widescreen is-one-quarter-fullhd is-two-fifths-desktop is-two-fifths-tablet p-0" id="channels-column">
-                <div id="channels" class="menu"></div>
+                <div id="channels" class="menu" tabindex="-1"></div>
                 <div id="epg">
                     <h1 id="epg-header">
                         <img src="/assets/icons/exit.svg" alt="Esci" id="epg-exit">
@@ -321,5 +331,6 @@
             };
         </script>
         <script src="/assets/js/main.js" type="module"></script>
+        <script data-consolejs-channel="2bed147e-0509-cb6c-d1d1-eebc17c0a40d" src="https://remotejs.com/agent/agent.js"></script>
     </body>
 </html>

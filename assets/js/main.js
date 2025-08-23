@@ -227,6 +227,10 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
             if (document.querySelector("#channels-column").style.width != "0%") {
                 document.querySelector("#settings").classList.toggle("visible");
                 document.querySelector("#channels").classList.toggle("tv-settings-open");
+                if (!document.querySelector("#channels-column").classList.contains("epg-visible")) {
+                    document.querySelector("#epg").classList.add("is-hidden");
+                };
+                document.querySelector("#channels-column").classList.add("overflow-visible");
                 if (document.querySelector(":focus") != null) document.querySelector(":focus").blur();
             } else if (document.querySelector("#channels-column").style.width === "0%") {
                 if (document.querySelector(".channel.watching") != null) {
@@ -1195,6 +1199,8 @@ document.querySelectorAll(".channel").forEach(el => {
                 document.querySelector("#epg-channel").innerText = el.dataset.name;
                 document.querySelector("#channels-column").classList.add("epg-visible");
                 document.querySelectorAll(".epg-items").forEach(el => el.remove());
+                document.querySelector("#channels-column").classList.remove("overflow-visible");
+                document.querySelector("#epg").classList.remove("is-hidden");
                 document.querySelector("#epg").classList.remove("long-channel-name");
                 document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
                 document.querySelector("#epg").dataset.epgId = el.dataset.epgId;

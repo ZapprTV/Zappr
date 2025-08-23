@@ -261,6 +261,9 @@ body:not(.androidtv) .channel-program-end-time {
     transition: 500ms;
     will-change: width, transform;
 }
+#channels-column.overflow-visible {
+    overflow: visible;
+}
 #channels-column.search-visible #channels {
     height: calc(100% - 6.5rem - 4px);
     padding-bottom: calc(3.5rem + 4px);

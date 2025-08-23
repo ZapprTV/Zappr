@@ -1099,7 +1099,7 @@ a.tooltip-link {
     padding: 0.5rem 0 0.5rem 1rem;
     border-bottom: 2px #373737 solid;
 }
-.hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching + .hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching-hbbtv + .hbbtv-enabler.clicked + .hbbtv-channels {
+.hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching + .hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching-hbbtv + .hbbtv-enabler.clicked + .hbbtv-channels, .hbbtv-channels.clicked {
     height: var(--scroll-height);
     border-bottom: 2px #373737 solid;
 }

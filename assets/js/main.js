@@ -191,7 +191,9 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
 
     window.addEventListener("keydown", e => {
         if (document.activeElement.classList.contains("channel-program") || document.activeElement.classList.contains("channel")) document.activeElement.closest(".channel").scrollIntoView({ block: "center" });
-        if (document.activeElement.classList.contains("hbbtv-enabler") && (e.key === "Enter" || e.key === " ")) document.activeElement.click()
+        if (document.activeElement.classList.contains("hbbtv-enabler") && (e.key === "Enter" || e.key === " ")) {
+            document.activeElement.nextElementSibling.classList.toggle("clicked");
+        };
         if (window.location.hash != "#canPressBack") window.location.hash = "canPressBack";
         if (!document.querySelector("#settings").classList.contains("visible")) {
             if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {

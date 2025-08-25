@@ -88,6 +88,7 @@ a {
     transition: 500ms;
     transform: none;
     will-change: width, transform;
+    z-index: 1;
 }
 .vjs-menu-content {
     overflow-x: hidden !important;

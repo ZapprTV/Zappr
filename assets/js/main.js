@@ -3,6 +3,7 @@ import "videojs-contrib-quality-menu";
 import { DateTime } from "luxon";
 import mediumZoom from "medium-zoom";
 import { merge } from "lodash";
+import "videojs-contrib-eme";
 
 await fetch("/config.json")
     .then(response => response.json())
@@ -59,7 +60,8 @@ const player = videojs("tv", {
     },
     plugins: {
         qualityMenu: {},
-        reloadSourceOnError: {}
+        reloadSourceOnError: {},
+        eme: {}
     }
 });
 
@@ -261,7 +263,7 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
     });
 };
 
-const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
+const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
@@ -541,7 +543,8 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                     type: type === "hls" ? "application/x-mpegURL"
                         : type === "dash" ? "application/dash+xml"
                         : type === "audio" ? "audio/mpeg"
-                        : ""
+                        : "",
+                    keySystems: drm ? drm : {}
                 });
                 break;
 
@@ -783,7 +786,6 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     });
                 };
                 break;
-
         };
     } else {
         await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI })
@@ -825,7 +827,7 @@ const addChannels = (channels) => {
 
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""}>
                     <div class="channel-info">
                         <div class="lcn">${channel.lcn}</div>
                         <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
@@ -1124,6 +1126,172 @@ const createScheduler = (scheduleData) => ({
     remove: () => remove()
 });
 
+let manualRestart = {
+    fetchCache: {},
+    run: async (channel, source, data) => {
+        let seekToStart = () => {};
+        switch (source) {
+            case "mediaset":
+                const restartInfo = await fetch(`${data.restartUrl}?auto=true&balance=true&format=SMIL&formats=MPEG-DASH,MPEG4,M3U&tracking=true&assetTypes=HD,browser,widevine,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,widevine,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo`)
+                    .then(response => response.text())
+                    .then(smil => new DOMParser().parseFromString(smil, "text/xml"));
+                
+                const restartURL = restartInfo.querySelector("ref").getAttribute("src").replaceAll("manifest_hr.mpd", "manifest.mpd");
+                if (restartURL.includes("widevine")) {
+                    const authToken = await fetch("https://api-ott-prod-fe.mediaset.net/PROD/play/idm/anonymous/login/v2.0", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "appName": "web//mediasetplay-web/5.11.8-f16d93c",
+                            "client_id": "994957a4-c91e-4e18-8236-f50c1b8e707f"
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(json => json.response.beToken);
+
+                    const releasePID = restartInfo.querySelector("param").getAttribute("value").split("|").filter(el => el.startsWith("pid="))[0].split("=")[1];
+                    await loadStream({ type: "dash", url: restartURL, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo, drm: {
+                        "com.widevine.alpha": `https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid=${releasePID}&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token=${authToken}`
+                    } });
+
+                } else {
+                    const hlsRestartInfo = await fetch(`${data.restartUrl}?auto=true&balance=true&format=SMIL&formats=MPEG4,M3U&tracking=true&assetTypes=HD,browser,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo`)
+                        .then(response => response.text())
+                        .then(smil => new DOMParser().parseFromString(smil, "text/xml"));
+
+                    const hlsRestartURL = hlsRestartInfo.querySelector("ref").getAttribute("src");
+                    await loadStream({ type: "hls", url: hlsRestartURL, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
+                };
+                seekToStart = () => {
+                    if (player.liveTracker.isLive()) player.currentTime(0);
+                    player.off("loadeddata", seekToStart);
+                };
+                player.on("loadeddata", seekToStart);
+                break;
+
+            case "la7":
+                await fetch(`https://www.la7.it/getVideoInfoHbbtv?nid=${data}`)
+                    .then(response => response.json())
+                    .then(async json => {
+                        if (json.node.field_geolock_italia?.und[0]?.value === "1") {
+                            alert("Il restart per questo programma non è disponibile al di fuori dell'Italia.")
+                        } else if (json.node.field_drm?.und[0]?.value === "1") {
+                            alert("Il restart per questo programma è protetto da DRM e non può essere riprodotto.")
+                        } else await loadStream({ type: "direct", url: json.video.urlMP4, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
+                    });
+                break;
+
+            case "sky":
+                await loadStream({ type: "hls", url: data.url, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
+                seekToStart = () => {
+                    if (player.liveTracker.isLive()) player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - data.startTime) / 1000) + 10);
+                    player.off("loadeddata", seekToStart);
+                };
+                player.on("loadeddata", seekToStart);
+                break;
+
+        };
+    },
+    addButton: (el, channel, source, data) => {
+        el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart manual"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
+        el.querySelector(".epg-restart").addEventListener("click", async () => {
+            await manualRestart.run(channel, source, data);
+            el.classList.add("restart-soon");
+            setTimeout(() => {
+                el.classList.remove("restart-soon");
+            }, 10000);
+        });
+    },
+    check: async (channel, els) => {
+        for (const el in els) {
+            const source = channel.dataset.manualRestartSource;
+            const id = channel.dataset.manualRestartId;
+            const startTime = DateTime.fromMillis(parseInt(els[el].dataset.startTime));
+            const rangeStart = startTime.minus({ minutes: 2.5 }).ts;
+            const rangeEnd = startTime.plus({ minutes: 2.5 }).ts;
+            let json;
+
+            switch (source) {
+                case "mediaset":
+                    if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                        if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
+                        else {
+                            json = await fetch(`https://static-api.mediaset.net/apigw/nownext/${id}.json`)
+                                .then(response => response.json());
+                            manualRestart.fetchCache[source] = {};
+                            manualRestart.fetchCache[source][id] = json;
+                        };
+
+                        if (els[el].classList.contains("on-air") && json.response.currentListing.mediasetlisting$restartAllowed) manualRestart.addButton(els[el], channel, source, json.response.currentListing);
+                    };
+                    break;
+
+                case "la7":
+                    if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
+                    else {
+                        json = await fetch(`https://www.la7.it/la7it_palinsesto_service_getrepliche/${id}?s=hbbtv`)
+                            .then(response => response.json());
+                        manualRestart.fetchCache[source] = {};
+                        manualRestart.fetchCache[source][id] = json;
+                    };
+
+                    json[Object.keys(json)[0]].forEach(entry => {
+                        let entryStartHour = entry.ora.split(" ")[0];
+                        let entryStartTime = DateTime.fromFormat(entry.data, "dd/MM/yyyy").setZone("Europe/Rome").startOf("day").set({
+                            hour: entryStartHour.split(":")[0],
+                            minutes: entryStartHour.split(":")[1]
+                        }).ts;
+                        if (entryStartTime.hour < 6) entryStartTime = entryStartTime.plus({ days: 1 });
+                        if (entryStartTime >= rangeStart && entryStartTime <= rangeEnd) manualRestart.addButton(els[el], channel, source, entry.nid);
+                    });
+                    break;
+
+                case "sky":
+                    if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                        if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
+                        else {
+                            json = await fetch(`https://hbbtv.sky.it/api/playout/${id}/enhanced`)
+                                .then(response => response.json());
+                            manualRestart.fetchCache[source] = {};
+                            manualRestart.fetchCache[source][id] = json;
+                        };
+    
+                        json.epgList.filter(entry => entry.isRestartable).forEach(entry => {
+                            let entryStartTime = DateTime.fromISO(entry.epgEventStart).setZone("Europe/Rome").ts;
+                            if (entryStartTime >= rangeStart && entryStartTime <= rangeEnd && !entry.restartUrl.includes("undefined") && entryStartTime < DateTime.now().ts) manualRestart.addButton(els[el], channel, source, {
+                                url: entry.restartUrl,
+                                startTime: startTime.ts
+                            });
+                        });
+                    };
+                    break;
+            };
+        };
+    },
+};
+
+const updateRestartablePrograms = async (manual = false) => {
+    if (manual) manualRestart.fetchCache = {};  
+    document.querySelectorAll(".epg-restart:not(.manual)").forEach(el => el.remove());
+    if (document.querySelector(".channel.watching") && document.querySelector(".channel.watching").dataset.epgSource && document.querySelector("#channels-column").classList.contains("epg-visible") && document.querySelector(`#epg[data-epg-source="${document.querySelector(".channel.watching").dataset.epgSource}"][data-epg-id="${document.querySelector(".channel.watching").dataset.epgId}"]`)) {
+        document.querySelectorAll(".epg-item-container").forEach(el => {
+            if ((parseInt(el.dataset.startTime) >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && parseInt(el.dataset.startTime) <= DateTime.now().ts) && !document.querySelector(".channel.watching").dataset.manualRestartSource) {
+                el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
+                el.querySelector(".epg-restart").addEventListener("click", () => {
+                    player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - parseInt(el.dataset.startTime)) / 1000) + 10);
+                    el.classList.add("restart-soon");
+                    setTimeout(() => {
+                        el.classList.remove("restart-soon");
+                    }, 10000);
+                });
+            };
+        });
+        if (manual) await manualRestart.check(document.querySelector(".channel.watching"), Array.from(document.querySelectorAll(".epg-item-container")));
+    };
+};
+
 document.querySelectorAll(".channel").forEach(el => {
     if (el.dataset.disabled != undefined) {
         el.title = returnErrorMessage(el.dataset.disabled);
@@ -1136,6 +1304,14 @@ document.querySelectorAll(".channel").forEach(el => {
                 if (state.schedule != {}) {
                     createScheduler("").remove();
                 };
+
+                if (document.querySelector(".watching") != null) {
+                    document.querySelector(".watching").classList.remove("watching");
+                };
+                if (document.querySelector(".watching-hbbtv") != null) {
+                    document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
+                };
+                el.classList.add("watching");
     
                 if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
                     const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
@@ -1159,19 +1335,13 @@ document.querySelectorAll(".channel").forEach(el => {
                     overlays.classList.remove("hbbtv-app");
                 };
     
-                if (document.querySelector(".watching") != null) {
-                    document.querySelector(".watching").classList.remove("watching");
-                };
-                if (document.querySelector(".watching-hbbtv") != null) {
-                    document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
-                };
                 if (el.dataset.lcn.includes(".")) {
                     el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
                     if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
                         el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
                     };
                 };
-                el.classList.add("watching");
+                
                 if (el.classList.contains("adult")) {
                     if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
                         adultChannelConfirmation();
@@ -1233,16 +1403,12 @@ document.querySelectorAll(".channel").forEach(el => {
                                     ${entry.image ? `<img src="${entry.image}" class="epg-image">` : ""}
                                     <div class="epg-info">
                                         <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
-                                        ${!entry.link ?
-                                            `<h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>`
-                                            : `<a href="${entry.link}" target="_blank" class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</a>`
-                                        }
-                                        ${entry.subtitle ?
-                                            !entry.link ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : `<a href="${entry.link}" target="_blank" class="epg-subtitle">${entry.subtitle}</a>`
-                                            : ""}
+                                        <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
+                                        ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
                                         ${entry.description ? `<div class="epg-description">
                                             <p>${entry.description}</p>
                                         </div>` : ""}
+                                        <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${new URL("/assets/icons/play.svg", import.meta.url)}">Guarda</a>` : ""}</div>
                                     </div>
                                 </div>
                             </div>`
@@ -1250,6 +1416,7 @@ document.querySelectorAll(".channel").forEach(el => {
                     </div>`);
                     if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
                 };
+                updateRestartablePrograms(true);
                 document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
                 document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
                 document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
@@ -1636,7 +1803,7 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
     window.zappr.epg = window.zappr.nationalEPG;
 };
 
-const updateCurrentlyPlayingEPG = () => {
+const updateCurrentlyPlayingEPG = async () => {
     for (const channel in Array.from(document.querySelectorAll(".channel[data-epg-source]"))) {
         const currentChannel = document.querySelectorAll(".channel[data-epg-source]")[channel];
         const epgSource = currentChannel.dataset.epgSource;
@@ -1658,6 +1825,7 @@ const updateCurrentlyPlayingEPG = () => {
                 if (document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container[data-start-time="${nowOnAir.startTime.unix}"]`) != null) document.querySelector(`#epg[data-epg-source="${epgSource}"][data-epg-id="${epgID}"] .epg-item-container[data-start-time="${nowOnAir.startTime.unix}"]`).classList.add("on-air");
             } else currentChannel.classList.add("epg-disabled");
         } else currentChannel.classList.add("epg-disabled");
+        await updateRestartablePrograms();
     };
 };
 updateCurrentlyPlayingEPG();

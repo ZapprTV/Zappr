@@ -383,6 +383,29 @@ body:not(.androidtv) .channel-program-end-time {
     border-bottom: 1px solid rgba(0, 0, 0);
     transition: 500ms;
 }
+.epg-item-container::after {
+    content: "Il programma richiesto inizierà a breve";
+    display: block;
+    backdrop-filter: blur(1rem) brightness(0.25);
+    background-image: url("/assets/icons/info.svg");
+    background-repeat: no-repeat;
+    background-size: 1.5rem;
+    background-position: 1.25rem center;
+    transition: 500ms;
+    height: 0;
+    line-height: 0rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 3.5rem !important;
+    border-top: 0px;
+    overflow: hidden;
+}
+.epg-item-container.restart-soon::after {
+    height: 1rem;
+    line-height: 1;
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 0, 0);
+}
 .epg-item-container.expandable .epg-description {
     cursor: ew-resize;
 }
@@ -486,6 +509,43 @@ body:not(.androidtv) .channel-program-end-time {
     max-height: calc(1.2 * 3rem);
     overflow: hidden;
     transition: 0s !important;
+}
+.epg-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+    flex-wrap: wrap;
+}
+.epg-buttons:not(:empty) {
+    margin-top: 0.5rem;
+}
+.epg-buttons div, .epg-buttons a {
+    background: rgb(255 255 255 / 75%);
+    border: 1px solid rgb(0 0 0);
+    box-shadow: 0 -4px 30px rgb(255 255 255 / 10%);
+    backdrop-filter: blur(5px);
+    border-radius: 8px;
+    font-weight: bold;
+    width: max-content;
+    line-height: 1;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: black;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+#epg[data-epg-source="raiplay"] .epg-watch::after {
+    content: "su RaiPlay";
+    margin-left: -0.25rem;
+}
+.epg-buttons img {
+    height: 1rem;
+    filter: invert(1);
 }
 .epg-item-container.expandable.expanded .epg-image {
     margin-left: -40%;
@@ -1377,6 +1437,15 @@ a#reopen-window svg {
     }
     #search-input {
         width: calc(100vw - 4.5rem);
+    }
+    .epg-item {
+        backdrop-filter: brightness(0.05);
+    }
+    .epg-item-container.expanded .epg-item {
+        backdrop-filter: brightness(0.125) !important;
+    }
+    .epg-item-container.restart-soon::after {
+        height: 2rem;
     }
 }
 @media screen and (min-width: 769px) {

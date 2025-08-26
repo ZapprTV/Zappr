@@ -20,6 +20,9 @@ dependencies:
   video.js:
     specifier: 8.14.0
     version: 8.14.0
+  videojs-contrib-eme:
+    specifier: ^5.5.2
+    version: 5.5.2(video.js@8.14.0)
   videojs-contrib-quality-menu:
     specifier: ^1.0.4
     version: 1.0.4(video.js@8.14.0)
@@ -1018,6 +1021,15 @@ packages:
       videojs-contrib-quality-levels: 4.1.0(video.js@8.14.0)
       videojs-font: 4.1.0
       videojs-vtt.js: 0.15.5
+    dev: false
+
+  /videojs-contrib-eme@5.5.2(video.js@8.14.0):
+    resolution: {integrity: sha512-hBSypwxAzabBOair1bV7PcHIPSxCIev3/DwD0DkP9B0RTYcvT7B7WpIQpwB12KgMTyf9F451h+iLD1uKhngyNg==}
+    peerDependencies:
+      video.js: ^8.11.8
+    dependencies:
+      global: 4.4.0
+      video.js: 8.14.0
     dev: false
 
   /videojs-contrib-quality-levels@4.1.0(video.js@8.14.0):

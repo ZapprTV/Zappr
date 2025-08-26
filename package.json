@@ -33,6 +33,7 @@
     "luxon": "^3.6.1",
     "medium-zoom": "^1.1.0",
     "video.js": "8.14.0",
+    "videojs-contrib-eme": "^5.5.2",
     "videojs-contrib-quality-menu": "^1.0.4",
     "videojs-plyr": "^1.0.3"
   },

@@ -1446,6 +1446,7 @@ a#reopen-window svg {
     }
     .epg-item-container.restart-soon::after {
         height: 2rem;
+        place-content: center;
     }
 }
 @media screen and (min-width: 769px) {

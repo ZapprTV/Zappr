@@ -1192,6 +1192,75 @@ let manualRestart = {
                 player.on("loadeddata", seekToStart);
                 break;
 
+            case "wbd":
+                const startTime = DateTime.fromMillis(data.startTime);
+                const chunkStart = startTime.set({
+                    minutes: Math.floor(startTime.minute / data.epgChunkSize) * data.epgChunkSize,
+                    seconds: 0,
+                    milliseconds: 0
+                });
+                const chunkEnd = chunkStart.plus({ minutes: data.epgChunkSize });
+
+                const epgChunk = await fetch(`${data.epgEndpoint}/${data.id}/${chunkStart.ts}-${chunkEnd.ts}.json`)
+                    .then(response => response.json());
+
+                const programs = epgChunk.data.schedule.filter(el => el.segmentNo && el.segmentNo === 1);
+                if (programs.length >= 1) {
+                    let playoutStartTime = parseInt(programs.reduce((previous, current) => Math.abs(current.startts - DateTime.now().ts) < Math.abs(previous.startts - DateTime.now().ts) ? current : previous).startts) / 1000;
+
+                    const authToken = await fetch("https://public.aurora.enhanced.live/token?realm=it")
+                        .then(response => response.json())
+                        .then(json => json.data.attributes.token);
+
+                    const dashURL = await fetch("https://public.aurora.enhanced.live/playback/v3/channelPlaybackInfo", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${authToken}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            deviceInfo: {
+                                adBlocker: false,
+                                drmSupported: false,
+                                hdrCapabilities: ["SDR"],
+                                hwDecodingCapabilities: [],
+                                soundCapabilities: ["STEREO"]
+                            },
+                            wisteriaProperties: {
+                                device: {
+                                    browser: {
+                                        name: "chrome",
+                                        version: "38"
+                                    },
+                                    type: "hbbtv"
+                                },
+                                platform: "hbbtv"
+                            },
+                            channelId: data.restartID
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(json => json.data.attributes.streaming[0].url);
+
+                    const canRestart = await fetch(`${dashURL}&aws.manifestsettings=start:${playoutStartTime}`)
+                        .then(response => response.ok);
+
+                    if (canRestart) {
+                        await loadStream({ type: "dash", url: `${dashURL}&aws.manifestsettings=start:${playoutStartTime}`, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
+                        seekToStart = () => {
+                            if (player.liveTracker.isLive()) player.currentTime(data.buffer / 1000);
+                            player.off("loadeddata", seekToStart);
+                        };
+                        player.on("loadeddata", seekToStart);
+                    } else {
+                        alert("Impossibile effettuare il restart. Se il programma è iniziato da poco prova ad aspettare qualche minuto.");
+                    };
+                } else {
+                    alert("Impossibile effettuare il restart. Se il programma è iniziato da poco prova ad aspettare qualche minuto.");
+                };
+                
+                break;
+
         };
     },
     addButton: (el, channel, source, data) => {
@@ -1265,6 +1334,49 @@ let manualRestart = {
                                 startTime: startTime.ts
                             });
                         });
+                    };
+                    break;
+
+                case "wbd":
+                    if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                        if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
+                        else {
+                            let channelModulesURL = await fetch(`https://datahub.enhanced.tools/live/it/${id}.json`)
+                                .then(response => response.json())
+                                .then(json => json.containers[0].configUrl);
+
+                            let channelConfigURL = await fetch(channelModulesURL)
+                                .then(response => response.json())
+                                .then(json => json.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl);
+                            let channelConfig = await fetch(channelConfigURL)
+                                .then(response => response.json());
+
+                            let startOverWindow = parseInt(channelConfig.startOverWindow) * 1000;
+                            let restartID = channelConfig.launchers.filter(el => el.style === "restart")[0].interactiveItem.action.payload.id;
+
+                            let epgConfig = await fetch(`https://datahub.enhanced.tools/configs/bundles/epg/config.json`)
+                                .then(response => response.json());
+                                
+                            json = {
+                                startOverWindow: startOverWindow,
+                                epgConfig: epgConfig,
+                                restartID: restartID
+                            };
+
+                            manualRestart.fetchCache[source] = {};
+                            manualRestart.fetchCache[source][id] = json;
+                        };
+    
+                        if (startTime.ts > DateTime.now().ts - json.startOverWindow && startTime.ts < DateTime.now().ts && els[el].classList.contains("on-air")) {
+                            manualRestart.addButton(els[el], channel, source, {
+                                buffer: parseInt(json.epgConfig.channelDelay),
+                                epgEndpoint: new URL(json.epgConfig.epgApiEndpoint).origin,
+                                epgChunkSize: parseInt(json.epgConfig.epgChunkSize),
+                                id: id,
+                                restartID: json.restartID,
+                                startTime: startTime.ts
+                            });
+                        };
                     };
                     break;
             };

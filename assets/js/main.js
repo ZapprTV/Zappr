@@ -2060,3 +2060,13 @@ Promise.all(Array.from(document.images).filter(img => !img.complete).map(img => 
         selectChannel(new URLSearchParams(location.search).get("lcn"));
     };
 });
+
+if (window.self !== window.top && document.referrer && new URL(document.referrer).hostname.endsWith("kritere.com")) {
+    document.querySelector("#loading").remove();
+    document.querySelector(".columns").outerHTML = `<div id="block-message">
+        <h2>Questo sito sta incorporando Zappr, un sito gratuito per guardare la TV italiana online, coprendone il nome e traendo profitto dalle pubblicità su questa pagina.</h2>
+        <a class="button primary" href="https://zappr.stream">Clicca qui per passare alla versione vera di Zappr, senza pubblicità e a schermo intero.</a>
+        <span>(amministratori del sito, potete continuare a incorporare Zappr solo se rimuovete la barra che ne copre il nome e se rimuovete le pubblicità da questa pagina)</span>
+    </div>`;
+    window.addEventListener("click", () => window.open("https://zappr.stream", "_blank"));
+};

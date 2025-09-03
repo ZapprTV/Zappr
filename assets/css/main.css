@@ -5,6 +5,25 @@
     }
 }
 
+#block-message {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+#block-message h2 {
+    margin: 0;
+    line-height: 1.2;
+}
+#block-message .button {
+    margin: 2rem 0;
+    line-height: 1.2;
+}
+#block-message span {
+    line-height: 1;
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.5;
+}
 #loading {
     width: 100vw;
     height: 100svh;

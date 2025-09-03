@@ -17,6 +17,7 @@
 #block-message .button {
     margin: 2rem 0;
     line-height: 1.2;
+    cursor: pointer;
 }
 #block-message span {
     line-height: 1;

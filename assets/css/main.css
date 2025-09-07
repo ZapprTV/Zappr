@@ -1291,13 +1291,13 @@ a.tooltip-link {
     bottom: 0;
     right: 0;
 }
-#overlays.hbbtv-app #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {
-    width: 10%;
-    height: 10%;
-}
 #overlays.pluto-channel #fullscreen-button-container {
     width: 100%;
     height: 100%;
+}
+#overlays.hbbtv-app #fullscreen-button-container, #overlays.pluto-channel:fullscreen #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {
+    width: 10%;
+    height: 10%;
 }
 #overlays.radio-overlay:not(:fullscreen) #fullscreen-button-container {
     width: 0;
@@ -1519,7 +1519,7 @@ a#reopen-window svg {
         height: auto;
         aspect-ratio: 16 / 9;
     }
-    #overlays.hbbtv-app iframe {
+    #overlays.pluto-channel iframe {
         --hbbtv-wrapper-scale: 100%;
     }
     .modal-buttons {

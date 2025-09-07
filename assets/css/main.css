@@ -125,6 +125,75 @@ a {
 #overlays * {
     pointer-events: all;
 }
+.channel-category {
+    text-align: center;
+    padding-top: 2.5rem;
+    padding-bottom: 1.5rem;
+    margin: 0;
+    scroll-margin-top: calc(-3rem + 1px);
+}
+.channel:first-of-type {
+    scroll-margin-top: 3rem;
+}
+.source-header {
+    background: rgb(0 0 0 / 75%);
+    border: 1px solid rgba(0, 0, 0, 1);
+    box-shadow: 0 -4px 30px rgb(0 0 0 / 10%);
+    backdrop-filter: blur(5px);
+    margin: 0;
+    font-size: 1rem;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    min-width: max-content;
+    max-width: -webkit-fill-available;
+    max-width: -moz-available;
+    position: sticky;
+    top: 0;
+    margin-left: auto;
+    z-index: 9999;
+    width: 100%;
+    transition: 500ms;
+    align-items: center;
+    height: 1.5rem;
+    overflow: hidden;
+}
+#channels-column.search-visible .source-header {
+    height: 0;
+    padding: 0;
+    user-select: none;
+    pointer-events: none;
+}
+.source-header .current-source {
+    font-weight: bold;
+}
+.source-header.minimized {
+    width: 4rem;
+    border-bottom-left-radius: 1rem;
+}
+.source-header img {
+    height: 1.25rem;
+    cursor: pointer;
+    transition: 250ms;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.source-header .previous {
+    margin-right: 1rem;
+}
+.source-header .next {
+    margin-left: 1rem;
+}
+.source-header.first-source .previous {
+    height: 0;
+    margin-right: 0;
+}
+.source-header.last-source .next {
+    height: 0;
+    margin-left: 0;
+}
 .channel {
     height: auto;
     align-items: center;
@@ -658,6 +727,10 @@ body:not(.androidtv) .channel:not([disabled]):hover, .androidtv .channel:focus, 
     width: 80px;
     height: 100%;
     margin-left: 0.5rem;
+}
+.samsung-logo {
+    height: 80px;
+    border-radius: 0.5rem;
 }
 #bottom {
     position: sticky;
@@ -1205,23 +1278,32 @@ a.tooltip-link {
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
 }
-#overlays.hbbtv-app {
+#overlays.hbbtv-app, #overlays.pluto-channel {
     background: #000;
     pointer-events: all;
     user-select: none;
 }
-#overlays.hbbtv-app #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {
+#overlays.pluto-channel {
+    overflow: hidden;
+}
+#overlays.hbbtv-app #fullscreen-button-container, #overlays.pluto-channel #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {
     position: absolute;
     bottom: 0;
     right: 0;
+}
+#overlays.hbbtv-app #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {
     width: 10%;
     height: 10%;
+}
+#overlays.pluto-channel #fullscreen-button-container {
+    width: 100%;
+    height: 100%;
 }
 #overlays.radio-overlay:not(:fullscreen) #fullscreen-button-container {
     width: 0;
     height: 0;
 }
-#overlays.hbbtv-app #fullscreen-button, #overlays.radio-overlay #fullscreen-button {
+#overlays.hbbtv-app #fullscreen-button, #overlays.pluto-channel #fullscreen-button, #overlays.radio-overlay #fullscreen-button {
     content: "";
     background-repeat: no-repeat;
     background-position: center;
@@ -1238,25 +1320,32 @@ a.tooltip-link {
     bottom: 8px;
     right: 6px;
 }
-#overlays.hbbtv-app:fullscreen #fullscreen-button, #overlays.radio-overlay:fullscreen #fullscreen-button {
+#overlays.hbbtv-app:fullscreen #fullscreen-button, #overlays.pluto-channel:fullscreen #fullscreen-button, #overlays.radio-overlay:fullscreen #fullscreen-button {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0.6 0.6 16.8 16.8'%3E%3Cpolygon points='1 12 4.6 12 0.6 16 2 17.4 6 13.4 6 17 8 17 8 10 1 10'%3E%3C/polygon%3E%3Cpolygon points='16 0.6 12 4.6 12 1 10 1 10 8 17 8 17 6 13.4 6 17.4 2'%3E%3C/polygon%3E%3C/svg%3E");
 }
-#overlays.hbbtv-app #fullscreen-button:hover, #overlays.radio-overlay #fullscreen-button:hover {
+#overlays.hbbtv-app #fullscreen-button:hover, #overlays.pluto-channel #fullscreen-button:hover, #overlays.radio-overlay #fullscreen-button:hover {
     background-color: #00b2ff;
 }
-#overlays.hbbtv-app #fullscreen-button-container:hover #fullscreen-button, #overlays.radio-overlay:not(:fullscreen) #fullscreen-button-container #fullscreen-button, #overlays.radio-overlay:fullscreen #fullscreen-button-container:hover #fullscreen-button {
+#overlays.hbbtv-app #fullscreen-button-container:hover #fullscreen-button, #overlays.pluto-channel #fullscreen-button-container:hover #fullscreen-button, #overlays.radio-overlay:not(:fullscreen) #fullscreen-button-container #fullscreen-button, #overlays.radio-overlay:fullscreen #fullscreen-button-container:hover #fullscreen-button {
     transform: translateY(0);
 }
-#overlays.hbbtv-app iframe {
+#overlays.hbbtv-app iframe, #overlays.pluto-channel iframe {
     aspect-ratio: 16 / 9;
     width: 100vw;
-    height: auto;
     position: absolute;
     top: 50%;
     --hbbtv-wrapper-scale: 75%;
     transform: translate(calc((100% - var(--hbbtv-wrapper-scale)) / 2 * -1), -50%) scale(calc(var(--hbbtv-wrapper-scale) * var(--hbbtv-wrapper-scale-multiplier, 1)));
 }
-#overlays.hbbtv-app:fullscreen iframe {
+#overlays.hbbtv-app iframe {
+    height: auto;
+}
+#overlays.pluto-channel iframe {
+    height: 500vh;
+    user-select: none;
+    pointer-events: none;
+}
+#overlays.hbbtv-app:fullscreen iframe, #overlays.pluto-channel:fullscreen iframe {
     --hbbtv-wrapper-scale: 100%;
 }
 #overlays #radio-overlay {
@@ -1575,6 +1664,9 @@ a#reopen-window svg {
     .logo {
         min-width: 60px;
         width: 60px;
+    }
+    .samsung-logo {
+        height: 60px;
     }
 }
 

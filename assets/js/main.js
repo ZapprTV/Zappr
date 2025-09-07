@@ -9,7 +9,7 @@ await fetch("/config.json")
     .then(response => response.json())
     .then(json => window["zappr"] = json)
     .catch(err => {
-        console.log(`Impossibile trovare config (${err}), in uso quella di default`);
+        console.warn(`Impossibile trovare config (${err}), in uso quella di default`);
         window["zappr"] = {
             "config": {
                 "channels": {
@@ -28,6 +28,9 @@ await fetch("/config.json")
                 },
                 "epg": {
                     "host": "https://epg.zappr.stream"
+                },
+                "fast": {
+                    "host": "https://fast.zappr.stream"
                 }
             }
         };
@@ -795,11 +798,14 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
 const getChannelLogoURL = (logo, optimized) => {
     const config = zappr.config.logos;
 
-    if (optimized === false) {
-        return `${config.host}/${logo}${logo.endsWith(".svg") ? "" : ".png"}`;
-    } else {
-        return `${config.host}/${config.optimized ? "optimized/": ""}${logo}${logo.endsWith(".svg") ? "" : (config.optimized ? ".webp" : ".png")}`;
-    }
+    if (logo.startsWith("http://") || logo.startsWith("https://")) return logo
+    else {
+        if (optimized === false) {
+            return `${config.host}/${logo}${logo.endsWith(".svg") ? "" : ".png"}`;
+        } else {
+            return `${config.host}/${config.optimized ? "optimized/": ""}${logo}${logo.endsWith(".svg") ? "" : (config.optimized ? ".webp" : ".png")}`;
+        }
+    };
 };
 
 
@@ -815,6 +821,12 @@ const getEPGURL = (path) => {
     return `${config.host}/${path}.json`;
 };
 
+const getFASTChannelsURL = (path) => {
+    const config = zappr.config.fast;
+
+    return `${config.host}/${path}/channels.json`;
+};
+
 const addChannels = (channels) => {
     if (window.location.search === "?amazon-appstore") {
         channels.filter(el => el.lcn === 7 || el.lcn === 29).forEach(el => {
@@ -826,75 +838,78 @@ const addChannels = (channels) => {
         const isGeoblocked = new URLSearchParams(location.search).get("geoblock-warning") != null;
 
         channelslist.insertAdjacentHTML("beforeend", `
-            ${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""}>
-                    <div class="channel-info">
-                        <div class="lcn">${channel.lcn}</div>
-                        <img class="logo" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous">
-                        <div class="channel-title-subtitle">
-                            <div class="channel-name">${channel.name}</div>
-                            ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
-                            ${channel.hbbtvmosaic ? `<div class="channel-subtitle">Mosaico HbbTV</div>` : ""}
-                            ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
-                            ${channel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+            ${channel.categorySeparator === undefined
+                ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
+                    <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""}>
+                        <div class="channel-info">
+                            <div class="lcn">${channel.lcn}</div>
+                            <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" ${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? ` loading="lazy"` : ""}>
+                            <div class="channel-title-subtitle">
+                                <div class="channel-name">${channel.name}</div>
+                                ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
+                                ${channel.hbbtvmosaic ? `<div class="channel-subtitle">Mosaico HbbTV</div>` : ""}
+                                ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
+                                ${channel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                            </div>
+                            ${channel.hd ? `<div class="hd"></div>` : ""}
+                            ${channel.uhd ? `<div class="uhd"></div>` : ""}
+                            ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
+                            ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
+                            ${channel.type === "popup" ? `<div class="external"></div>` : ""}
+                            ${channel.adult === true ? `<div class="adult-marker"></div>`
+                                : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                         </div>
-                        ${channel.hd ? `<div class="hd"></div>` : ""}
-                        ${channel.uhd ? `<div class="uhd"></div>` : ""}
-                        ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
-                        ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
-                        ${channel.type === "popup" ? `<div class="external"></div>` : ""}
-                        ${channel.adult === true ? `<div class="adult-marker"></div>`
-                            : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
+                        ${channel.hbbtvmosaic ? `<div class="hbbtv-enabler-arrow">&gt;</div>` : ""}
+                        ${channel.epg ? `
+                            <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
+                            <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
+                            <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
+                                <div class="channel-program-start-time"></div>
+                                <div class="channel-program-end-time"></div>
+                            </div>
+                        ` : ""}
                     </div>
-                    ${channel.hbbtvmosaic ? `<div class="hbbtv-enabler-arrow">&gt;</div>` : ""}
-                    ${channel.epg ? `
-                        <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
-                        <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
-                        <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
-                            <div class="channel-program-start-time"></div>
-                            <div class="channel-program-end-time"></div>
-                        </div>
-                    ` : ""}
-                </div>
 
-                ${channel.hbbtv && !channel.hbbtvmosaic ? `<div class="hbbtv-enabler">
-                    <div class="hbbtv-enabler-arrow">&gt;</div>
-                    <div class="hbbtv-enabler-text">Visualizza canali HbbTV</div>
-                </div>` : ""}
-                ${channel.hbbtv ? `<div class="hbbtv-channels">
-                    ${channel.hbbtv.map(subchannel =>
-                        subchannel.categorySeparator === undefined
-                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
-                                <div class="channel-info">
-                                    <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
-                                    <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous">
-                                    <div class="channel-title-subtitle">
-                                        <div class="channel-name">${subchannel.name}</div>
-                                        ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
-                                        ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
-                                        ${subchannel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                    ${channel.hbbtv && !channel.hbbtvmosaic ? `<div class="hbbtv-enabler">
+                        <div class="hbbtv-enabler-arrow">&gt;</div>
+                        <div class="hbbtv-enabler-text">Visualizza canali HbbTV</div>
+                    </div>` : ""}
+                    ${channel.hbbtv ? `<div class="hbbtv-channels">
+                        ${channel.hbbtv.map(subchannel =>
+                            subchannel.categorySeparator === undefined
+                                ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
+                                    <div class="channel-info">
+                                        <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
+                                        <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous">
+                                        <div class="channel-title-subtitle">
+                                            <div class="channel-name">${subchannel.name}</div>
+                                            ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
+                                            ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
+                                            ${subchannel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                                        </div>
+                                        ${subchannel.hd ? `<div class="hd"></div>` : ""}
+                                        ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
+                                        ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
+                                        ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
+                                        ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
+                                        ${subchannel.adult === true ? `<div class="adult-marker"></div>`
+                                            : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                                     </div>
-                                    ${subchannel.hd ? `<div class="hd"></div>` : ""}
-                                    ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
-                                    ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
-                                    ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
-                                    ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
-                                    ${subchannel.adult === true ? `<div class="adult-marker"></div>`
-                                        : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
-                                </div>
-                                ${subchannel.epg ? `
-                                    <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
-                                    <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
-                                    <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
-                                        <div class="channel-program-start-time"></div>
-                                        <div class="channel-program-end-time"></div>
-                                    </div>
-                                ` : ""}
-                            </div>`
-                            : `<div class="category">${subchannel.categorySeparator}</div>`
-                    ).join("")}
-                </div>` : ""}
-            ${channel.hbbtv ? `</div>` : ""}
+                                    ${subchannel.epg ? `
+                                        <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
+                                        <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
+                                        <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
+                                            <div class="channel-program-start-time"></div>
+                                            <div class="channel-program-end-time"></div>
+                                        </div>
+                                    ` : ""}
+                                </div>`
+                                : `<div class="category">${subchannel.categorySeparator}</div>`
+                        ).join("")}
+                    </div>` : ""}
+                ${channel.hbbtv ? `</div>` : ""}`
+                : `<h1 id="${channel.id}" class="channel-category">${channel.categorySeparator}</h1>`
+            }
         `);
     });
 };
@@ -922,7 +937,84 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
     window.zappr.channels = window.zappr.nationalChannels;
     window.zappr.channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
 };
+
+let fastChannelsPresent = true;
+await fetch(getFASTChannelsURL("it"))
+    .then(response => response.json())
+    .then(fastChannels => {
+        window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
+    })
+    .catch(e => {
+        console.warn(`Impossibile trovare i canali FAST: ${e.stack}`);
+        fastChannelsPresent = false;
+    });
+
 addChannels(window.zappr.channels);
+
+if (fastChannelsPresent) {
+    const scrollMinimizeObserver = new IntersectionObserver(entry => {
+        if (entry[0].boundingClientRect.y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
+            document.querySelector(".source-header").classList.add("minimized");
+        } else {
+            document.querySelector(".source-header").classList.remove("minimized");
+        };
+    }, {
+        root: document.querySelector("#channels"),
+        threshold: 1
+    });
+    scrollMinimizeObserver.observe(document.querySelector(".channel"));
+    
+    let previousCategory;
+    let nextCategory;
+    const scrollFirstCategoryObserver = new IntersectionObserver(() => {
+        if (document.querySelector(".channel-category").getBoundingClientRect().y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
+            document.querySelector(".source-header").classList.remove("first-source");
+            document.querySelector(".source-header .current-source").innerText = document.querySelector(".channel-category").innerText;
+            previousCategory = document.querySelector(".channel");
+            nextCategory = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1];
+        } else {
+            document.querySelector(".source-header").classList.add("first-source");
+            document.querySelector(".source-header .current-source").innerText = "DTT";
+            previousCategory = null;
+            nextCategory = document.querySelector(".channel-category");
+        };
+    }, {
+        root: document.querySelector("#channels"),
+        threshold: 1
+    });
+    scrollFirstCategoryObserver.observe(document.querySelector(".channel-category"));
+    
+    const scrollLastCategoryObserver = new IntersectionObserver(() => {
+        if (document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1].getBoundingClientRect().y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
+            document.querySelector(".source-header").classList.add("last-source");
+            document.querySelector(".source-header .current-source").innerText = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1].innerText;
+            previousCategory = document.querySelector(".channel-category");
+            nextCategory = null;
+        } else {
+            document.querySelector(".source-header").classList.remove("last-source");
+            if (document.querySelector(".channel-category").getBoundingClientRect().y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
+                document.querySelector(".source-header .current-source").innerText = document.querySelector(".channel-category").innerText;
+                previousCategory = document.querySelector(".channel");
+                nextCategory = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1];
+            };
+        };
+    }, {
+        root: document.querySelector("#channels"),
+        threshold: 1
+    });
+    scrollLastCategoryObserver.observe(document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1]);
+    
+    document.querySelector(".source-header .previous").addEventListener("click", () => {
+        if (previousCategory) previousCategory.scrollIntoView({ block: "start", behavior: "smooth" });
+        document.querySelector("#channels-column").scrollIntoView();
+    });
+    document.querySelector(".source-header .next").addEventListener("click", () => {
+        if (nextCategory) nextCategory.scrollIntoView({ block: "start", behavior: "smooth" });
+        document.querySelector("#channels-column").scrollIntoView();
+    });
+} else {
+    document.querySelector(".source-header").remove();
+};
 
 const returnErrorMessage = (errorCode) => {
     return ({
@@ -1446,6 +1538,11 @@ document.querySelectorAll(".channel").forEach(el => {
                 } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
                     overlays.classList.remove("hbbtv-app");
                 };
+                if (el.classList.contains("pluto-channel")) {
+                    overlays.classList.add("pluto-channel");
+                } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
+                    overlays.classList.remove("pluto-channel");
+                };
     
                 if (el.dataset.lcn.includes(".")) {
                     el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
@@ -1499,7 +1596,7 @@ document.querySelectorAll(".channel").forEach(el => {
                 }, {});
                 Object.keys(epgByDays).forEach(day => {
                     epgByDays[day] = [...new Set(epgByDays[day])];
-                    if (epgByDays[day].length <= 3) delete epgByDays[day];
+                    if (epgByDays[day].length <= 1) delete epgByDays[day];
                 });
                 if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
                     else document.querySelector("#epg-date").className = "first-day last-day";
@@ -1893,6 +1990,12 @@ document.querySelector("input").addEventListener("input", e => {
 }
 .hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) .hbbtv-enabler-arrow {
     transform: rotate(90deg);
+}
+#channels-column .source-header {
+    height: 0;
+    padding: 0;
+    user-select: none;
+    pointer-events: none;
 }` : "";
 });
 document.querySelector("#search-icon").addEventListener("click", () => {
@@ -1901,7 +2004,11 @@ document.querySelector("#search-icon").addEventListener("click", () => {
 });
 
 window.zappr.nationalEPG = await fetch(getEPGURL("it/dtt/national"))
-    .then(response => response.json());
+    .then(response => response.json())
+    .catch(e => {
+        console.warn(`Impossibile trovare l'EPG: ${e.stack}`);
+        window.zappr.epg = {};
+    });
 
 if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
     await fetch(getEPGURL(`it/dtt/regional/${localStorage.getItem("region")}`))
@@ -1920,7 +2027,7 @@ const updateCurrentlyPlayingEPG = async () => {
         const currentChannel = document.querySelectorAll(".channel[data-epg-source]")[channel];
         const epgSource = currentChannel.dataset.epgSource;
         const epgID = currentChannel.dataset.epgId;
-        if (window.zappr.epg[epgSource] && window.zappr.epg[epgSource][epgID]) {
+        if (window.zappr.epg && window.zappr.epg[epgSource] && window.zappr.epg[epgSource][epgID]) {
             const now = Date.now();
             const nowOnAir = window.zappr.epg[epgSource][epgID].filter(entry => entry.startTime.unix <= now && entry.endTime.unix >= now)[0];
             if (nowOnAir) {
@@ -2051,7 +2158,7 @@ document.querySelector("#epg-previous-day").addEventListener("click", () => {
 });
 
 // https://stackoverflow.com/a/60949881
-Promise.all(Array.from(document.images).filter(img => !img.complete).map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))).then(() => {
+Promise.all(Array.from(document.images).filter(img => !img.complete && !img.classList.contains("fast-logo")).map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))).then(() => {
     document.querySelector("#loading").classList.add("loaded");
     document.querySelectorAll(".hbbtv-channels").forEach(el => {
         el.style.cssText = `--scroll-height: ${el.scrollHeight}px;`;

@@ -16,6 +16,9 @@
         },
         "epg": {
             "host": "https://epg.zappr.stream"
+        },
+        "fast": {
+            "host": "https://fast.zappr.stream"
         }
     }
 }

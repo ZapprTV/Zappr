@@ -25,6 +25,9 @@
     font-style: italic;
     opacity: 0.5;
 }
+.italic {
+    font-style: italic;
+}
 #loading {
     width: 100vw;
     height: 100svh;
@@ -81,14 +84,6 @@ html, body {
 }
 ::-webkit-scrollbar-corner {
     background: transparent;
-}
-:root {
-    --videojs-plyr-quality-text: "Qualità";
-    --videojs-plyr-captions-text: "Sottotitoli";
-    --videojs-plyr-audiotracks-text: "Traccia audio";
-    --videojs-plyr-subtitles-disabled-text: "Disattivati";
-    --videojs-plyr-settings-text: "Impostazioni";
-    --videojs-plyr-playback-speed-text: "Velocità";
 }
 * {
     font-family: "IBM Plex Mono", monospace;
@@ -473,7 +468,7 @@ body:not(.androidtv) .channel-program-end-time {
     transition: 500ms;
 }
 .epg-item-container::after {
-    content: "Il programma richiesto inizierà a breve";
+    content: "";
     display: block;
     backdrop-filter: blur(1rem) brightness(0.25);
     background-image: url("/assets/icons/info.svg");
@@ -526,7 +521,7 @@ body:not(.androidtv) .channel-program-end-time {
     align-items: center;
 }
 .epg-item-container.on-air .epg-start-time::after {
-    content: "IN ONDA";
+    content: "";
     line-height: 1;
     background: #fff;
     color: black;
@@ -1079,7 +1074,7 @@ a.tooltip-link {
     min-width: 20rem;
     max-width: 37.5rem;
     overflow: auto;
-    max-height: 50svh;
+    max-height: 65svh;
 }
 .modal-buttons {
     margin-bottom: 0.5rem;
@@ -1109,10 +1104,10 @@ a.tooltip-link {
     display: flex;
     flex-direction: column;
     font-weight: 700;
+    align-items: center;
 }
-#region {
-    min-width: 6rem !important;
-    margin-top: 0.333rem;
+#region-selector span {
+    margin: 0.333rem 0;
 }
 #info-tooltip .tooltip-content-box {
     text-align: left;

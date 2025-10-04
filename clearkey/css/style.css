@@ -1,0 +1,41 @@
+html, body, video, [data-shaka-player-container] {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+}
+* {
+    font-family: "IBM Plex Mono", monospace !important;
+    letter-spacing: -0.5px;
+}
+.shaka-overflow-button-label {
+    gap: 1rem;
+}
+.shaka-spacer {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+}
+.shaka-spacer:before, .shaka-spacer:after {
+    float: right;
+    height: 100%;
+    align-content: center;
+}
+.shaka-spacer:after {
+    content: "https://zappr.stream";
+    font-size: 0.75rem;
+    margin-top: -0.75rem;
+}
+.shaka-spacer:before {
+    content: "Zappr + DRM";
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+.shaka-text-container {
+    padding-bottom: 3rem;
+    font-size: 2rem !important;
+}
+.shaka-text-container span {
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+}

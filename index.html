@@ -4,13 +4,14 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="UTF-8">
-        <meta name="description" content="Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.">
-        <meta property="og:title" content="Zappr - Guarda la TV online">
+        <meta name="description" content="Zappr is the new way to watch TV. Watch most of your country's national and local channels, online, for free and without any complicated setup.">
+        <meta property="og:title" content="Zappr - Watch TV online">
         <meta property="og:url" content="https://zappr.stream">
-        <meta property="og:description" content="Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.">
+        <meta property="og:description" content="Zappr is the new way to watch TV. Watch most of your country's national and local channels, online, for free and without any complicated setup.">
         <meta property="og:image" content="/assets/images/og.png">
-        <meta property="og:image:alt" content="Zappr - Guarda facilmente il digitale terrestre italiano, nazionale e locale. Tutto nel tuo browser, gratis e senza configurazione.">
-        <meta property="og:locale" content="it_IT">
+        <meta property="og:image:alt" content="Zappr is the new way to watch TV. Watch most of your country's national and local channels, online, for free and without any complicated setup.">
+        <meta property="og:locale" content="en_GB">
+        <meta property="og:locale:alternate" content="it_IT">
         <meta property="og:type" content="website">
         <meta name="twitter:card" content="/assets/images/og.webp">
         <link rel="canonical" href="https://zappr.stream">
@@ -207,104 +208,73 @@
             }
         </style>
         <style id="search"></style>
+        <style data-translation-id="playerLanguageCSS"></style>
         <title>Zappr</title>
     </head>
     <body>
-        <div id="loading">Caricamento...</div>
+        <div id="loading" data-translation-id="loading"></div>
         <div class="columns">
             <div class="column is-one-third-widescreen is-one-quarter-fullhd is-two-fifths-desktop is-two-fifths-tablet p-0" id="channels-column">
                 <div id="channels" class="menu" tabindex="-1">
                     <div class="source-header first-source">
-                        <img src="/assets/icons/previous.svg" alt="Sorgente precedente" class="previous">
-                        <span class="current-source">DTT</span>
-                        <img src="/assets/icons/next.svg" alt="Sorgente successiva" class="next">
+                        <img src="/assets/icons/previous.svg" data-translation-id="previousSource" data-translation-target="alt" class="previous">
+                        <span class="current-source" data-translation-id="mainSource"></span>
+                        <img src="/assets/icons/next.svg" data-translation-id="nextSource" data-translation-target="alt" class="next">
                     </div>
                 </div>
                 <div id="epg">
                     <h1 id="epg-header">
-                        <img src="/assets/icons/exit.svg" alt="Esci" id="epg-exit">
-                        <div>Guida TV di <span id="epg-channel"></span></div>
+                        <img src="/assets/icons/exit.svg" id="epg-exit" data-translation-id="epgExit" data-translation-target="alt">
+                        <div data-translation-id="epgHeaderText"></div>
                         <span id="epg-date" class="first-day">
-                            <img src="/assets/icons/previous.svg" alt="Giorno precedente" id="epg-previous-day">
+                            <img src="/assets/icons/previous.svg" id="epg-previous-day" data-translation-id="epgPreviousDay" data-translation-target="alt">
                             <span></span>
-                            <img src="/assets/icons/next.svg" alt="Giorno successivo" id="epg-next-day">
+                            <img src="/assets/icons/next.svg" id="epg-next-day" data-translation-id="epgNextDay" data-translation-target="alt">
                         </span>
-                        <img src="/assets/icons/resize.svg" alt="Esci" id="epg-resize">
+                        <img src="/assets/icons/resize.svg" id="epg-resize" data-translation-id="epgResize" data-translation-target="alt">
                     </h1>
                     <div class="epg-items"></div>
                 </div>
                 <div id="search-input">
-                    <input type="text" placeholder="Cerca canale...">
+                    <input type="text" data-translation-id="searchChannel" data-translation-target="placeholder">
                 </div>
                 <div id="bottom">
                     <div id="info">
                         <b>Zappr</b>
-                        <span id="version">beta</span>
                     </div>
                     <div id="icons">
                         <a href="#" id="install" hidden>
-                            Installa
+                            <span data-translation-id="installPWA">Installa</span>
                             <img src="/assets/icons/install.svg">
                         </a>
                         <a id="search-icon">
                             <img src="/assets/icons/search.svg">
                         </a>
-                        <a class="tooltip" data-target="#news">
+                        <a class="tooltip" data-target="#news" data-translation-hide="en">
                             <img src="/assets/icons/news.svg">
                         </a>
                         <a class="tooltip" data-target="#info-tooltip">
                             <img src="/assets/icons/info.svg">
                         </a>
-                        <span id="tv-settings">Premi <img src="assets/icons/back.svg"> <b>BACK</b> per cambiare regione</span>
+                        <span id="tv-settings"><img src="assets/icons/back.svg"> <b>BACK</b> <span data-translation-id="tvChangeRegion">per cambiare regione</span></span>
                         <a id="settings-icon" class="tooltip" data-target="#settings">
                             <img src="/assets/icons/settings.svg">
                         </a>
                         <div class="tooltip-content" id="settings">
                             <div class="tooltip-content-box">
                                 <div id="region-selector">
-                                    Regione
-                                    <select id="region">
-                                        <option value="national">Nessuna (solo canali nazionali)</option>
-                                        <optgroup label="Nord Italia">
-                                            <option value="bolzano">Bolzano</option>
-                                            <option value="er">Emilia-Romagna</option>
-                                            <option value="fvg">Friuli-Venezia Giulia</option>
-                                            <option value="liguria">Liguria</option>
-                                            <option value="lombardia">Lombardia</option>
-                                            <option value="piemonte">Piemonte</option>
-                                            <option value="trento">Trento</option>
-                                            <option value="vda">Valle d'Aosta</option>
-                                            <option value="veneto">Veneto</option>
-                                        </optgroup>
-                                        <optgroup label="Centro Italia">
-                                            <option value="marche">Marche</option>
-                                            <option value="lazio">Lazio</option>
-                                            <option value="toscana">Toscana</option>
-                                            <option value="umbria">Umbria</option>
-                                        </optgroup>
-                                        <optgroup label="Sud Italia">
-                                            <option value="abruzzo">Abruzzo</option>
-                                            <option value="basilicata">Basilicata</option>
-                                            <option value="calabria">Calabria</option>
-                                            <option value="campania">Campania</option>
-                                            <option value="molise">Molise</option>
-                                            <option value="puglia">Puglia</option>
-                                            <option value="sardegna">Sardegna</option>
-                                            <option value="sicilia">Sicilia</option>
-                                        </optgroup>
-                                    </select>
+                                    <span data-translation-id="language"></span>
+                                    <select id="language"></select>
+                                    <span data-translation-id="country"></span>
+                                    <select id="country"></select>
+                                    <span data-translation-id="region"></span>
+                                    <select id="region"></select>
                                 </div>
-                                <a id="save-and-reload" class="tooltip-button">Salva e ricarica</a>
+                                <a id="save-and-reload" class="tooltip-button" data-translation-id="saveAndReload" hidden></a>
                             </div>
                         </div>
                         <div class="tooltip-content" id="info-tooltip">
-                            <div class="tooltip-content-box">
-                                Zappr è il nuovo modo di guardare la TV italiana. Guarda la maggior parte dei canali nazionali e locali del digitale terrestre italiano, online, gratuitamente e senza configurazioni complesse.
-                                <br><br>
-                                <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">Visualizza il codice sorgente su GitHub</a>
-                                <div class="tooltip-link" id="news-links">Rimani aggiornato sulle ultime novità seguendoci su <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> o <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
-                                <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contattaci via email</a>
-                            </div>
+                            <div class="tooltip-content-box" data-translation-id="infoTooltip"></div>
                         </div>
                         <div class="tooltip-content news-not-loaded" id="news">
                             <div class="tooltip-content-box">
@@ -325,10 +295,7 @@
         <div id="overlays">
             <div id="lcn-typing">
                 <div id="lcn-typed"></div>
-                <div id="controls">
-                    Invio per confermare<br>
-                    o Esc per annullare
-                </div>
+                <div id="controls" data-translation-id="lcnTyping"></div>
             </div>
         </div>
         <script type="module">

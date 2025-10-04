@@ -4,12 +4,92 @@ import { DateTime } from "luxon";
 import mediumZoom from "medium-zoom";
 import { merge } from "lodash";
 import "videojs-contrib-eme";
+import locales from "./locales";
+import countries from "./countries";
+
+let ipLocation = await fetch("https://zappr.stream/cdn-cgi/trace")
+    .then(response => response.text())
+    .then(trace => trace.split("\n").filter(el => el.startsWith("loc="))[0].split("=")[1].toLowerCase())
+    .catch(() => "uk");
+
+ipLocation = ipLocation in countries ? ipLocation : "uk";
+
+const isFirstVisit = JSON.stringify(localStorage) === "{}";
+const getCountry = () => {
+    if (localStorage.getItem("videojs-vhs") && !localStorage.getItem("country")) localStorage.setItem("country", "it")
+    else if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
+    if (ipLocation && !localStorage.getItem("country")) {
+        localStorage.setItem("country", ipLocation);
+        return ipLocation;
+    } else return localStorage.getItem("country") || Object.keys(countries)[0];
+};
+const getLanguage = () => {
+    return localStorage.getItem("language") || (navigator.language || "en").split("-")[0];
+};
+
+let selectedCountry = getCountry();
+let selectedLanguage = getLanguage();
+let selectedRegion = localStorage.getItem("region");
+let language = selectedLanguage in locales ? selectedLanguage : "en";
+let locale = locales[language];
+
+const languageDropdown = document.querySelector("#language");
+Object.keys(locales).forEach(lang => {
+    languageDropdown.insertAdjacentHTML("beforeend", `<option value="${lang}" ${lang === selectedLanguage ? "selected" : ""}>${locales[lang].languageName}</option>`);
+});
+
+const countryDropdown = document.querySelector("#country");
+Object.entries(countries).forEach(([country, value]) => {
+    countryDropdown.insertAdjacentHTML("beforeend", `<option value="${country}" ${country === selectedCountry ? "selected" : ""}>${value.name}</option>`);
+});
+
+languageDropdown.addEventListener("change", e => {
+    localStorage.setItem("language", e.target.value);
+    locale = locales[e.target.value];
+    languageDropdown.querySelector("[selected]").removeAttribute("selected");
+    languageDropdown.querySelector(`option[value="${e.target.value}"]`).setAttribute("selected", "");
+    document.querySelectorAll("[data-translation-id], [data-translation-hide]").forEach(el => {
+        if (!el.dataset.translationHide) {
+            if (el.dataset.translationTarget) el.setAttribute(el.dataset.translationTarget, locale[el.dataset.translationId])
+                else el.innerHTML = locale[el.dataset.translationId];
+        } else {
+            let languages = el.dataset.translationHide.split(", ");
+            if (languages.includes(language)) el.remove();
+        };
+    });
+});
+if (!countries[selectedCountry].nationalBase) document.querySelector("#region").insertAdjacentHTML("beforeend", `<option value="national">Nessuna (solo canali nazionali)</option>`)
+document.querySelector("#region").insertAdjacentHTML("beforeend", Object.keys(countries[selectedCountry].regions).map(group => `<optgroup label="${group}">
+    ${Object.keys(countries[selectedCountry].regions[group]).map(region => `<option value="${region}" ${region === selectedRegion ? "selected" : ""}>${countries[selectedCountry].regions[group][region]}</option>`)}
+</optgroup>`));
+countryDropdown.addEventListener("change", e => {
+    localStorage.setItem("country", e.target.value);
+    document.querySelector("#region").innerHTML = "";
+    countryDropdown.querySelector("[selected]").removeAttribute("selected");
+    countryDropdown.querySelector(`option[value="${e.target.value}"]`).setAttribute("selected", "");
+    if (!countries[e.target.value].nationalBase) document.querySelector("#region").insertAdjacentHTML("beforeend", `<option value="national">Nessuna (solo canali nazionali)</option>`)
+    document.querySelector("#region").insertAdjacentHTML("beforeend", Object.keys(countries[e.target.value].regions).map(group => `<optgroup label="${group}">
+        ${Object.keys(countries[e.target.value].regions[group]).map(region => `<option value="${region}" ${e.target.value === selectedCountry && region === selectedRegion ? "selected" : ""}>${countries[e.target.value].regions[group][region]}</option>`)}
+    </optgroup>`));
+    updateSelectWidth(document.querySelector("#region"));
+    document.querySelector("#save-and-reload").removeAttribute("hidden");
+    localStorage.setItem("region", document.querySelector("#region").value);
+});
+document.querySelectorAll("[data-translation-id], [data-translation-hide]").forEach(el => {
+    if (!el.dataset.translationHide) {
+        if (el.dataset.translationTarget) el.setAttribute(el.dataset.translationTarget, locale[el.dataset.translationId])
+            else el.innerHTML = locale[el.dataset.translationId];
+    } else {
+        let languages = el.dataset.translationHide.split(", ");
+        if (languages.includes(language)) el.remove();
+    };
+});
 
 await fetch("/config.json")
     .then(response => response.json())
     .then(json => window["zappr"] = json)
     .catch(err => {
-        console.warn(`Impossibile trovare config (${err}), in uso quella di default`);
+        console.warn(`Can't find config (${err}), using the default`);
         window["zappr"] = {
             "config": {
                 "channels": {
@@ -103,25 +183,25 @@ const createErrorModal = async ({ title, error, info, params }) => {
             <p>${error}</p>
             ${info != undefined ? `
             <div class="technical-info">
-                <h3>Informazioni tecniche</h3>
-                <a onclick="copyInfo()">Copia</a>
+                <h3>${locale["errorTechnicalInfo"]}</h3>
+                <a onclick="copyInfo()">${locale["errorCopyInfo"]}</a>
             </div>
             <div class="code" onclick="copyInfo()">${info}</div>    
             ` : ""}
-            <p id="report-error">Per favore segnala questo errore via GitHub o email. Cliccando su uno dei pulsanti qui sotto le informazioni principali dell'errore verranno compilate automaticamente.</p>
+            <p id="report-error">${locale["reportError"]}</p>
             <div class="modal-buttons">
                 <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new?${urlParams}" target="_blank">
-                    Segnala tramite GitHub
+                    ${locale["reportViaGithub"]}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
                 </a>
                 <a class="button secondary" href="mailto:zappr@francescoro.si?subject=${params.title}&body=${
-                    encodeURIComponent(`Informazioni tecniche: ${params.info}
+                    encodeURIComponent(`${locale["errorTechnicalInfo"]}: ${params.info}
 
-Per favore specifica qui sotto se il canale funziona da altre parti (su altri siti o in HbbTV) e su che browser dà errore:
+${locale["errorEmailFooter"]}
 
 `)
                 }" target="_blank">
-                    Segnala tramite email
+                    ${locale["reportViaEmail"]}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#000" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
                 </a>
             </div>
@@ -139,8 +219,8 @@ Per favore specifica qui sotto se il canale funziona da altre parti (su altri si
     document.querySelector(".modal").classList.add("is-visible");
 };
 
-const createModal = async ({ title, text, buttons }) => {
-    const modalHTML = `<div class="modal">
+const createModal = async ({ title, text, buttons, id }) => {
+    const modalHTML = `<div class="modal" ${id ? `id="${id}-modal"` : ""}>
         <div class="modal-content">
             <div class="modal-title">
                 <h1>${title}</h1>
@@ -181,15 +261,21 @@ const waitForSelector = (selector) => {
     });
 };
 
-if (new URLSearchParams(location.search).get("geoblock-warning") != null) {
+if (ipLocation != selectedCountry) {
     createModal({
-        title: "Attenzione!",
-        text: `Il tuo indirizzo IP non risulta essere italiano. Ciò significa che alcuni canali non saranno visibili.
-        <br><br>
-        Se ti trovi all'estero, usa una VPN con dei server in Italia. Altrimenti, se ti trovi in Italia, controlla di non avere una VPN o proxy attiva.`
+        title: locale["warning"],
+        text: locale["geoblockMessage"]
     });
 };
+if (isFirstVisit) {
+    createModal({
+        title: locale["welcomeTitle"],
+        text: locale["welcomeText"],
+        id: "welcome"
+    })
+};
 if (new URLSearchParams(location.search).get("androidtv") != null) {
+    document.querySelector("#save-and-reload").removeAttribute("hidden");
     document.body.classList.add("androidtv");
     document.querySelector("#tv-style").media = "";
     waitForSelector(".channel").then(el => el.focus());
@@ -276,7 +362,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
             overlays.insertAdjacentHTML("beforeend", `<div id="radio-overlay">
                 <img src="${fullLogo}">
                 <div id="radio-overlay-info">
-                    <span id="radio-overlay-playing">In riproduzione</span>
+                    <span id="radio-overlay-playing">${locale["nowPlaying"]}</span>
                     <h1 id="radio-overlay-radio">${name}</h1>
                 </div>
             </div>`);
@@ -284,7 +370,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
             overlays.querySelector("#radio-overlay").outerHTML = `<div id="radio-overlay">
                 <img src="${fullLogo}">
                 <div id="radio-overlay-info">
-                    <span id="radio-overlay-playing">In riproduzione</span>
+                    <span id="radio-overlay-playing">${locale["nowPlaying"]}</span>
                     <h1 id="radio-overlay-radio">${name}</h1>
                 </div>
             </div>`;
@@ -345,28 +431,26 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                     .catch(() => {});
 
                 createErrorModal({
-                    title: "Errore canale",
-                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un problema di formato/server${httpError ? `: <b>${httpError}</b>` : " sconosciuto."}`,
+                    title: locale["channelError"],
+                    error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["formatServerError"]}${httpError ? `: <b>${httpError}</b>` : ` ${locale["unknownSuffix"]}.`}`,
                     params: {
-                        template: "errore.yml",
-                        labels: "Errore",
-                        title: `${lcn} - ${name}: Errore formato/server (${httpError ? httpError : "sconosciuto"})`,
+                        template: `error-${language}.yml`,
+                        title: `${lcn} - ${name}: ${locale["formatServerErrorTitle"]} (${httpError ? httpError : locale["unknownSuffix"]})`,
                         name: name,
                         lcn: lcn,
-                        info: `MEDIA_ERR_SRC_NOT_SUPPORTED: ${httpError ? httpError : "Errore sconosciuto."}`
+                        info: `MEDIA_ERR_SRC_NOT_SUPPORTED: ${httpError ? httpError : `${locale["unknownErrorInfo"]}.`}`
                     }
                 });
             } else if (player.error().code === 3) {
                 let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
 
                 createErrorModal({
-                    title: "Errore canale",
-                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un problema di decoding.`,
+                    title: locale["channelError"],
+                    error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["decodingError"]}.`,
                     info: videojsLog,
                     params: {
-                        template: "errore.yml",
-                        labels: "Errore",
-                        title: `${lcn} - ${name}: Errore decoding`,
+                        template: `error-${language}.yml`,
+                        title: `${lcn} - ${name}: ${locale["decodingErrorTitle"]}`,
                         name: name,
                         lcn: lcn,
                         info: videojsLog
@@ -380,15 +464,14 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                     .catch(() => {});
 
                 createErrorModal({
-                    title: "Errore canale",
-                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un problema di server${httpError ? `: <b>${httpError}</b>` : " sconosciuto."}`,
+                    title: locale["channelError"],
+                    error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["serverError"]}${httpError ? `: <b>${httpError}</b>` : ` ${locale["unknownSuffix"]}`}.`,
                     params: {
-                        template: "errore.yml",
-                        labels: "Errore",
-                        title: `${lcn} - ${name}: Errore server (${httpError ? httpError : "sconosciuto"})`,
+                        template: `error-${language}.yml`,
+                        title: `${lcn} - ${name}: ${locale["serverErrorTitle"]} (${httpError ? httpError : locale["unknownSuffix"]})`,
                         name: name,
                         lcn: lcn,
-                        info: `MEDIA_ERR_NETWORK: ${httpError ? httpError : "Errore sconosciuto."}`
+                        info: `MEDIA_ERR_NETWORK: ${httpError ? httpError : `${locale["unknownErrorInfo"]}.`}`
                     }
                 });
             } else if (player.error().code === 1 || player.error().code === 5) {
@@ -408,13 +491,12 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
                 
                 createErrorModal({
-                    title: "Errore canale",
-                    error: `Impossibile caricare <b>${name}</b> <i>(${url})</i> per un errore sconosciuto.`,
+                    title: locale["channelError"],
+                    error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["unknownError"]}.`,
                     info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`,
                     params: {
-                        template: "errore.yml",
-                        labels: "Errore",
-                        title: `${lcn} - ${name}: Errore sconosciuto`,
+                        template: `error-${language}.yml`,
+                        title: `${lcn} - ${name}: ${locale["unknownErrorTitle"]}`,
                         name: name,
                         lcn: lcn,
                         info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`
@@ -463,7 +545,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
             if ("mediaSession" in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: `${name} - Zappr`,
-                    artist: "In riproduzione",
+                    artist: locale["nowPlaying"],
                     artwork: [{
                         src: artworkURL,
                         sizes: "512x512",
@@ -568,7 +650,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 };
                 
                 iframe.allowFullscreen = true;
-                iframe.allow = "autoplay";
+                iframe.allow = "autoplay encrypted-media";
                 iframe.scrolling = "no";
                 if (type === "twitch") {
                     iframe.src = `https://player.twitch.tv/?channel=${url}&parent=${location.hostname}`;
@@ -606,7 +688,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
     };
 };
 
-const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
+const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -626,7 +708,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 break;
 
             case "la7-hbbtv":
-                await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}`)
+                await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}&v=${Date.now()}`)
                     .then(response => response.json())
                     .then(json => {
                         loadStream({
@@ -733,7 +815,36 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             });
                         });
                 }
+                break;
 
+            case "filmon":
+                const sessionKey = await fetch("https://www.filmon.com/api/init?app_id=android-native&channelProvider=ipad&app_secret=wis9Ohmu7i")
+                    .then(response => response.json())
+                    .then(json => json.session_key);
+
+                await fetch(`https://eu-api.filmon.com/api/channel/${parameter}?session_key=${sessionKey}&quality=low`)
+                    .then(response => response.json())
+                    .then(json => {
+                        loadStream({
+                            type: type,
+                            url: json.streams[0].url,
+                            name: name,
+                            lcn: lcn,
+                            logo: logo
+                        });
+                        setTimeout(() => {
+                            if (document.querySelector(".watching").dataset.url === url) {
+                                loadChannel({
+                                    type: type,
+                                    url: url,
+                                    name: name,
+                                    lcn: lcn,
+                                    logo: logo
+                                });
+                            };
+                        }, ((json.expire_time - DateTime.now().toSeconds()) * 1000) - 3000);
+                    });
+                break;
         };
     } else if (license) {
         switch(license) {
@@ -753,7 +864,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 break;
 
             case "rai-akamai":
-                if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                if (ipLocation === selectedCountry) {
                     let auth;
                     if (window.zappr.raiAkamai != undefined && window.zappr.raiAkamai.expiration - Math.floor(Date.now() / 1000) > 10) {
                         auth = window.zappr.raiAkamai.auth;
@@ -789,6 +900,24 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     });
                 };
                 break;
+
+            case "clearkey":
+                const kid = licenseDetails.split(":")[0];
+                const key = licenseDetails.split(":")[1];
+                loadStream({
+                    type: "iframe",
+                    url: `clearkey/?${new URLSearchParams({
+                        kid: kid,
+                        key: key,
+                        url: url
+                    }).toString()}`,
+                    name: name,
+                    lcn: lcn,
+                    logo: logo,
+                    fallbackType: fallbackType,
+                    fallbackURL: fallbackURL,
+                    fallbackAPI: fallbackAPI
+                });
         };
     } else {
         await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI })
@@ -801,9 +930,9 @@ const getChannelLogoURL = (logo, optimized) => {
     if (logo.startsWith("http://") || logo.startsWith("https://")) return logo
     else {
         if (optimized === false) {
-            return `${config.host}/${logo}${logo.endsWith(".svg") ? "" : ".png"}`;
+            return `${config.host}/${selectedCountry}/${logo}${logo.endsWith(".svg") ? "" : ".png"}`;
         } else {
-            return `${config.host}/${config.optimized ? "optimized/": ""}${logo}${logo.endsWith(".svg") ? "" : (config.optimized ? ".webp" : ".png")}`;
+            return `${config.host}/${selectedCountry}/${config.optimized ? "optimized/": ""}${logo}${logo.endsWith(".svg") ? "" : (config.optimized ? ".webp" : ".png")}`;
         }
     };
 };
@@ -835,21 +964,21 @@ const addChannels = (channels) => {
     };
     channels.forEach(channel => {
         const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isGeoblocked = new URLSearchParams(location.search).get("geoblock-warning") != null;
+        const isGeoblocked = ipLocation != selectedCountry;
 
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.categorySeparator === undefined
                 ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                    <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license ? `data-license="${channel.license}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""}>
+                    <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""}>
                         <div class="channel-info">
                             <div class="lcn">${channel.lcn}</div>
                             <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" ${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? ` loading="lazy"` : ""}>
                             <div class="channel-title-subtitle">
                                 <div class="channel-name">${channel.name}</div>
                                 ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
-                                ${channel.hbbtvmosaic ? `<div class="channel-subtitle">Mosaico HbbTV</div>` : ""}
-                                ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
-                                ${channel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                                ${channel.hbbtvmosaic ? `<div class="channel-subtitle">${locale["hbbtvMosaic"]}</div>` : ""}
+                                ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
+                                ${channel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
                             </div>
                             ${channel.hd ? `<div class="hd"></div>` : ""}
                             ${channel.uhd ? `<div class="uhd"></div>` : ""}
@@ -861,9 +990,9 @@ const addChannels = (channels) => {
                         </div>
                         ${channel.hbbtvmosaic ? `<div class="hbbtv-enabler-arrow">&gt;</div>` : ""}
                         ${channel.epg ? `
-                            <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
-                            <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
-                            <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
+                            <div class="channel-program-progress" title="${locale["viewFullEPG"]}"></div>
+                            <div class="channel-program-progress-background" title="${locale["viewFullEPG"]}"></div>
+                            <div class="channel-program-times" title="${locale["viewFullEPG"]}">
                                 <div class="channel-program-start-time"></div>
                                 <div class="channel-program-end-time"></div>
                             </div>
@@ -872,20 +1001,20 @@ const addChannels = (channels) => {
 
                     ${channel.hbbtv && !channel.hbbtvmosaic ? `<div class="hbbtv-enabler">
                         <div class="hbbtv-enabler-arrow">&gt;</div>
-                        <div class="hbbtv-enabler-text">Visualizza canali HbbTV</div>
+                        <div class="hbbtv-enabler-text">${locale["viewHbbTVChannels"]}</div>
                     </div>` : ""}
                     ${channel.hbbtv ? `<div class="hbbtv-channels">
                         ${channel.hbbtv.map(subchannel =>
                             subchannel.categorySeparator === undefined
-                                ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
+                                ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.licensedetails ? `data-license-details="${subchannel.licensedetails}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
                                     <div class="channel-info">
                                         <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                         <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous">
                                         <div class="channel-title-subtitle">
                                             <div class="channel-name">${subchannel.name}</div>
                                             ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
-                                            ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">Non sempre attivo</div>` : ""}
-                                            ${subchannel.epg ? `<div class="channel-program" title="Clicca per vedere l'EPG completa"></div>` : ""}
+                                            ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
+                                            ${subchannel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
                                         </div>
                                         ${subchannel.hd ? `<div class="hd"></div>` : ""}
                                         ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
@@ -896,9 +1025,9 @@ const addChannels = (channels) => {
                                             : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                                     </div>
                                     ${subchannel.epg ? `
-                                        <div class="channel-program-progress" title="Clicca per vedere l'EPG completa"></div>
-                                        <div class="channel-program-progress-background" title="Clicca per vedere l'EPG completa"></div>
-                                        <div class="channel-program-times" title="Clicca per vedere l'EPG completa">
+                                        <div class="channel-program-progress" title="${locale["viewFullEPG"]}"></div>
+                                        <div class="channel-program-progress-background" title="${locale["viewFullEPG"]}"></div>
+                                        <div class="channel-program-times" title="${locale["viewFullEPG"]}">
                                             <div class="channel-program-start-time"></div>
                                             <div class="channel-program-end-time"></div>
                                         </div>
@@ -914,7 +1043,7 @@ const addChannels = (channels) => {
     });
 };
 
-await fetch(getChannelsListURL("it/dtt/national"))
+await fetch(getChannelsListURL(`${countries[selectedCountry].location}/national`))
     .then(response => response.json())
     .then(nationalChannels => {
         window.zappr.nationalChannels = nationalChannels.channels;
@@ -925,7 +1054,7 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
     if (new URLSearchParams(location.search).get("androidtv") === null) document.querySelector("select").value = localStorage.getItem("region")
     else document.querySelector(`input[value="${localStorage.getItem("region")}"]`).checked = true;
 
-    await fetch(getChannelsListURL(`it/dtt/regional/${localStorage.getItem("region")}`))
+    await fetch(getChannelsListURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
         .then(response => response.json())
         .then(json => {
             window.zappr.regionalChannels = json.channels;
@@ -935,17 +1064,17 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
         });
 } else {
     window.zappr.channels = window.zappr.nationalChannels;
-    window.zappr.channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
+    if (selectedCountry === "it") window.zappr.channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
 };
 
 let fastChannelsPresent = true;
-await fetch(getFASTChannelsURL("it"))
+await fetch(getFASTChannelsURL(selectedCountry))
     .then(response => response.json())
     .then(fastChannels => {
         window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
     })
     .catch(e => {
-        console.warn(`Impossibile trovare i canali FAST: ${e.stack}`);
+        console.warn(`Can't find FAST channels: ${e.stack}`);
         fastChannelsPresent = false;
     });
 
@@ -974,7 +1103,7 @@ if (fastChannelsPresent) {
             nextCategory = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1];
         } else {
             document.querySelector(".source-header").classList.add("first-source");
-            document.querySelector(".source-header .current-source").innerText = "DTT";
+            document.querySelector(".source-header .current-source").innerText = locale["mainSource"];
             previousCategory = null;
             nextCategory = document.querySelector(".channel-category");
         };
@@ -1018,9 +1147,9 @@ if (fastChannelsPresent) {
 
 const returnErrorMessage = (errorCode) => {
     return ({
-        "not-working": "Lo streaming di questo canale non funziona al momento.",
+        "not-working": locale["disabledNotWorking"],
         "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS.",
-        "geoblock": "Questo canale non è visibile al di fuori dell'Italia."
+        "geoblock": locale["disabledGeoblock"]
     })[errorCode];
 };
 
@@ -1376,7 +1505,7 @@ let manualRestart = {
 
             switch (source) {
                 case "mediaset":
-                    if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                    if (ipLocation === selectedCountry) {
                         if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
                         else {
                             json = await fetch(`https://static-api.mediaset.net/apigw/nownext/${id}.json`)
@@ -1410,7 +1539,7 @@ let manualRestart = {
                     break;
 
                 case "sky":
-                    if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                    if (ipLocation === selectedCountry) {
                         if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
                         else {
                             json = await fetch(`https://hbbtv.sky.it/api/playout/${id}/enhanced`)
@@ -1430,16 +1559,16 @@ let manualRestart = {
                     break;
 
                 case "wbd":
-                    if (new URLSearchParams(location.search).get("geoblock-warning") === null) {
+                    if (ipLocation === selectedCountry) {
                         if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
                         else {
                             let channelModulesURL = await fetch(`https://datahub.enhanced.tools/live/it/${id}.json`)
                                 .then(response => response.json())
-                                .then(json => json.containers[0].configUrl);
+                                .then(json => json.containers[0].configUrl.replaceAll("http://", "https://"));
 
                             let channelConfigURL = await fetch(channelModulesURL)
                                 .then(response => response.json())
-                                .then(json => json.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl);
+                                .then(json => json.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://"));
                             let channelConfig = await fetch(channelConfigURL)
                                 .then(response => response.json());
 
@@ -1571,6 +1700,7 @@ document.querySelectorAll(".channel").forEach(el => {
                     radio: el.dataset.radio,
                     http: el.dataset.http,
                     license: el.dataset.license,
+                    licenseDetails: el.dataset.licenseDetails,
                     feed: el.dataset.feed,
                     fallbackType: el.dataset.fallbackType,
                     fallbackURL: el.dataset.fallbackUrl,
@@ -1641,7 +1771,7 @@ document.querySelectorAll(".channel").forEach(el => {
                 document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
                 document.querySelector("#channels").scrollIntoView();
                 document.querySelector("#channels-column").scrollIntoView();
-                document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
+                document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
                 if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
                 mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
             };
@@ -1887,7 +2017,7 @@ document.querySelectorAll(".tooltip").forEach(el => {
                             document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
                                 <div class="news-item">
                                     <a class="news-content" href="${postLink}" target="_blank">
-                                        <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale("it").toLocaleString()}</span>
+                                        <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale(language).toLocaleString()}</span>
                                         ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>")}
                                     </a>
                                     ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
@@ -1908,31 +2038,48 @@ document.querySelectorAll(".tooltip").forEach(el => {
 
 // https://stackoverflow.com/a/67240166/4168960
 const updateSelectWidth = (e) => {
-    const target = document.querySelector("select");
+    const target = e;
+    if (target.children.length >= 1) {
+        console.log(target)
+        let tempSelect = document.createElement("select"),
+            tempOption = document.createElement("option");
+      
+        if (target.querySelector("[selected]")) {
+            tempOption.textContent = target.querySelector("[selected]").text;
+        } else {
+            tempOption.textContent = target.querySelector("option").text;
+        }
+        tempSelect.style.cssText += `
+            visibility: hidden;
+            position: fixed;
+        `;
+        tempSelect.appendChild(tempOption);
+        target.after(tempSelect);
+        
+        const tempSelectWidth = tempSelect.getBoundingClientRect().width;
+        target.style.width = `${tempSelectWidth}px`;
+        tempSelect.remove();
 
-    let tempSelect = document.createElement("select"),
-        tempOption = document.createElement("option");
-  
-    tempOption.textContent = target.options[target.selectedIndex].text;
-    tempSelect.style.cssText += `
-        visibility: hidden;
-        position: fixed;
-    `;
-    tempSelect.appendChild(tempOption);
-    target.after(tempSelect);
-    
-    const tempSelectWidth = tempSelect.getBoundingClientRect().width;
-    target.style.width = `${tempSelectWidth}px`;
-    tempSelect.remove();
+        target.innerHTML = target.innerHTML;
+    };
 };
 
+document.querySelector("#region").addEventListener("change", e => {
+    if (document.querySelector("#region [selected]")) document.querySelector("#region [selected]").removeAttribute("selected");
+    document.querySelector(`#region option[value="${e.target.value}"]`).setAttribute("selected", "");
+    document.querySelector("#save-and-reload").removeAttribute("hidden");
+    localStorage.setItem("region", document.querySelector("#region").value);
+});
+
 if (new URLSearchParams(location.search).get("androidtv") === null) {
-    updateSelectWidth();
-    document.querySelector("select").addEventListener("change", e => updateSelectWidth(e));
+    document.querySelectorAll("#settings select").forEach(el => {
+        updateSelectWidth(el);
+        el.addEventListener("change", e => updateSelectWidth(e.target))
+    });
 };
 
 document.querySelector("#save-and-reload").addEventListener("click", () => {
-    localStorage.setItem("region", new URLSearchParams(location.search).get("androidtv") === null ? document.querySelector("select").value : document.querySelector("input:checked").value);
+    localStorage.setItem("region", new URLSearchParams(location.search).get("androidtv") === null ? document.querySelector("#region").value : document.querySelector("#region input:checked").value);
     location.reload();
 });
 
@@ -2003,15 +2150,15 @@ document.querySelector("#search-icon").addEventListener("click", () => {
     document.querySelector("#channels-column").classList.toggle("search-visible");
 });
 
-window.zappr.nationalEPG = await fetch(getEPGURL("it/dtt/national"))
+window.zappr.nationalEPG = await fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
     .then(response => response.json())
     .catch(e => {
-        console.warn(`Impossibile trovare l'EPG: ${e.stack}`);
+        console.warn(`Can't find EPG: ${e.stack}`);
         window.zappr.epg = {};
     });
 
 if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
-    await fetch(getEPGURL(`it/dtt/regional/${localStorage.getItem("region")}`))
+    await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
         .then(response => response.json())
         .then(json => {
             window.zappr.regionalEPG = json;
@@ -2058,11 +2205,11 @@ setTimeout(() => {
 }, delay);
 
 setInterval(async () => {
-    window.zappr.nationalEPG = await fetch(getEPGURL("it/dtt/national"))
+    window.zappr.nationalEPG = await fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
         .then(response => response.json());
 
     if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
-        await fetch(getEPGURL(`it/dtt/regional/${localStorage.getItem("region")}`))
+        await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
             .then(response => response.json())
             .then(json => {
                 window.zappr.regionalEPG = json;
@@ -2106,7 +2253,7 @@ document.querySelector("#epg-next-day").addEventListener("click", () => {
             duration: 500, fill: "forwards", easing: "ease"
         });
         setTimeout(() => {
-            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(next.dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
+            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(next.dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
             document.querySelector("#epg-date span").animate([
                 { transform: "translateX(25%)", opacity: 0 },
                 { transform: "translateX(0)", opacity: 1 }
@@ -2145,7 +2292,7 @@ document.querySelector("#epg-previous-day").addEventListener("click", () => {
             duration: 500, fill: "forwards", easing: "ease"
         });
         setTimeout(() => {
-            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(prev.dataset.date, "yyyy-MM-dd").setLocale("it").toLocaleString(DateTime.DATE_FULL);
+            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(prev.dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
             document.querySelector("#epg-date span").animate([
                 { transform: "translateX(-25%)", opacity: 0 },
                 { transform: "translateX(0%)", opacity: 1 }

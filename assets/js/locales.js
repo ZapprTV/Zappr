@@ -31,10 +31,10 @@ export default {
             --videojs-plyr-playback-speed-text: "Velocità";
         }
         .epg-item-container::after {
-            content: "Il programma richiesto inizierà a breve";
+            content: "Il programma richiesto inizierà a breve" !important;
         }
         .epg-item-container.on-air .epg-start-time::after {
-            content: "IN ONDA";
+            content: "IN ONDA" !important;
         }`,
         lcnTyping: "Invio per confermare<br>o Esc per annullare",
         errorTechnicalInfo: "Informazioni tecniche",
@@ -90,10 +90,10 @@ export default {
         <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">View the source code on GitHub</a>
         <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contact us via email</a>`,
         playerLanguageCSS: `.epg-item-container::after {
-            content: "The requested programme will start shortly";
+            content: "The requested programme will start shortly" !important;
         }
         .epg-item-container.on-air .epg-start-time::after {
-            content: "ON AIR";
+            content: "ON AIR" !important;
         }`,
         lcnTyping: "Enter to confirm<br>or Esc to cancel",
         errorTechnicalInfo: "Technical info",

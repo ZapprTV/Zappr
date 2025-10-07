@@ -84,6 +84,11 @@
                 transform: scaleY(2);
             }
         </style>
+        <style id="five-two-squashed-height-fix" class="cssfix" media="not all">
+            video {
+                transform: scaleY(1.40625);
+            }
+        </style>
         <style id="center-iframe-fix" class="cssfix" media="not all">
             #overlays iframe {
                 height: auto;
@@ -250,7 +255,7 @@
                         <a id="search-icon">
                             <img src="/assets/icons/search.svg">
                         </a>
-                        <a class="tooltip" data-target="#news" data-translation-hide="en">
+                        <a class="tooltip" data-target="#news">
                             <img src="/assets/icons/news.svg">
                         </a>
                         <a class="tooltip" data-target="#info-tooltip">
@@ -279,8 +284,8 @@
                         <div class="tooltip-content news-not-loaded" id="news">
                             <div class="tooltip-content-box">
                                 <div id="news-info">
-                                    <span>Clicca su un titolo per leggere la notizia completa, oppure clicca su un'immagine per ingrandirla.</span>
-                                    <span>Hosting del feed fornito da <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)</span>
+                                    <span data-translation-id="newsInstructions"></span>
+                                    <span data-translation-id="newsHosting"></span>
                                 </div>
                                 <div id="news-list"></div>
                                 <a rel="me" href="https://mastodon.uno/@zappr" hidden id="mastodon-verification"></a>

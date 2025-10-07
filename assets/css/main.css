@@ -845,9 +845,6 @@ iframe {
     flex-direction: column-reverse;
     bottom: 0;
 }
-#news.news-not-loaded .tooltip-content-box:after {
-    content: "Caricamento...";
-}
 #news-list {
     width: 100%;
     text-align: left;

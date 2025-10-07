@@ -29,6 +29,11 @@ const getLanguage = () => {
 
 let selectedCountry = getCountry();
 let selectedLanguage = getLanguage();
+try {
+    if (!Object.keys(Object.assign({}, ...Object.keys(countries[selectedCountry].regions).map(group => countries[selectedCountry].regions[group]))).includes(localStorage.getItem("region"))) localStorage.removeItem("region");
+} catch {
+    localStorage.removeItem("region");
+};
 let selectedRegion = localStorage.getItem("region");
 let language = selectedLanguage in locales ? selectedLanguage : "en";
 let locale = locales[language];
@@ -352,7 +357,7 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
     });
 };
 
-const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
+const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false, timeshift = 0 }) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
@@ -400,6 +405,13 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
     };
 
     window.zappr.closeModal();
+
+    if (timeshift) {
+        player.on("loadeddata", () => {
+            player.currentTime(player.currentTime() - timeshift * 3600);
+            player.off("loadeddata");
+        });
+    };
     player.off("error");
     player.on("error", async () => {
         window.zappr.closeModal();
@@ -650,7 +662,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 };
                 
                 iframe.allowFullscreen = true;
-                iframe.allow = "autoplay encrypted-media";
+                iframe.allow = "autoplay *; encrypted-media *;";
                 iframe.scrolling = "no";
                 if (type === "twitch") {
                     iframe.src = `https://player.twitch.tv/?channel=${url}&parent=${location.hostname}`;
@@ -688,7 +700,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
     };
 };
 
-const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false }) => {
+const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false, timeshift = 0 }) => {
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -920,7 +932,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 });
         };
     } else {
-        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI })
+        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI, timeshift: timeshift })
     };
 };
 
@@ -969,7 +981,7 @@ const addChannels = (channels) => {
         channelslist.insertAdjacentHTML("beforeend", `
             ${channel.categorySeparator === undefined
                 ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                    <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""}>
+                    <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""}>
                         <div class="channel-info">
                             <div class="lcn">${channel.lcn}</div>
                             <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" ${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? ` loading="lazy"` : ""}>
@@ -1628,155 +1640,156 @@ const updateRestartablePrograms = async (manual = false) => {
 document.querySelectorAll(".channel").forEach(el => {
     if (el.dataset.disabled != undefined) {
         el.title = returnErrorMessage(el.dataset.disabled);
-        el.addEventListener("click", () => alert(returnErrorMessage(el.dataset.disabled)));
-    } else {
-        el.addEventListener("click", async e => {
-            if ((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") || new URLSearchParams(location.search).get("androidtv") != null) {
-                currentlyPlaying = el;
-    
-                if (state.schedule != {}) {
-                    createScheduler("").remove();
-                };
+    };
+    el.addEventListener("click", async e => {
+        if (((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") || new URLSearchParams(location.search).get("androidtv") != null) && el.dataset.disabled === undefined) {
+            currentlyPlaying = el;
 
-                if (document.querySelector(".watching") != null) {
-                    document.querySelector(".watching").classList.remove("watching");
+            if (state.schedule != {}) {
+                createScheduler("").remove();
+            };
+
+            if (document.querySelector(".watching") != null) {
+                document.querySelector(".watching").classList.remove("watching");
+            };
+            if (document.querySelector(".watching-hbbtv") != null) {
+                document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
+            };
+            el.classList.add("watching");
+
+            if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
+                const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
+                    .then(response => response.json());
+
+                createScheduler(regionalPrograms).start();
+                return;
+            };
+
+            if (document.querySelector(`style.cssfix[media=""]`) != null) {
+                document.querySelector(`style.cssfix[media=""]`).media = "not all";
+            };
+
+            if (el.dataset.cssfix != undefined) {
+                document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
+            };
+
+            if (el.classList.contains("hbbtv-app")) {
+                overlays.classList.add("hbbtv-app");
+            } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
+                overlays.classList.remove("hbbtv-app");
+            };
+            if (el.classList.contains("pluto-channel")) {
+                overlays.classList.add("pluto-channel");
+            } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
+                overlays.classList.remove("pluto-channel");
+            };
+
+            if (el.dataset.lcn.includes(".")) {
+                el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
+                if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
+                    el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
                 };
-                if (document.querySelector(".watching-hbbtv") != null) {
-                    document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
-                };
-                el.classList.add("watching");
-    
-                if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
-                    const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
-                        .then(response => response.json());
-    
-                    createScheduler(regionalPrograms).start();
+            };
+            
+            if (el.classList.contains("adult")) {
+                if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
+                    adultChannelConfirmation();
+                    return;
+                } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
+                    adultChannelConfirmation(true);
                     return;
                 };
-    
-                if (document.querySelector(`style.cssfix[media=""]`) != null) {
-                    document.querySelector(`style.cssfix[media=""]`).media = "not all";
-                };
-    
-                if (el.dataset.cssfix != undefined) {
-                    document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
-                };
-    
-                if (el.classList.contains("hbbtv-app")) {
-                    overlays.classList.add("hbbtv-app");
-                } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
-                    overlays.classList.remove("hbbtv-app");
-                };
-                if (el.classList.contains("pluto-channel")) {
-                    overlays.classList.add("pluto-channel");
-                } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
-                    overlays.classList.remove("pluto-channel");
-                };
-    
-                if (el.dataset.lcn.includes(".")) {
-                    el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
-                    if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
-                        el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
-                    };
-                };
-                
-                if (el.classList.contains("adult")) {
-                    if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
-                        adultChannelConfirmation();
-                        return;
-                    } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
-                        adultChannelConfirmation(true);
-                        return;
-                    };
-                };
-                await loadChannel({
-                    type: el.dataset.type,
-                    url: el.dataset.url,
-                    api: el.dataset.api,
-                    name: el.dataset.name,
-                    lcn: el.dataset.lcn,
-                    logo: el.dataset.logo,
-                    fullLogo: el.dataset.fullLogo,
-                    radio: el.dataset.radio,
-                    http: el.dataset.http,
-                    license: el.dataset.license,
-                    licenseDetails: el.dataset.licenseDetails,
-                    feed: el.dataset.feed,
-                    fallbackType: el.dataset.fallbackType,
-                    fallbackURL: el.dataset.fallbackUrl,
-                    fallbackAPI: el.dataset.fallbackApi
-                });
-            } else {
-                document.querySelector("#epg-channel").innerText = el.dataset.name;
-                document.querySelector("#channels-column").classList.add("epg-visible");
-                document.querySelectorAll(".epg-items").forEach(el => el.remove());
-                document.querySelector("#channels-column").classList.remove("overflow-visible");
-                document.querySelector("#epg").classList.remove("is-hidden");
-                document.querySelector("#epg").classList.remove("long-channel-name");
-                document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
-                document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
-                const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
-                    const startDate = entry.startTime.iso.split("T")[0];
-                    const endDate = entry.endTime.iso.split("T")[0];
-                    if (!accumulator[startDate]) accumulator[startDate] = [];
-                    accumulator[startDate].push(entry);
-                    if (!accumulator[endDate]) accumulator[endDate] = [];
-                    accumulator[endDate].push(entry);
-                    return accumulator;
-                }, {});
-                Object.keys(epgByDays).forEach(day => {
-                    epgByDays[day] = [...new Set(epgByDays[day])];
-                    if (epgByDays[day].length <= 1) delete epgByDays[day];
-                });
-                if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
-                    else document.querySelector("#epg-date").className = "first-day last-day";
-                for (const day in epgByDays) {
-                    document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
-                        ${epgByDays[day].map(entry => {
-                            const now = Date.now();
-                            const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
-                                !entry.image && entry.description && entry.description.length > 145 ? true : false;
-
-                            return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
-                                <div class="epg-item">
-                                    ${entry.image ? `<img src="${entry.image}" class="epg-image">` : ""}
-                                    <div class="epg-info">
-                                        <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
-                                        <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
-                                        ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
-                                        ${entry.description ? `<div class="epg-description">
-                                            <p>${entry.description}</p>
-                                        </div>` : ""}
-                                        <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${new URL("/assets/icons/play.svg", import.meta.url)}">Guarda</a>` : ""}</div>
-                                    </div>
-                                </div>
-                            </div>`
-                        }).join("")}
-                    </div>`);
-                    if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
-                };
-                updateRestartablePrograms(true);
-                document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
-                document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
-                document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
-                    el.addEventListener("click", () => {
-                        el.closest(".epg-item-container").classList.toggle("expanded");
-                    });
-                });
-                document.querySelector(".epg-items").animate({
-                    left: "0"
-                }, {
-                    duration: 0, fill: "forwards", easing: "ease"
-                });
-                document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
-                document.querySelector("#channels").scrollIntoView();
-                document.querySelector("#channels-column").scrollIntoView();
-                document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
-                if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
-                mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
             };
-        });
-    };
+            await loadChannel({
+                type: el.dataset.type,
+                url: el.dataset.url,
+                api: el.dataset.api,
+                name: el.dataset.name,
+                lcn: el.dataset.lcn,
+                logo: el.dataset.logo,
+                fullLogo: el.dataset.fullLogo,
+                radio: el.dataset.radio,
+                http: el.dataset.http,
+                license: el.dataset.license,
+                licenseDetails: el.dataset.licenseDetails,
+                feed: el.dataset.feed,
+                fallbackType: el.dataset.fallbackType,
+                fallbackURL: el.dataset.fallbackUrl,
+                fallbackAPI: el.dataset.fallbackApi,
+                timeshift: el.dataset.timeshift
+            });
+        } else if (((["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) || e.target.nodeName === "B") && new URLSearchParams(location.search).get("androidtv") === null)) {
+            document.querySelector("#epg-channel").innerText = el.dataset.name;
+            document.querySelector("#channels-column").classList.add("epg-visible");
+            document.querySelectorAll(".epg-items").forEach(el => el.remove());
+            document.querySelector("#channels-column").classList.remove("overflow-visible");
+            document.querySelector("#epg").classList.remove("is-hidden");
+            document.querySelector("#epg").classList.remove("long-channel-name");
+            document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
+            document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
+            const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
+                const startDate = entry.startTime.iso.split("T")[0];
+                const endDate = entry.endTime.iso.split("T")[0];
+                if (!accumulator[startDate]) accumulator[startDate] = [];
+                accumulator[startDate].push(entry);
+                if (!accumulator[endDate]) accumulator[endDate] = [];
+                accumulator[endDate].push(entry);
+                return accumulator;
+            }, {});
+            Object.keys(epgByDays).forEach(day => {
+                epgByDays[day] = [...new Set(epgByDays[day])];
+                if (epgByDays[day].length <= 1) delete epgByDays[day];
+            });
+            if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
+                else document.querySelector("#epg-date").className = "first-day last-day";
+            for (const day in epgByDays) {
+                document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
+                    ${epgByDays[day].map(entry => {
+                        const now = Date.now();
+                        const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
+                            !entry.image && entry.description && entry.description.length > 145 ? true : false;
+
+                        return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
+                            <div class="epg-item">
+                                ${entry.image ? `<img src="${entry.image}" class="epg-image">` : ""}
+                                <div class="epg-info">
+                                    <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
+                                    <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
+                                    ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
+                                    ${entry.description ? `<div class="epg-description">
+                                        <p>${entry.description}</p>
+                                    </div>` : ""}
+                                    <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${new URL("/assets/icons/play.svg", import.meta.url)}">Guarda</a>` : ""}</div>
+                                </div>
+                            </div>
+                        </div>`
+                    }).join("")}
+                </div>`);
+                if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
+            };
+            updateRestartablePrograms(true);
+            document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
+            document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
+            document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
+                el.addEventListener("click", () => {
+                    el.closest(".epg-item-container").classList.toggle("expanded");
+                });
+            });
+            document.querySelector(".epg-items").animate({
+                left: "0"
+            }, {
+                duration: 0, fill: "forwards", easing: "ease"
+            });
+            document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
+            document.querySelector("#channels").scrollIntoView();
+            document.querySelector("#channels-column").scrollIntoView();
+            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
+            if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
+            mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
+        } else if (el.dataset.disabled != undefined) {
+            alert(returnErrorMessage(el.dataset.disabled));
+        };
+    });
 });
 document.querySelectorAll(".hbbtv-enabler").forEach(el => {
     el.addEventListener("click", () => el.classList.toggle("clicked"));
@@ -1995,7 +2008,7 @@ document.querySelectorAll(".tooltip").forEach(el => {
         });
         document.querySelector(el.dataset.target).classList.toggle("visible");
         if (el.dataset.target === "#news" && document.querySelector("#news").classList.contains("news-not-loaded")) {
-            await fetch("https://mastodon.uno/@zappr.rss")
+            await fetch(locale["newsURL"])
                 .then(response => response.text())
                 .then(xml => {
                     const rss = new DOMParser().parseFromString(xml, "application/xml");
@@ -2040,7 +2053,6 @@ document.querySelectorAll(".tooltip").forEach(el => {
 const updateSelectWidth = (e) => {
     const target = e;
     if (target.children.length >= 1) {
-        console.log(target)
         let tempSelect = document.createElement("select"),
             tempOption = document.createElement("option");
       

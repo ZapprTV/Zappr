@@ -857,6 +857,26 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                         }, ((json.expire_time - DateTime.now().toSeconds()) * 1000) - 3000);
                     });
                 break;
+
+            case "acdsolutions":
+                window.acdSolutionsPlay = (url) => {
+                    loadStream({
+                        type: type,
+                        url: url,
+                        name: name,
+                        lcn: lcn,
+                        logo: logo
+                    });
+                };
+                const acdSolutionsScript = document.createElement("script");
+                acdSolutionsScript.setAttribute("src", `https://catchup.acdsolutions.it/jstag/videoplayerLiveFluid/TV?ch=${parameter}&vID=%27%29%3B%7D%7D%29%7D%3B%20window.acdSolutionsPlay%28videoElement_playerElement.querySelector%28%22source%22%29.src%29%3B%20%7D%20catch%20%7B%7D%3B%20%2F%2F`);
+                acdSolutionsScript.setAttribute("async", true);
+                acdSolutionsScript.addEventListener("load", () => {
+                    acdSolutionsScript.remove();
+                    delete window.acdSolutionsPlay;
+                });
+                document.head.appendChild(acdSolutionsScript);
+                break;
         };
     } else if (license) {
         switch(license) {
@@ -1083,6 +1103,9 @@ let fastChannelsPresent = true;
 await fetch(getFASTChannelsURL(selectedCountry))
     .then(response => response.json())
     .then(fastChannels => {
+        if (ipLocation != selectedCountry) {
+            fastChannels.channels = fastChannels.channels.filter(el => (el.url && !el.url.includes("pluto.tv") || (el.id && el.id != "plutotv")));
+        };
         window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
     })
     .catch(e => {
@@ -1359,6 +1382,19 @@ const createScheduler = (scheduleData) => ({
     remove: () => remove()
 });
 
+const addAutoRestart = (el, startTime, manual) => {
+    if (!el.querySelector(".epg-restart")) {
+        el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart${manual ? " manual": ""}"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
+        el.querySelector(".epg-restart").addEventListener("click", () => {
+            player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - startTime) / 1000) + 10);
+            el.classList.add("restart-soon");
+            setTimeout(() => {
+                el.classList.remove("restart-soon");
+            }, 10000);
+        });
+    } else el.querySelector(".epg-restart").remove();
+};
+
 let manualRestart = {
     fetchCache: {},
     run: async (channel, source, data) => {
@@ -1516,6 +1552,17 @@ let manualRestart = {
             let json;
 
             switch (source) {
+                case "rai":
+                    if (ipLocation === selectedCountry) {
+                        if (els[el].classList.contains("on-air")) {
+                            const onAirStartTime = await fetch(`https://www.raiplay.it/palinsesto/onAir.json`)
+                                .then(response => response.json())
+                                .then(json => DateTime.fromISO(json.on_air.filter(el => el.palinsesto_url === id)[0].currentItem.tech_datetime_en).toMillis() + 25000);
+                            addAutoRestart(els[el], onAirStartTime, true);
+                        } else if (startTime.ts >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && startTime.ts <= DateTime.now().ts) addAutoRestart(els[el], startTime.ts, true);
+                    };
+                    break;
+
                 case "mediaset":
                     if (ipLocation === selectedCountry) {
                         if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
@@ -1547,7 +1594,15 @@ let manualRestart = {
                         }).ts;
                         if (entryStartTime.hour < 6) entryStartTime = entryStartTime.plus({ days: 1 });
                         if (entryStartTime >= rangeStart && entryStartTime <= rangeEnd) manualRestart.addButton(els[el], channel, source, entry.nid);
+                        else if (startTime.ts >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && startTime.ts <= DateTime.now().ts && !els[el].classList.contains("on-air")) addAutoRestart(els[el], startTime.ts, true);
                     });
+                    
+                    if (els[el].classList.contains("on-air")) {
+                        const onAirStartTime = await fetch(`https://static.iltrovatore.it/StreamingStatus/${id}.rivedi2.txt`)
+                            .then(response => response.text())
+                            .then(text => DateTime.fromFormat(text.split("\t")[0], "yyyy.MM.dd-hh.mm.ss").toMillis());
+                        addAutoRestart(els[el], onAirStartTime, true);
+                    };
                     break;
 
                 case "sky":
@@ -1578,9 +1633,9 @@ let manualRestart = {
                                 .then(response => response.json())
                                 .then(json => json.containers[0].configUrl.replaceAll("http://", "https://"));
 
-                            let channelConfigURL = await fetch(channelModulesURL)
-                                .then(response => response.json())
-                                .then(json => json.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://"));
+                            let channelModules = await fetch(channelModulesURL)
+                                .then(response => response.json());
+                            let channelConfigURL = channelModules.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://");
                             let channelConfig = await fetch(channelConfigURL)
                                 .then(response => response.json());
 
@@ -1593,7 +1648,8 @@ let manualRestart = {
                             json = {
                                 startOverWindow: startOverWindow,
                                 epgConfig: epgConfig,
-                                restartID: restartID
+                                restartID: restartID,
+                                channelID: channelModules.currentChannel.name
                             };
 
                             manualRestart.fetchCache[source] = {};
@@ -1605,7 +1661,7 @@ let manualRestart = {
                                 buffer: parseInt(json.epgConfig.channelDelay),
                                 epgEndpoint: new URL(json.epgConfig.epgApiEndpoint).origin,
                                 epgChunkSize: parseInt(json.epgConfig.epgChunkSize),
-                                id: id,
+                                id: json.channelID,
                                 restartID: json.restartID,
                                 startTime: startTime.ts
                             });
@@ -1623,14 +1679,7 @@ const updateRestartablePrograms = async (manual = false) => {
     if (document.querySelector(".channel.watching") && document.querySelector(".channel.watching").dataset.epgSource && document.querySelector("#channels-column").classList.contains("epg-visible") && document.querySelector(`#epg[data-epg-source="${document.querySelector(".channel.watching").dataset.epgSource}"][data-epg-id="${document.querySelector(".channel.watching").dataset.epgId}"]`)) {
         document.querySelectorAll(".epg-item-container").forEach(el => {
             if ((parseInt(el.dataset.startTime) >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && parseInt(el.dataset.startTime) <= DateTime.now().ts) && !document.querySelector(".channel.watching").dataset.manualRestartSource) {
-                el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
-                el.querySelector(".epg-restart").addEventListener("click", () => {
-                    player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - parseInt(el.dataset.startTime)) / 1000) + 10);
-                    el.classList.add("restart-soon");
-                    setTimeout(() => {
-                        el.classList.remove("restart-soon");
-                    }, 10000);
-                });
+                addAutoRestart(el, parseInt(el.dataset.startTime));
             };
         });
         if (manual) await manualRestart.check(document.querySelector(".channel.watching"), Array.from(document.querySelectorAll(".epg-item-container")));
@@ -1751,7 +1800,7 @@ document.querySelectorAll(".channel").forEach(el => {
 
                         return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
                             <div class="epg-item">
-                                ${entry.image ? `<img src="${entry.image}" class="epg-image">` : ""}
+                                ${entry.image ? `<img src="${entry.image}" class="epg-image" onerror="this.parentElement.parentElement.classList.add('no-image'); this.remove();">` : ""}
                                 <div class="epg-info">
                                     <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
                                     <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>

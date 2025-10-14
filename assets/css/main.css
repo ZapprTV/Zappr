@@ -1549,6 +1549,10 @@ a#reopen-window svg {
         height: 2rem;
         place-content: center;
     }
+    .source-header {
+        backdrop-filter: none;
+        box-shadow: none;
+    }
 }
 @media screen and (min-width: 769px) {
     .columns {

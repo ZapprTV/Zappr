@@ -10,7 +10,6 @@ export default {
         rollupOptions: {
             input: {
                 main: resolve(__dirname, "index.html"),
-                mixed: resolve(__dirname, "mixed.html"),
                 offlinePWA: resolve(__dirname, "offline-pwa.html"),
                 privacy: resolve(__dirname, "privacy.html"),
             },

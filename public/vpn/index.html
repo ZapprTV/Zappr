@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="canonical" href="https://zappr.stream/vpn">
+        <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+        <link rel="icon" href="/assets/icons/favicon.ico" sizes="48x48">
+        <link rel="icon" href="/assets/icons/favicon.svg" sizes="any" type="image/svg+xml">
+        <meta name="theme-color" content="#242424">
+        <style>
+            html, body {
+                background: #242424;
+                font-family: monospace;
+                margin: 1rem;
+                color: white;
+            }
+            h1 {
+                margin-bottom: 0;
+            }
+            h3 {
+                font-weight: 400;
+                margin-top: 0.5rem;
+            }
+            body > ol > li {
+                margin: 0.5rem 0;
+                font-weight: bold;
+                font-size: 1.5rem;
+            }
+            a {
+                color: lightblue;
+            }
+            img {
+                width: 30rem;
+                max-width: 100%;
+                border-radius: 2rem;
+            }
+            li div {
+                display: list-item;
+                list-style-position: inside;
+                list-style-type: disc;
+                counter-increment: list-item 0;
+                padding-left: 1rem;
+                font-weight: normal;
+                font-size: 1.25rem;
+            }
+            li div div {
+                padding-left: 3rem;
+            }
+            b {
+                line-height: 1;
+            }
+            code {
+                background: black;
+                padding: 0.25rem 0.5rem;
+            }
+            @media screen and (max-width: 100vh) {
+                li div {
+                    padding-left: 0rem;
+                    margin-left: -1rem;
+                }
+                li div div {
+                    padding-left: 3rem;
+                }
+                li ol {
+                    padding-left: 2rem;
+                }
+                li, li div {
+                    margin: 0.3333rem 0;
+                }
+            }
+        </style>
+        <title>Zappr - VPN consigliate</title>
+    </head>
+    <body>
+        <h1>VPN consigliate</h1>
+        <h3>
+            Tutte queste VPN supportano pagamenti con carta di credito, PayPal e criptovalute, e possono essere installate su Windows, Mac, Linux, Android, iOS e Android TV.<br>
+            <b><i>Perché vengono elencati anche i server in Svizzera?</i></b> Perché esistono vari servizi di streaming gratuiti con tanti contenuti in italiano disponibili solo in Svizzera, e perché il piano personalizzato di Windscribe richiede di selezionare almeno 2 paesi. Quindi, se decidi di usare Windscribe e non ti servono server in paesi oltre all'Italia, sarebbe un'ottima scelta selezionare la Svizzera come secondo paese.
+        </h3>
+        <ol>
+            <li id="mullvad">
+                Mullvad VPN
+                <div><b class="it-server-count">⣿</b> server in Italia, <b class="ch-server-count">⣿</b> in Svizzera, <b class="total-server-count">⣿</b> in totale <i>(in <b class="countries-count">⣿</b> paesi)</i></div>
+                <div>Costo: <b>€5/mese</b> <i>(<b>€4.50/mese</b> se si paga in criptovalute)</i></div>
+                <div>
+                    Condividere l'account con altre persone <b>è permesso</b>
+                    <div>Si possono avere al massimo <b>5</b> dispositivi collegati contemporaneamente</div>
+                </div>
+                <div>
+                    Per iscriverti: <a href="https://mullvad.net/it/account/create">Clicca qui</a>
+                    <div><b>Attenzione</b>: Non c'è modo di far rinnovare automaticamente la tua iscrizione. Dovrai pagare manualmente ogni mese, oppure ricaricare il credito del tuo account con più di €5 per pagare in anticipo 2, 3, 6 o 12 mesi di servizio.</div>
+                </div>
+            </li>
+            <li id="windscribe">
+                Windscribe <i>(con piano personalizzato)</i>
+                <div><b class="it-server-count">⣿</b> server in Italia, <b class="ch-server-count">⣿</b> in Svizzera</div>
+                <div>Costo: <b>$3/mese</b> <i>(circa <b>€<span class="eur-price">⣿</span>/mese</b>)</i></div>
+                <div>
+                    Condividere l'account con altre persone <b>NON è permesso</b>
+                    <div>Non c'è un limite di dispositivi che si possono collegare contemporaneamente, ma i termini di servizio vietano esplicitamente la condivisione degli account</div>
+                </div>
+                <div>
+                    Per iscriverti:
+                    <ol>
+                        <li><a href="https://windscribe.com/yo/95m42ni8" target="_blank">Crea gratuitamente un account Windscribe</a>. <i>(link affiliato)</i></li>
+                        <li>Clicca <a href="https://windscribe.com/upgrade#gift" target="_blank">qui</a>, e, nel menù che compare, seleziona l'opzione <b>Unlimited Data + R.O.B.E.R.T.</b>, poi nella lista dei paesi seleziona l'Italia e un altro paese a tuo piacimento.
+                        <br>
+                        Come già detto sopra, se non ti servono server in altri paesi, ti consigliamo di selezionare la Svizzera per poter accedere a vari servizi di streaming svizzeri gratuiti con tanti contenuti in italiano, come <a href="https://www.rsi.ch/play" target="_blank">Play RSI</a>, <a href="https://zattoo.com/ch/en" target="_blank">Zattoo</a>, ecc.
+                        <br><br>
+                        <img src="assets/windscribe.png" alt=""></li>
+                        <br>
+                        <li>Clicca <b>Pay $3.00/ Month</b> e paga.</li>
+                    </ol>
+                </div>
+            </li>
+        </ol>
+        <script>
+            fetch("https://corsproxy.io/?url=https://api.mullvad.net/www/relays/all")
+                .then(response => response.json())
+                .then(json => {
+                    document.querySelector("#mullvad .it-server-count").innerText = json.filter(el => el.country_code === "it").length;
+                    document.querySelector("#mullvad .ch-server-count").innerText = json.filter(el => el.country_code === "ch").length;
+                    document.querySelector("#mullvad .total-server-count").innerText = json.length;
+                    document.querySelector("#mullvad .countries-count").innerText = [...new Set(json.map(el => el.country_code))].length;
+                });
+
+            fetch("https://corsproxy.io/?url=https://api.windscribe.com/WebsiteStatus", {
+                headers: {
+                    Authorization: "Bearer 1234"
+                }
+            })
+                .then(response => response.json())
+                .then(json => {
+                    document.querySelector("#windscribe .it-server-count").innerText = Object.keys(json.data.locations).map(el => json.data.locations[el]).filter(el => el.country_code === "IT")[0].pops_enabled;
+                    document.querySelector("#windscribe .ch-server-count").innerText = Object.keys(json.data.locations).map(el => json.data.locations[el]).filter(el => el.country_code === "CH")[0].pops_enabled;
+                });
+
+            fetch("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json")
+                .then(response => response.json())
+                .then(json => {
+                    document.querySelector("#windscribe .eur-price").innerText = (3 * json.usd.eur).toFixed(2);
+                });
+        </script>
+    </body>
+</html>

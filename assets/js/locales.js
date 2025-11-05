@@ -71,7 +71,8 @@ export default {
         welcomeText: "Zappr ti permette di guardare facilmente e gratuitamente il digitale terrestre, nazionale e locale <span class=\"italic\">(ricordati di impostare la tua regione nelle impostazioni!)</span>, e i canali di Samsung TV Plus e Pluto TV.<br><br>Per iniziare a vedere un canale, cliccaci sopra o scrivi la sua numerazione sulla tua tastiera e premi <b>Invio</b>. Per fare zapping, invece, puoi usare i tasti <b>PageDown</b> e <b>PageUp</b> per scorrere tra i canali.<br><br>Infine, se un canale ha la guida TV, puoi cliccare sopra al nome del programma in onda per visionare la guida TV completa fino a 7 giorni dal giorno corrente.<br><br>Questo è quanto. <b>Buona visione!</b>",
         newsInstructions: "Clicca su un titolo per leggere la notizia completa, oppure clicca su un'immagine per ingrandirla.",
         newsHosting: `Hosting del feed fornito da <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)`,
-        newsURL: "https://mastodon.uno/@zappr.rss"
+        newsURL: "https://mastodon.uno/@zappr.rss",
+        epgLoading: "L'EPG sarà disponibile a breve"
     },
     en: {
         languageName: "English",
@@ -137,6 +138,7 @@ export default {
         welcomeText: "Zappr allows you to watch your country's free-to-air channels, national and local <span class=\"italic\">(remember to set your country and region in the settings!)</span>.<br><br>To start watching a channel, click on it or type its channel number on your keyboard and press <b>Enter</b>. To zap between channels, use the <b>PageDown</b> and <b>PageUp</b> keys.<br><br>That's all for now. <b>Enjoy!</b>",
         newsInstructions: "Click on a title to read the full post, or click on an image to view it in full.",
         newsHosting: `Feed hosting provided by <a href="https://mastodonapp.uk" target="_blank">mastodonapp.uk</a> :)`,
-        newsURL: "https://mastodonapp.uk/@zappr.rss"
+        newsURL: "https://mastodonapp.uk/@zappr.rss",
+        epgLoading: "EPG will be available shortly"
     }
 }

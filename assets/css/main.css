@@ -35,17 +35,31 @@
     position: absolute;
     top: 0;
     left: 0;
-    background: #111111;
+    background: #000000;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 7.5vw;
+    font-size: 2.5rem;
     font-weight: 900;
-    transition: 2s all;
-    will-change: transform;
+    transition: 500ms 500ms;
+    flex-direction: column;
+    will-change: opacity, z-index;
+    user-select: none;
+    opacity: 1;
+    gap: 0.5rem;
+}
+@keyframes rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+#loading svg {
+    animation: rotate 1s linear infinite;
+    width: 1.75rem;
 }
 .loaded {
-    animation: loaded 1s cubic-bezier(0.22, 0.61, 0.36, 1) forwards
+    pointer-events: none;
+    z-index: -1;
 }
 html, body {
     width: 100vw;
@@ -55,7 +69,7 @@ html, body {
     color: white;
     margin: 0;
 }
-.lcn, .logo, .channel-name, #bottom #icons > a > img, #loading, .channel-subtitle, .hbbtv-enabler-text, .category, .hbbtv-enabler-arrow {
+.lcn, .logo, .channel-name, #bottom #icons > a > img, .channel-subtitle, .hbbtv-enabler-text, .category, .hbbtv-enabler-arrow {
     user-select: none;
     pointer-events: none;
 }
@@ -125,7 +139,7 @@ a {
     padding-top: 2.5rem;
     padding-bottom: 1.5rem;
     margin: 0;
-    scroll-margin-top: calc(-3rem + 1px);
+    scroll-margin-top: calc(-3.75rem + 1px);
 }
 .channel:first-of-type {
     scroll-margin-top: 3rem;
@@ -136,7 +150,6 @@ a {
     box-shadow: 0 -4px 30px rgb(0 0 0 / 10%);
     backdrop-filter: blur(5px);
     margin: 0;
-    font-size: 1rem;
     text-align: center;
     padding: 0.5rem 1rem;
     display: flex;
@@ -147,26 +160,25 @@ a {
     max-width: -moz-available;
     position: sticky;
     top: 0;
+    right: 0;
     margin-left: auto;
     z-index: 9999;
-    width: 100%;
+    width: 3.5rem;
     transition: 500ms;
     align-items: center;
-    height: 1.5rem;
+    height: 1.25rem;
     overflow: hidden;
+    border-top: none;
+    border-bottom-left-radius: 0.75rem;
+    margin-bottom: calc(-2.25rem - 1px);
 }
 #channels-column.search-visible .source-header {
-    height: 0;
-    padding: 0;
+    transform: translateY(calc(-2.25rem - 1px));
     user-select: none;
     pointer-events: none;
 }
 .source-header .current-source {
     font-weight: bold;
-}
-.source-header.minimized {
-    width: 4rem;
-    border-bottom-left-radius: 1rem;
 }
 .source-header img {
     height: 1.25rem;
@@ -324,7 +336,7 @@ body:not(.androidtv) .channel-program-end-time {
     padding: 0 2rem;
     overflow: hidden;
     pointer-events: none;
-    will-change: bottom;
+    will-change: bottom, height, padding;
     transition: 500ms;
 }
 #search-input input {
@@ -339,6 +351,38 @@ body:not(.androidtv) .channel-program-end-time {
     padding-left: 2.5rem;
     border-radius: 8px;
     color: #fff;
+}
+.toast-notification-container {
+    position: absolute;
+    bottom: 0;
+    width: calc(25vw - 4.5rem);
+    left: 2rem;
+    height: 2.5rem;
+    display: flex;
+    justify-content: center;
+    transition: 500ms;
+    user-select: none;
+}
+.toast-notification-container.visible {
+    bottom: 4rem;
+}
+.toast-notification {
+    background: rgb(0 0 0 / 75%);
+    border: 1px solid rgba(0, 0, 0, 1);
+    box-shadow: 0 -4px 30px rgb(0 0 0 / 10%);
+    backdrop-filter: blur(5px);
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: max-content;
+    gap: 1rem;
+    padding: 0 1.5rem;
+    line-height: 1;
+}
+.toast-notification img {
+    height: 1.5rem;
 }
 #channels-column {
     background: #242424;
@@ -401,7 +445,7 @@ body:not(.androidtv) .channel-program-end-time {
     width: calc(100% - 2.5rem);
 }
 #epg-header div {
-    max-width: 85%;
+    max-width: 80%;
     margin: auto;
     display: flex;
     justify-content: center;
@@ -720,7 +764,7 @@ body:not(.androidtv) .channel:not([disabled]):hover, .androidtv .channel:focus, 
     object-fit: contain;
     min-width: 80px;
     width: 80px;
-    height: 100%;
+    height: calc(80px * var(--ratio));
     margin-left: 0.5rem;
 }
 .samsung-logo {
@@ -1203,7 +1247,7 @@ a.tooltip-link {
     padding: 0 !important;
     max-height: max-content;
     border-bottom: 0px #373737 solid;
-    transition: .25s ease-in-out;
+    transition: .25s;
 }
 .hbbtv-enabler:hover {
     background: #333;
@@ -1237,17 +1281,13 @@ a.tooltip-link {
     height: 75%;
     font-size: 1rem;
 }
-.hbbtv-channels .channel .logo {
-    width: 60px;
-    height: auto;
-}
 .hbbtv-container:hover .hbbtv-enabler:not(.hbbtv-mosaic), .channel.watching + .hbbtv-enabler, .channel.watching-hbbtv + .hbbtv-enabler, .hbbtv-enabler.clicked:not(.hbbtv-mosaic) {
     height: 2.5rem;
     padding: 0.5rem 0 0.5rem 1rem;
     border-bottom: 2px #373737 solid;
 }
 .hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching + .hbbtv-enabler.clicked + .hbbtv-channels, .channel.watching-hbbtv + .hbbtv-enabler.clicked + .hbbtv-channels, .hbbtv-channels.clicked {
-    height: var(--scroll-height);
+    height: calc(var(--scroll-height) + 5rem);
     border-bottom: 2px #373737 solid;
 }
 .category {
@@ -1536,7 +1576,7 @@ a#reopen-window svg {
     #news {
         height: calc(100vh - 56.25vw);
     }
-    #search-input {
+    #search-input, .toast-notification-container {
         width: calc(100vw - 4.5rem);
     }
     .epg-item {
@@ -1571,7 +1611,7 @@ a#reopen-window svg {
     .epg-item-container.expandable.expanded .epg-image {
         margin-left: calc(40vw * -0.4 + 0.25rem);
     }
-    #search-input {
+    #search-input, .toast-notification-container {
         width: calc(40vw - 4.5rem);
     }
     #overlays {
@@ -1592,7 +1632,7 @@ a#reopen-window svg {
     .epg-item-container.expandable.expanded .epg-image {
         margin-left: calc(40vw * -0.4 + 0.25rem);
     }
-    #search-input {
+    #search-input, .toast-notification-container {
         width: calc(40vw - 4.5rem);
     }
     #overlays {
@@ -1616,7 +1656,7 @@ a#reopen-window svg {
     .epg-item-container.expandable.expanded .epg-image {
         margin-left: calc(33.3333vw * -0.4 + 0.25rem);
     }
-    #search-input {
+    #search-input, .toast-notification-container {
         width: calc(33.3333vw - 4.5rem);
     }
     #overlays {
@@ -1640,7 +1680,7 @@ a#reopen-window svg {
     .epg-item-container.expandable.expanded .epg-image {
         margin-left: calc(25vw * -0.4 + 0.25rem);
     }
-    #search-input {
+    #search-input, .toast-notification-container {
         width: calc(25vw - 4.5rem);
     }
     #overlays {
@@ -1660,6 +1700,7 @@ a#reopen-window svg {
     .logo {
         min-width: 60px;
         width: 60px;
+        height: calc(60px * var(--ratio));
     }
     .samsung-logo {
         height: 60px;

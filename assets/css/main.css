@@ -381,6 +381,9 @@ body:not(.androidtv) .channel-program-end-time {
     padding: 0 1.5rem;
     line-height: 1;
 }
+.toast-notification span {
+    line-height: 1;
+}
 .toast-notification img {
     height: 1.5rem;
 }

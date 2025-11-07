@@ -1338,6 +1338,7 @@ fetch(getFASTChannelsURL(selectedCountry))
         setupSourceHeader();
         setupChannelElements();
         if (new URLSearchParams(location.search).get("lcn") != null) {
+            player.volume(0);
             selectChannel(new URLSearchParams(location.search).get("lcn"));
         };
     })
@@ -1346,6 +1347,7 @@ fetch(getFASTChannelsURL(selectedCountry))
         document.querySelector(".source-header").remove();
         setupChannelElements();
         if (new URLSearchParams(location.search).get("lcn") != null) {
+            player.volume(0);
             selectChannel(new URLSearchParams(location.search).get("lcn"));
         };
     });

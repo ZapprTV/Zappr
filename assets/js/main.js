@@ -1337,11 +1337,17 @@ fetch(getFASTChannelsURL(selectedCountry))
         addChannels(fastChannels.channels);
         setupSourceHeader();
         setupChannelElements();
+        if (new URLSearchParams(location.search).get("lcn") != null) {
+            selectChannel(new URLSearchParams(location.search).get("lcn"));
+        };
     })
     .catch(e => {
         console.warn(`Can't find FAST channels: ${e.stack}`);
         document.querySelector(".source-header").remove();
         setupChannelElements();
+        if (new URLSearchParams(location.search).get("lcn") != null) {
+            selectChannel(new URLSearchParams(location.search).get("lcn"));
+        };
     });
 
 document.querySelector("#loading").classList.add("loaded");
@@ -2400,9 +2406,6 @@ document.querySelector("#epg-previous-day").addEventListener("click", () => {
 document.querySelectorAll(".hbbtv-channels").forEach(el => {
     el.style.cssText = `--scroll-height: ${el.scrollHeight}px;`;
 });
-if (new URLSearchParams(location.search).get("lcn") != null) {
-    selectChannel(new URLSearchParams(location.search).get("lcn"));
-};
 
 if (window.self !== window.top && document.referrer && new URL(document.referrer).hostname.endsWith("kritere.com")) {
     document.querySelector("#loading").remove();

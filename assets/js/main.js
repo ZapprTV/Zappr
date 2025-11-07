@@ -1333,6 +1333,7 @@ fetch(getFASTChannelsURL(selectedCountry))
         if (ipLocation != selectedCountry) {
             fastChannels.channels = fastChannels.channels.filter(el => (el.url && !el.url.includes("pluto.tv") || (el.id && el.id != "plutotv")));
         };
+        window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
         addChannels(fastChannels.channels);
         setupSourceHeader();
         setupChannelElements();
@@ -1770,7 +1771,7 @@ let manualRestart = {
                         else if (startTime.ts >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && startTime.ts <= DateTime.now().ts && !els[el].classList.contains("on-air")) addAutoRestart(els[el], startTime.ts, true);
                     });
                     
-                    if (els[el].classList.contains("on-air")) {
+                    if (els[el].classList.contains("on-air") && player.currentTime() != 0) {
                         const onAirStartTime = await fetch(`https://static.iltrovatore.it/StreamingStatus/${id}.rivedi2.txt`)
                             .then(response => response.text())
                             .then(text => DateTime.fromFormat(text.split("\t")[0], "yyyy.MM.dd-hh.mm.ss").toMillis());

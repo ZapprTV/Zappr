@@ -243,7 +243,7 @@ a {
     padding-left: 1rem;
 }
 .hbbtv-channels:has(.channel[data-epg-source]:not(.epg-disabled):hover, .channel[data-epg-source]:not(.epg-disabled).watching) {
-    height: calc(var(--scroll-height) + 24px) !important;
+    height: calc(var(--scroll-height) + 5rem + 28px) !important;
 }
 .channel-program {
     color: grey;
@@ -1250,7 +1250,7 @@ a.tooltip-link {
     padding: 0 !important;
     max-height: max-content;
     border-bottom: 0px #373737 solid;
-    transition: .25s;
+    transition: .5s;
 }
 .hbbtv-enabler:hover {
     background: #333;

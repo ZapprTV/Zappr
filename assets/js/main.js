@@ -116,10 +116,26 @@ await fetch("/config.json")
                 },
                 "fast": {
                     "host": "https://fast.zappr.stream"
+                },
+                "urgentalerts": {
+                    "host": "https://urgent-alerts.zappr.stream"
                 }
             }
         };
     });
+
+try {
+    fetch(`${zappr.config.urgentalerts.host}/${selectedCountry}`)
+        .then(response => { if (response.ok) return response.text(); })
+        .then(html => {
+            if (html) {
+                document.querySelector("#urgent-alerts").classList.add("active");
+                document.querySelector("#urgent-alerts").innerHTML = html;
+            };
+        });
+} catch (err) {
+    console.warn(`Couldn't fetch urgent alerts: ${err.stack}`);
+};
 
 let currentType = "",
     typingLCN = false,

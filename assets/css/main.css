@@ -144,6 +144,20 @@ a {
 .channel:first-of-type {
     scroll-margin-top: 3rem;
 }
+#urgent-alerts {
+    display: none;
+    background: #971b21;
+    border-bottom: 1px solid #ff747b;
+    padding: 0.75rem 1rem;
+}
+#urgent-alerts, #urgent-alerts * {
+    line-height: 1.2;
+    color: #fff;
+    overflow-wrap: break-word;
+}
+#urgent-alerts.active {
+    display: block;
+}
 .source-header {
     background: rgb(0 0 0 / 75%);
     border: 1px solid rgba(0, 0, 0, 1);

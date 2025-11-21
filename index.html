@@ -115,6 +115,12 @@
                 animation: servizistreaming-embed-fix 1s forwards 1s;
             }
         </style>
+        <style id="livetvuk-embed-fix" class="cssfix" media="not all">
+            #overlays iframe {
+                width: calc(100% + 16px);
+                transform: translateX(-8px);
+            }
+        </style>
         <style id="tv-style" media="not all">
             #tv-settings {
                 font-size: 0.825rem;

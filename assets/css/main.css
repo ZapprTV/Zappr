@@ -408,7 +408,7 @@ body:not(.androidtv) .channel-program-end-time {
 #channels-column {
     background: #242424;
     overflow: hidden;
-    z-index: 9;
+    z-index: 1;
     transition: 500ms;
     will-change: width, transform;
 }
@@ -437,6 +437,9 @@ body:not(.androidtv) .channel-program-end-time {
     overflow-y: auto;
     transition: 500ms;
     will-change: height, width;
+}
+#search-results {
+    display: none;
 }
 #channels.overflow-hidden {
     overflow: hidden !important;

@@ -142,14 +142,14 @@
             #icons > *:not(#settings-icon, #settings, #tv-settings) {
                 display: none;
             }
-            .vjs-skip-backward-5, .vjs-skip-forward-5, .vjs-volume-panel, .vjs-menu-button, .vjs-picture-in-picture-control, .vjs-fullscreen-control, #search-input {
+            .vjs-skip-backward-5, .vjs-skip-forward-5, .vjs-volume-panel, .vjs-menu-button, .vjs-picture-in-picture-control, .vjs-fullscreen-control, #search-input, #fullscreen-button-container {
                 display: none !important;
             }
             #settings-icon, .tv-settings-open, .tv-settings-open *, #tv, #tv * {
                 pointer-events: none !important;
                 user-select: none !important;
             }
-            .channel.hbbtv-app {
+            .channel.hbbtv-app, [data-translation-id="language"], #language, [data-translation-id="country"], #country {
                 display: none;
             }
             #settings {
@@ -216,6 +216,9 @@
             *:not(.channel-program):focus, .channel:has(.channel-program:focus) {
                 outline: #00B2FF auto 1px;
             }
+            * {
+                transition: none !important;
+            }
         </style>
         <style id="search"></style>
         <style data-translation-id="playerLanguageCSS"></style>
@@ -229,13 +232,14 @@
         <div class="columns">
             <div class="column is-one-third-widescreen is-one-quarter-fullhd is-two-fifths-desktop is-two-fifths-tablet p-0" id="channels-column">
                 <div id="channels" class="menu" tabindex="-1">
-                    <div id="urgent-alerts"></div>
-                    <div class="source-header first-source">
+                    <div id="urgent-alerts" class="header"></div>
+                    <div class="source-header first-source header">
                         <img src="/assets/icons/previous.svg" data-translation-id="previousSource" data-translation-target="alt" class="previous">
                         <span class="current-source" data-translation-id="mainSource"></span>
                         <img src="/assets/icons/next.svg" data-translation-id="nextSource" data-translation-target="alt" class="next">
                     </div>
                 </div>
+                <div id="search-results"></div>
                 <div id="epg">
                     <h1 id="epg-header">
                         <img src="/assets/icons/exit.svg" id="epg-exit" data-translation-id="epgExit" data-translation-target="alt">

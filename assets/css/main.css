@@ -201,6 +201,10 @@ a {
     user-select: none;
     -webkit-user-drag: none;
 }
+.source-header img.androidtv-active {
+    padding: 0.5rem;
+    background: #333;
+}
 .source-header .previous {
     margin-right: 1rem;
 }
@@ -291,13 +295,13 @@ a {
     width: 100%;
     z-index: 0;
 }
-.channel:hover .channel-program-progress, .channel.watching .channel-program-progress {
+.channel:hover .channel-program-progress, .channel.androidtv-active .channel-program-progress, .channel.watching .channel-program-progress {
     height: 24px;
     z-index: 0;
     position: relative;
     margin-top: 0;
 }
-.channel:hover .channel-program-progress-background, .channel.watching .channel-program-progress-background {
+.channel:hover .channel-program-progress-background, .channel.androidtv-active .channel-program-progress-background, .channel.watching .channel-program-progress-background {
     margin-top: -24px;
     height: 24px;
     z-index: 0;
@@ -331,7 +335,7 @@ body:not(.androidtv) .channel-program-start-time {
 body:not(.androidtv) .channel-program-end-time {
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
-.channel:hover .channel-program-times, .channel.watching .channel-program-times {
+.channel:hover .channel-program-times, .channel.androidtv-active .channel-program-times, .channel.watching .channel-program-times {
     bottom: 0;
 }
 .channel-program, .channel-program-progress, .channel-program-progress-background, .channel-program-times {
@@ -404,7 +408,7 @@ body:not(.androidtv) .channel-program-end-time {
 #channels-column {
     background: #242424;
     overflow: hidden;
-    z-index: 1;
+    z-index: 9;
     transition: 500ms;
     will-change: width, transform;
 }
@@ -421,18 +425,21 @@ body:not(.androidtv) .channel-program-end-time {
     height: 1.75rem;
     padding: 1rem 2rem;
 }
-#channels-column.epg-visible #channels {
+#channels-column.epg-visible #channels, #channels-column.epg-visible #search-results {
     transform: translateX(-100%);
 }
 #channels-column.epg-visible #epg {
     transform: translateX(0%);
 }
-#channels {
+#channels, #search-results {
     background-color: #242424;
     height: calc(100% - 3rem);
     overflow-y: auto;
     transition: 500ms;
     will-change: height, width;
+}
+#channels.overflow-hidden {
+    overflow: hidden !important;
 }
 #epg {
     position: absolute;
@@ -705,7 +712,7 @@ body:not(.androidtv) .channel-program-end-time {
 .epg-item-container.expandable.expanded .epg-item {
     backdrop-filter: blur(1rem) brightness(0.5);
 }
-body:not(.androidtv) .channel:not([disabled]):hover, .androidtv .channel:focus, .androidtv .channel:has(.channel-program:focus) {
+body:not(.androidtv) .channel:not([disabled]):hover, .channel.androidtv-active, .androidtv .channel:focus, .androidtv .channel:has(.channel-program:focus) {
     background: #333 !important;
 }
 .channel[disabled] {
@@ -1266,7 +1273,7 @@ a.tooltip-link {
     border-bottom: 0px #373737 solid;
     transition: .5s;
 }
-.hbbtv-enabler:hover {
+.hbbtv-enabler:hover, .hbbtv-enabler.androidtv-active {
     background: #333;
 }
 .hbbtv-enabler-arrow {
@@ -1298,7 +1305,7 @@ a.tooltip-link {
     height: 75%;
     font-size: 1rem;
 }
-.hbbtv-container:hover .hbbtv-enabler:not(.hbbtv-mosaic), .channel.watching + .hbbtv-enabler, .channel.watching-hbbtv + .hbbtv-enabler, .hbbtv-enabler.clicked:not(.hbbtv-mosaic) {
+.hbbtv-container:hover .hbbtv-enabler:not(.hbbtv-mosaic), .channel.watching + .hbbtv-enabler, .channel.watching-hbbtv + .hbbtv-enabler, .hbbtv-enabler.clicked:not(.hbbtv-mosaic), .hbbtv-enabler:not(.hbbtv-mosaic).androidtv-active, .channel.androidtv-active + .hbbtv-enabler {
     height: 2.5rem;
     padding: 0.5rem 0 0.5rem 1rem;
     border-bottom: 2px #373737 solid;
@@ -1326,6 +1333,9 @@ a.tooltip-link {
     background: #c00000;
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
+}
+:fullscreen #overlays, #overlays.full-width {
+    width: 100% !important;
 }
 #overlays.hbbtv-app, #overlays.pluto-channel {
     background: #000;

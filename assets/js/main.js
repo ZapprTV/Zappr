@@ -4,6 +4,7 @@ import { DateTime } from "luxon";
 import mediumZoom from "medium-zoom";
 import { merge } from "lodash";
 import "videojs-contrib-eme";
+import VirtualList from "./virtualizedlist";
 import locales from "./locales";
 import countries from "./countries";
 
@@ -16,6 +17,7 @@ ipLocation = ipLocation in countries ? ipLocation : "uk";
 
 const isFirstVisit = JSON.stringify(localStorage) === "{}";
 const getCountry = () => {
+    if (new URLSearchParams(location.search).get("androidtv") != null) return "it";
     if (localStorage.getItem("videojs-vhs") && !localStorage.getItem("country")) localStorage.setItem("country", "it")
     else if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
     if (ipLocation && !localStorage.getItem("country")) {
@@ -24,6 +26,7 @@ const getCountry = () => {
     } else return localStorage.getItem("country") || Object.keys(countries)[0];
 };
 const getLanguage = () => {
+    if (new URLSearchParams(location.search).get("androidtv") != null) return "it";
     return localStorage.getItem("language") || (navigator.language || "en").split("-")[0];
 };
 
@@ -141,7 +144,6 @@ let currentType = "",
     typingLCN = false,
     multipleChannelSelection = false,
     currentlyPlaying = "",
-    targetedChannel = "",
     target = "";
 
 const player = videojs("tv", {
@@ -158,7 +160,6 @@ const player = videojs("tv", {
     errorDisplay: false,
     html5: {
         vhs: {
-            overrideNative: true,
             useBandwidthFromLocalStorage: true
         }
     },
@@ -182,8 +183,7 @@ player.on("loadeddata", () => {
     };
 });
 
-const channelslist = document.querySelector("#channels"),
-      overlays = document.querySelector("#overlays"),
+const overlays = document.querySelector("#overlays"),
       nightAdultChannelsStyle = document.querySelector("#night-adult-channels");
 
 window.zappr.closeModal = () => {
@@ -288,8 +288,8 @@ if (ipLocation != selectedCountry) {
         text: locale["geoblockMessage"],
         buttons: language === "it" ? [{
             type: "primary",
-            href: "/vpn",
-            text: `Scopri le VPN che consigliamo <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>`,
+            href: "https://mullvad.net/it",
+            text: `Acquista Mullvad VPN, la nostra VPN consigliata <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>`,
             newtab: true
         }] : []
     });
@@ -302,71 +302,37 @@ if (isFirstVisit) {
     })
 };
 if (new URLSearchParams(location.search).get("androidtv") != null) {
+    document.querySelector("#channels").classList.add("overflow-hidden");
     document.querySelector("#save-and-reload").removeAttribute("hidden");
     document.body.classList.add("androidtv");
     document.querySelector("#tv-style").media = "";
-    waitForSelector(".channel").then(el => el.focus());
 
-    window.addEventListener("keydown", e => {
-        if (document.activeElement.classList.contains("channel-program") || document.activeElement.classList.contains("channel")) document.activeElement.closest(".channel").scrollIntoView({ block: "center" });
-        if (document.activeElement.classList.contains("hbbtv-enabler") && (e.key === "Enter" || e.key === " ")) {
-            document.activeElement.nextElementSibling.classList.toggle("clicked");
-        };
-        if (window.location.hash != "#canPressBack") window.location.hash = "canPressBack";
-        if (!document.querySelector("#settings").classList.contains("visible")) {
-            if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {
-                if (document.querySelector("#channels-column").style.width === "0%") {
-                    if (player.paused()) player.play()
-                    else player.pause()
-                } else if (document.querySelector("#channels-column").style.width != "0%" && e.key != "MediaPlayPause") {
-                    if (document.querySelector(":focus") != null) document.querySelector(":focus").click();
-                };
-            } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "MediaRewind" || e.key === "MediaFastForward") && document.querySelector("#channels-column").style.width === "0%") {
-                player.userActive(true);
-                if (e.key === "ArrowLeft" || e.key === "MediaRewind") player.currentTime(player.currentTime() - 5)
-                else if (e.key === "ArrowRight" || e.key === "MediaFastForward") player.currentTime(player.currentTime() + 5);
-            } else if (e.key === "ArrowRight" && document.querySelector("#channels-column").style.width != "0%" && document.querySelector("iframe") === null && document.querySelector("#hide-player").media === "not all") {
-                document.querySelector("#channels-column").style.width = "0%";
-                document.querySelector("#channels-column").style.transform = "translateX(-33.3333vw)";
-            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                if (document.querySelector(".channel.watching") != null && document.querySelector("#channels-column").style.width === "0%") {
-                    if (document.querySelector(".channel.watching .channel-program")) document.querySelector(".channel.watching .channel-program").focus()
-                        else document.querySelector(".channel.watching").focus();
-                };
-                document.querySelector("#channels-column").style.width = "33.3333%";
-                document.querySelector("#channels-column").style.transform = "translateX(0)";
-            };
-        } else {
-            if (e.key === "Enter" || e.key === " ") {
-                if (document.querySelector(":focus") != null) document.querySelector(":focus").click()
-            };
-        };
-    });
     window.addEventListener("hashchange", e => {
         if (new URL(e.oldURL).hash === "#canPressBack" && new URL(e.newURL).hash === "") {
-            if (document.querySelector("#channels-column").style.width != "0%") {
+            if (document.querySelector("#channels-column").style.display != "none") {
                 document.querySelector("#settings").classList.toggle("visible");
                 document.querySelector("#channels").classList.toggle("tv-settings-open");
+                zappr.closeModal();
                 if (!document.querySelector("#channels-column").classList.contains("epg-visible")) {
                     document.querySelector("#epg").classList.add("is-hidden");
                 };
                 document.querySelector("#channels-column").classList.add("overflow-visible");
                 if (document.querySelector(":focus") != null) document.querySelector(":focus").blur();
-            } else if (document.querySelector("#channels-column").style.width === "0%") {
+            } else if (document.querySelector("#channels-column").style.display === "none") {
                 if (document.querySelector(".channel.watching") != null) {
                     if (document.querySelector(".channel.watching .channel-program")) document.querySelector(".channel.watching .channel-program").focus()
                         else document.querySelector(".channel.watching").focus();
                 };
-                document.querySelector("#channels-column").style.width = "33.3333%";
-                document.querySelector("#channels-column").style.transform = "translateX(0)";
+                document.querySelector("#channels-column").style.display = "block";
+                document.querySelector("#overlays").classList.remove("full-width");
             };
             window.location.hash = "canPressBack";
         };
     });
 
     player.on("play", () => {
-        document.querySelector("#channels-column").style.width = "0%";
-        document.querySelector("#channels-column").style.transform = "translateX(-33.3333vw)";
+        document.querySelector("#channels-column").style.display = "none";
+        document.querySelector("#overlays").classList.add("full-width");
     });
 
     document.querySelector("#region").outerHTML = `<div class="region national"><input type="radio" value="national" id="national" name="region"><label for="national">Nessuna (solo canali nazionali)</label></div><div id="region">${document.querySelector("#region").innerHTML}</div>`;
@@ -377,6 +343,20 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
     document.querySelectorAll("#region optgroup").forEach(el => {
         el.outerHTML = `<div class="region-group"><span class="region-group-name">${el.label}</span><div class="regions">${el.innerHTML}</div></div>`
     });
+
+    // non ho la più pallida idea del perché la funzione qui sopra generi delle virgole
+    // quindi eccone un'altra per rimuoverle 😭
+    // https://stackoverflow.com/a/10730777
+
+    const textNodesUnder = (el) => {
+        const children = [];
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+            children.push(walker.currentNode)
+        };
+        return children;
+    };
+    textNodesUnder(document.querySelector("#region")).filter(el => el.textContent === ",").forEach(el => el.remove());
 };
 
 const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false, timeshift = 0 }) => {
@@ -403,6 +383,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
             </div>`;
         };
         overlays.classList.add("radio-overlay");
+        if (new URLSearchParams(location.search).get("androidtv") != null) document.querySelector("video").style.display = "none";
         if (document.querySelector("#fullscreen-button-container") === null) {
             const fullscreenButtonContainer = document.createElement("div");
             fullscreenButtonContainer.id = "fullscreen-button-container";
@@ -422,6 +403,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
         document.querySelector(".vjs-fullscreen-control").style.opacity = "0";
     } else if (overlays.querySelector("#radio-overlay") != null) {
         overlays.classList.remove("radio-overlay");
+        if (new URLSearchParams(location.search).get("androidtv") != null) document.querySelector("video").style.display = "block";
         overlays.querySelector("#radio-overlay").remove();
         document.querySelector(".vjs-fullscreen-control").style.opacity = "1";
     };
@@ -1014,91 +996,85 @@ zappr.ratios = await fetch(`${zappr.config.logos.host}/${selectedCountry}/_ratio
     .then(response => response.json())
     .catch(() => { return {} });
 
-const addChannels = (channels) => {
-    if (window.location.search === "?amazon-appstore") {
-        channels.filter(el => el.lcn === 7 || el.lcn === 29).forEach(el => {
-            channels.splice(channels.indexOf(el), 1);
-        });
-    };
-    channels.forEach(channel => {
-        const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isGeoblocked = ipLocation != selectedCountry;
+const generateChannelHTML = (channel) => {
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isGeoblocked = ipLocation != selectedCountry;
 
-        channelslist.insertAdjacentHTML("beforeend", `
-            ${channel.categorySeparator === undefined
-                ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                    <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${encodeURIComponent(channel.name.toLowerCase())}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""}>
-                        <div class="channel-info">
-                            <div class="lcn">${channel.lcn}</div>
-                            <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[channel.logo] ? zappr.ratios[channel.logo] : "0.75"};">
-                            <div class="channel-title-subtitle">
-                                <div class="channel-name">${channel.name}</div>
-                                ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
-                                ${channel.hbbtvmosaic ? `<div class="channel-subtitle">${locale["hbbtvMosaic"]}</div>` : ""}
-                                ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
-                                ${channel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
-                            </div>
-                            ${channel.hd ? `<div class="hd"></div>` : ""}
-                            ${channel.uhd ? `<div class="uhd"></div>` : ""}
-                            ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
-                            ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
-                            ${channel.type === "popup" ? `<div class="external"></div>` : ""}
-                            ${channel.adult === true ? `<div class="adult-marker"></div>`
-                                : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
+    const channelIndex = zappr.channels.indexOf(channel);
+    return `
+        ${channel.categorySeparator === undefined
+            ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""}>
+                    <div class="channel-info">
+                        <div class="lcn">${channel.lcn}</div>
+                        <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[channel.logo] ? zappr.ratios[channel.logo] : "0.75"};">
+                        <div class="channel-title-subtitle">
+                            <div class="channel-name">${channel.name}</div>
+                            ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
+                            ${channel.hbbtvmosaic ? `<div class="channel-subtitle">${locale["hbbtvMosaic"]}</div>` : ""}
+                            ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
+                            ${channel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
                         </div>
-                        ${channel.hbbtvmosaic ? `<div class="hbbtv-enabler-arrow">&gt;</div>` : ""}
-                        ${channel.epg ? `
-                            <div class="channel-program-progress" title="${locale["viewFullEPG"]}"></div>
-                            <div class="channel-program-progress-background" title="${locale["viewFullEPG"]}"></div>
-                            <div class="channel-program-times" title="${locale["viewFullEPG"]}">
-                                <div class="channel-program-start-time"></div>
-                                <div class="channel-program-end-time"></div>
-                            </div>
-                        ` : ""}
+                        ${channel.hd ? `<div class="hd"></div>` : ""}
+                        ${channel.uhd ? `<div class="uhd"></div>` : ""}
+                        ${channel.type === "audio" || channel.radio ? `<div class="radio"></div>` : ""}
+                        ${channel.ondemand ? `<div class="ondemand"></div>` : ""}
+                        ${channel.type === "popup" ? `<div class="external"></div>` : ""}
+                        ${channel.adult === true ? `<div class="adult-marker"></div>`
+                            : channel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
                     </div>
+                    ${channel.hbbtvmosaic ? `<div class="hbbtv-enabler-arrow">&gt;</div>` : ""}
+                    ${channel.epg ? `
+                        <div class="channel-program-progress" title="${locale["viewFullEPG"]}"></div>
+                        <div class="channel-program-progress-background" title="${locale["viewFullEPG"]}"></div>
+                        <div class="channel-program-times" title="${locale["viewFullEPG"]}">
+                            <div class="channel-program-start-time"></div>
+                            <div class="channel-program-end-time"></div>
+                        </div>
+                    ` : ""}
+                </div>
 
-                    ${channel.hbbtv && !channel.hbbtvmosaic ? `<div class="hbbtv-enabler">
-                        <div class="hbbtv-enabler-arrow">&gt;</div>
-                        <div class="hbbtv-enabler-text">${locale["viewHbbTVChannels"]}</div>
-                    </div>` : ""}
-                    ${channel.hbbtv ? `<div class="hbbtv-channels">
-                        ${channel.hbbtv.map(subchannel =>
-                            subchannel.categorySeparator === undefined
-                                ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${encodeURIComponent(subchannel.name.toLowerCase())}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.licensedetails ? `data-license-details="${subchannel.licensedetails}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
-                                    <div class="channel-info">
-                                        <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
-                                        <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[subchannel.logo] ? zappr.ratios[subchannel.logo] : "0.75"};">
-                                        <div class="channel-title-subtitle">
-                                            <div class="channel-name">${subchannel.name}</div>
-                                            ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
-                                            ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
-                                            ${subchannel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
-                                        </div>
-                                        ${subchannel.hd ? `<div class="hd"></div>` : ""}
-                                        ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
-                                        ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
-                                        ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
-                                        ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
-                                        ${subchannel.adult === true ? `<div class="adult-marker"></div>`
-                                            : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
+                ${channel.hbbtv && !channel.hbbtvmosaic ? `<div class="hbbtv-enabler">
+                    <div class="hbbtv-enabler-arrow">&gt;</div>
+                    <div class="hbbtv-enabler-text">${locale["viewHbbTVChannels"]}</div>
+                </div>` : ""}
+                ${channel.hbbtv ? `<div class="hbbtv-channels">
+                    ${channel.hbbtv.map(subchannel =>
+                        subchannel.categorySeparator === undefined
+                            ? `<div class="channel ${subchannel.hbbtvapp ? "hbbtv-app" : ""} ${subchannel.adult === true ? "adult" : subchannel.adult === "night" ? "adult at-night" : ""}" data-name="${subchannel.name}" data-lowercase-name="${subchannel.name.toLowerCase()}" data-logo="${getChannelLogoURL(subchannel.logo)}" data-full-logo="${getChannelLogoURL(subchannel.logo, false)}" ${subchannel.radio ? `data-radio="${subchannel.radio}"` : ""} ${subchannel.type != undefined ? `data-type="${subchannel.type}"` : ""} ${subchannel.url != undefined ? `data-url="${subchannel.url}"` : ""} data-lcn="${channel.lcn}.${subchannel.sublcn}" ${subchannel.seek ? `data-seek="${subchannel.seek}"` : ""} ${subchannel.disabled ? `disabled data-disabled="${subchannel.disabled}"` : ""} ${!subchannel.disabled && subchannel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!subchannel.disabled && subchannel.geoblock && isGeoblocked && typeof subchannel.geoblock === "boolean"? `disabled data-disabled="geoblock"` : ""} ${subchannel.api && (!isGeoblocked || !subchannel.geoblock) ? `data-api="${subchannel.api}"` : ""} ${typeof subchannel.geoblock === "object" && subchannel.geoblock && isGeoblocked && subchannel.geoblock.api != undefined ? `data-api="${subchannel.geoblock.api}"` : ""} ${subchannel.cssfix ? `data-cssfix="${subchannel.cssfix}"` : ""} ${subchannel.http ? `data-http="true"` : ""} ${subchannel.license ? `data-license="${subchannel.license}"` : ""} ${subchannel.licensedetails ? `data-license-details="${subchannel.licensedetails}"` : ""} ${subchannel.feed ? `data-feed="${subchannel.feed}"` : ""} ${subchannel.fallback ? `data-fallback-type="${subchannel.fallback.type}" data-fallback-url="${subchannel.fallback.url}"` : ""} ${subchannel.fallback && subchannel.fallback.api ? `data-fallback-api="${subchannel.fallback.api}"` : ""} ${subchannel.epg ? `data-epg-source="${subchannel.epg.source}" data-epg-id="${subchannel.epg.id}"` : ""}>
+                                <div class="channel-info">
+                                    <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
+                                    <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[subchannel.logo] ? zappr.ratios[subchannel.logo] : "0.75"};">
+                                    <div class="channel-title-subtitle">
+                                        <div class="channel-name">${subchannel.name}</div>
+                                        ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
+                                        ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
+                                        ${subchannel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
                                     </div>
-                                    ${subchannel.epg ? `
-                                        <div class="channel-program-progress" title="${locale["viewFullEPG"]}"></div>
-                                        <div class="channel-program-progress-background" title="${locale["viewFullEPG"]}"></div>
-                                        <div class="channel-program-times" title="${locale["viewFullEPG"]}">
-                                            <div class="channel-program-start-time"></div>
-                                            <div class="channel-program-end-time"></div>
-                                        </div>
-                                    ` : ""}
-                                </div>`
-                                : `<div class="category">${subchannel.categorySeparator}</div>`
-                        ).join("")}
-                    </div>` : ""}
-                ${channel.hbbtv ? `</div>` : ""}`
-                : `<h1 id="${channel.id}" class="channel-category">${channel.categorySeparator}</h1>`
-            }
-        `);
-    });
+                                    ${subchannel.hd ? `<div class="hd"></div>` : ""}
+                                    ${subchannel.uhd ? `<div class="uhd"></div>` : ""}
+                                    ${subchannel.type === "audio" || subchannel.radio ? `<div class="radio"></div>` : ""}
+                                    ${subchannel.ondemand ? `<div class="ondemand"></div>` : ""}
+                                    ${subchannel.type === "popup" ? `<div class="external"></div>` : ""}
+                                    ${subchannel.adult === true ? `<div class="adult-marker"></div>`
+                                        : subchannel.adult === "night" ? `<div class="adult-marker at-night"></div>` : ""}
+                                </div>
+                                ${subchannel.epg ? `
+                                    <div class="channel-program-progress" title="${locale["viewFullEPG"]}"></div>
+                                    <div class="channel-program-progress-background" title="${locale["viewFullEPG"]}"></div>
+                                    <div class="channel-program-times" title="${locale["viewFullEPG"]}">
+                                        <div class="channel-program-start-time"></div>
+                                        <div class="channel-program-end-time"></div>
+                                    </div>
+                                ` : ""}
+                            </div>`
+                            : `<div class="category">${subchannel.categorySeparator}</div>`
+                    ).join("")}
+                </div>` : ""}
+            ${channel.hbbtv ? `</div>` : ""}`
+            : `<h1 id="${channel.id}" class="channel-category">${channel.categorySeparator}</h1>`
+        }
+    `;
 };
 
 await fetch(getChannelsListURL(`${countries[selectedCountry].location}/national`))
@@ -1125,248 +1101,299 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
     if (selectedCountry === "it") window.zappr.channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
 };
 
-const setupSourceHeader = () => {
-    let previousCategory;
-    let nextCategory;
-    const scrollFirstCategoryObserver = new IntersectionObserver(() => {
-        if (document.querySelector(".channel-category").getBoundingClientRect().y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
-            document.querySelector(".source-header").classList.remove("first-source");
-            document.querySelector(".source-header .current-source").innerText = document.querySelector(".channel-category").innerText;
-            previousCategory = document.querySelector(".channel");
-            nextCategory = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1];
-        } else {
-            document.querySelector(".source-header").classList.add("first-source");
-            document.querySelector(".source-header .current-source").innerText = locale["mainSource"];
-            previousCategory = null;
-            nextCategory = document.querySelector(".channel-category");
-        };
-    }, {
-        root: document.querySelector("#channels"),
-        threshold: 0.9
-    });
-
-    scrollFirstCategoryObserver.observe(document.querySelector(".channel-category"));
-    scrollFirstCategoryObserver.observe(document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1]);
-    scrollFirstCategoryObserver.observe(document.querySelector(".channel"));
-    scrollFirstCategoryObserver.observe(document.querySelectorAll(".channel")[document.querySelectorAll(".channel").length - 1]);
-    
-    const scrollLastCategoryObserver = new IntersectionObserver(() => {
-        if (document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1].getBoundingClientRect().y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
-            document.querySelector(".source-header").classList.add("last-source");
-            document.querySelector(".source-header .current-source").innerText = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1].innerText;
-            previousCategory = document.querySelector(".channel-category");
-            nextCategory = null;
-        } else {
-            document.querySelector(".source-header").classList.remove("last-source");
-            if (document.querySelector(".channel-category").getBoundingClientRect().y < (window.matchMedia("(max-width: 100vh)").matches && document.querySelector("#hide-player").media === "not all" ? document.querySelector("#tv").getBoundingClientRect().height : 0)) {
-                document.querySelector(".source-header .current-source").innerText = document.querySelector(".channel-category").innerText;
-                previousCategory = document.querySelector(".channel");
-                nextCategory = document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1];
-            };
-        };
-    }, {
-        root: document.querySelector("#channels"),
-        threshold: 0.9
-    });
-    scrollLastCategoryObserver.observe(document.querySelector(".channel-category"))
-    scrollLastCategoryObserver.observe(document.querySelectorAll(".channel-category")[document.querySelectorAll(".channel-category").length - 1]);
-    scrollLastCategoryObserver.observe(document.querySelector(".channel"));
-    scrollLastCategoryObserver.observe(document.querySelectorAll(".channel")[document.querySelectorAll(".channel").length - 1]);
-
-    document.querySelector(".source-header .previous").addEventListener("click", () => {
-        if (previousCategory) previousCategory.scrollIntoView({ block: "start", behavior: "smooth" });
-        document.querySelector("#channels-column").scrollIntoView();
-    });
-    document.querySelector(".source-header .next").addEventListener("click", () => {
-        if (nextCategory) nextCategory.scrollIntoView({ block: "start", behavior: "smooth" });
-        document.querySelector("#channels-column").scrollIntoView();
-    });
-};
-
-const setupChannelElements = () => {
-    document.querySelectorAll(".channel").forEach(el => {
-        if (el.dataset.disabled != undefined) {
-            el.title = returnErrorMessage(el.dataset.disabled);
-        };
-        el.addEventListener("click", async e => {
-            if (((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") || new URLSearchParams(location.search).get("androidtv") != null) && el.dataset.disabled === undefined) {
-                currentlyPlaying = el;
-
-                if (state.schedule != {}) {
-                    createScheduler("").remove();
-                };
-
-                if (document.querySelector(".watching") != null) {
-                    document.querySelector(".watching").classList.remove("watching");
-                };
-                if (document.querySelector(".watching-hbbtv") != null) {
-                    document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
-                };
-                el.classList.add("watching");
-
-                if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
-                    const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
-                        .then(response => response.json());
-
-                    createScheduler(regionalPrograms).start();
-                    return;
-                };
-
-                if (document.querySelector(`style.cssfix[media=""]`) != null) {
-                    document.querySelector(`style.cssfix[media=""]`).media = "not all";
-                };
-
-                if (el.dataset.cssfix != undefined) {
-                    document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
-                };
-
-                if (el.classList.contains("hbbtv-app")) {
-                    overlays.classList.add("hbbtv-app");
-                } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
-                    overlays.classList.remove("hbbtv-app");
-                };
-                if (el.classList.contains("pluto-channel")) {
-                    overlays.classList.add("pluto-channel");
-                } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
-                    overlays.classList.remove("pluto-channel");
-                };
-
-                if (el.dataset.lcn.includes(".")) {
-                    el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
-                    if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
-                        el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
-                    };
-                };
-                
-                if (el.classList.contains("adult")) {
-                    if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
-                        adultChannelConfirmation();
-                        return;
-                    } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
-                        adultChannelConfirmation(true);
-                        return;
-                    };
-                };
-                await loadChannel({
-                    type: el.dataset.type,
-                    url: el.dataset.url,
-                    api: el.dataset.api,
-                    name: el.dataset.name,
-                    lcn: el.dataset.lcn,
-                    logo: el.dataset.logo,
-                    fullLogo: el.dataset.fullLogo,
-                    radio: el.dataset.radio,
-                    http: el.dataset.http,
-                    license: el.dataset.license,
-                    licenseDetails: el.dataset.licenseDetails,
-                    feed: el.dataset.feed,
-                    fallbackType: el.dataset.fallbackType,
-                    fallbackURL: el.dataset.fallbackUrl,
-                    fallbackAPI: el.dataset.fallbackApi,
-                    timeshift: el.dataset.timeshift
-                });
-            } else if (((["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) || e.target.nodeName === "B") && new URLSearchParams(location.search).get("androidtv") === null)) {
-                document.querySelector("#epg-channel").innerText = el.dataset.name;
-                document.querySelector("#channels-column").classList.add("epg-visible");
-                document.querySelectorAll(".epg-items").forEach(el => el.remove());
-                document.querySelector("#channels-column").classList.remove("overflow-visible");
-                document.querySelector("#epg").classList.remove("is-hidden");
-                document.querySelector("#epg").classList.remove("long-channel-name");
-                document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
-                document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
-                const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
-                    const startDate = entry.startTime.iso.split("T")[0];
-                    const endDate = entry.endTime.iso.split("T")[0];
-                    if (!accumulator[startDate]) accumulator[startDate] = [];
-                    accumulator[startDate].push(entry);
-                    if (!accumulator[endDate]) accumulator[endDate] = [];
-                    accumulator[endDate].push(entry);
-                    return accumulator;
-                }, {});
-                Object.keys(epgByDays).forEach(day => {
-                    epgByDays[day] = [...new Set(epgByDays[day])];
-                    if (epgByDays[day].length <= 1) delete epgByDays[day];
-                });
-                if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
-                    else document.querySelector("#epg-date").className = "first-day last-day";
-                for (const day in epgByDays) {
-                    document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
-                        ${epgByDays[day].map(entry => {
-                            const now = Date.now();
-                            const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
-                                !entry.image && entry.description && entry.description.length > 145 ? true : false;
-
-                            return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
-                                <div class="epg-item">
-                                    ${entry.image ? `<img src="${entry.image}" class="epg-image" onerror="this.parentElement.parentElement.classList.add('no-image'); this.remove();">` : ""}
-                                    <div class="epg-info">
-                                        <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
-                                        <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
-                                        ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
-                                        ${entry.description ? `<div class="epg-description">
-                                            <p>${entry.description}</p>
-                                        </div>` : ""}
-                                        <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${new URL("/assets/icons/play.svg", import.meta.url)}">Guarda</a>` : ""}</div>
-                                    </div>
-                                </div>
-                            </div>`
-                        }).join("")}
-                    </div>`);
-                    if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
-                };
-                updateRestartablePrograms(true);
-                document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
-                document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
-                document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
-                    el.addEventListener("click", () => {
-                        el.closest(".epg-item-container").classList.toggle("expanded");
-                    });
-                });
-                document.querySelector(".epg-items").animate({
-                    left: "0"
-                }, {
-                    duration: 0, fill: "forwards", easing: "ease"
-                });
-                document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
-                document.querySelector("#channels").scrollIntoView();
-                document.querySelector("#channels-column").scrollIntoView();
-                document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
-                if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
-                mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
-            } else if (el.dataset.disabled != undefined) {
-                alert(returnErrorMessage(el.dataset.disabled));
-            };
-        });
-    });
-    document.querySelectorAll(".hbbtv-enabler").forEach(el => {
-        el.addEventListener("click", () => el.classList.toggle("clicked"));
-    });
-};
-
-fetch(getFASTChannelsURL(selectedCountry))
+let fastChannelsPresent = false;
+await fetch(getFASTChannelsURL(selectedCountry))
     .then(response => response.json())
     .then(async fastChannels => {
         if (ipLocation != selectedCountry) {
             fastChannels.channels = fastChannels.channels.filter(el => (el.url && !el.url.includes("pluto.tv") || (el.id && el.id != "plutotv")));
         };
         window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
-        addChannels(fastChannels.channels);
-        setupSourceHeader();
-        setupChannelElements();
         if (new URLSearchParams(location.search).get("lcn") != null) {
             player.volume(0);
             selectChannel(new URLSearchParams(location.search).get("lcn"));
         };
+        fastChannelsPresent = true;
     })
     .catch(e => {
         console.warn(`Can't find FAST channels: ${e.stack}`);
         document.querySelector(".source-header").remove();
-        setupChannelElements();
         if (new URLSearchParams(location.search).get("lcn") != null) {
             player.volume(0);
             selectChannel(new URLSearchParams(location.search).get("lcn"));
         };
     });
+
+const generateChannelElementHeight = (ratio, epg, mosaic, categorySeparator) => {
+    let documentFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    if (categorySeparator) return 5.5 * documentFontSize;
+
+    let logoHeight = ratio * 80;
+    if (logoHeight > 5 * documentFontSize) logoHeight = 5 * documentFontSize;
+    
+    if (mosaic) {
+        if (logoHeight < 2.65 * documentFontSize) logoHeight = 2.65 * documentFontSize;
+        return (4 * documentFontSize) + logoHeight + 1;
+    };
+
+    if (epg) {
+        if (logoHeight < 2.75 * documentFontSize) logoHeight = 3.75 * documentFontSize;
+        return (3 * documentFontSize) + logoHeight + 1;
+    } else {
+        if (logoHeight < 2.5 * documentFontSize) logoHeight = 2.5 * documentFontSize;
+        return (2 * documentFontSize) + logoHeight + 1;
+    };
+};
+const channelElementHeights = zappr.channels.map(channel => {
+    let ratio;
+    if (zappr.ratios[channel.logo]) ratio = zappr.ratios[channel.logo]
+    else {
+        if (channel.logo && channel.logo.includes("tvpnlogopeu.samsungcloud.tv")) ratio = 1;
+        else ratio = 0.5;
+    };
+    return generateChannelElementHeight(ratio, channel.epg, channel.hbbtvmosaic, channel.categorySeparator);
+});
+
+const updateHbbTVChannelsHeight = () => {
+    document.querySelectorAll(".hbbtv-channels").forEach(el => {
+        el.style.cssText = `--scroll-height: ${el.scrollHeight}px;`;
+    });
+};
+const channelOnClick = async (e) => {
+    updateHbbTVChannelsHeight();
+    let el = e.target;
+    if (el.closest(".hbbtv-mosaic")) el = el.closest(".hbbtv-mosaic");
+
+    if (el.classList.contains("hbbtv-enabler")) {
+        el.classList.toggle("clicked");
+        let channelLCN;
+        let newHeight = el.scrollHeight;
+        if (el.classList.contains("hbbtv-mosaic")) channelLCN = parseInt(el.dataset.lcn)
+        else {
+            channelLCN = parseInt(el.previousElementSibling.dataset.lcn);
+            newHeight += el.previousElementSibling.scrollHeight;
+        };
+
+        let channelIndex = zappr.channels.indexOf(zappr.channels.filter(el => el.lcn === channelLCN)[0]);
+        if (el.classList.contains("clicked")) newHeight += parseFloat(getComputedStyle(el.nextElementSibling).getPropertyValue("--scroll-height"));
+        virtualList.itemHeights[channelIndex] = newHeight;
+        virtualList.itemOffsets = virtualList.itemOffsets.map((offset, index) => index > channelIndex ? offset + newHeight : offset);
+        virtualList.initializeOffsets();
+    } else if ((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") && el.dataset.disabled === undefined) {
+        if (el.closest(".channel").contains(el)) el = el.closest(".channel");
+        if (el.dataset.disabled) {
+            alert(returnErrorMessage(el.dataset.disabled));
+            return;
+        };
+        currentlyPlaying = el;
+
+        if (state.schedule != {}) {
+            createScheduler("").remove();
+        };
+
+        if (document.querySelector(".watching") != null) {
+            document.querySelector(".watching").classList.remove("watching");
+        };
+        if (document.querySelector(".watching-hbbtv") != null) {
+            document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
+        };
+        el.classList.add("watching");
+
+        if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
+            const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
+                .then(response => response.json());
+
+            createScheduler(regionalPrograms).start();
+            return;
+        };
+
+        if (document.querySelector(`style.cssfix[media=""]`) != null) {
+            document.querySelector(`style.cssfix[media=""]`).media = "not all";
+        };
+
+        if (el.dataset.cssfix != undefined) {
+            document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
+        };
+
+        if (el.classList.contains("hbbtv-app")) {
+            overlays.classList.add("hbbtv-app");
+        } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
+            overlays.classList.remove("hbbtv-app");
+        };
+        if (el.classList.contains("pluto-channel")) {
+            overlays.classList.add("pluto-channel");
+        } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
+            overlays.classList.remove("pluto-channel");
+        };
+
+        if (el.dataset.lcn.includes(".")) {
+            el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
+            if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
+                el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
+            };
+        };
+        
+        if (el.classList.contains("adult")) {
+            if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
+                adultChannelConfirmation();
+                return;
+            } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
+                adultChannelConfirmation(true);
+                return;
+            };
+        };
+        await loadChannel({
+            type: el.dataset.type,
+            url: el.dataset.url,
+            api: el.dataset.api,
+            name: el.dataset.name,
+            lcn: el.dataset.lcn,
+            logo: el.dataset.logo,
+            fullLogo: el.dataset.fullLogo,
+            radio: el.dataset.radio,
+            http: el.dataset.http,
+            license: el.dataset.license,
+            licenseDetails: el.dataset.licenseDetails,
+            feed: el.dataset.feed,
+            fallbackType: el.dataset.fallbackType,
+            fallbackURL: el.dataset.fallbackUrl,
+            fallbackAPI: el.dataset.fallbackApi,
+            timeshift: el.dataset.timeshift
+        });
+    } else if ((["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) || e.target.nodeName === "B")) {
+        if (!el.classList.contains("channel")) el = el.closest(".channel");
+        document.querySelector("#epg-channel").innerText = el.dataset.name;
+        document.querySelector("#channels-column").classList.add("epg-visible");
+        document.querySelectorAll(".epg-items").forEach(el => el.remove());
+        document.querySelector("#channels-column").classList.remove("overflow-visible");
+        document.querySelector("#epg").classList.remove("is-hidden");
+        document.querySelector("#epg").classList.remove("long-channel-name");
+        document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
+        document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
+        const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
+            const startDate = entry.startTime.iso.split("T")[0];
+            const endDate = entry.endTime.iso.split("T")[0];
+            if (!accumulator[startDate]) accumulator[startDate] = [];
+            accumulator[startDate].push(entry);
+            if (!accumulator[endDate]) accumulator[endDate] = [];
+            accumulator[endDate].push(entry);
+            return accumulator;
+        }, {});
+        Object.keys(epgByDays).forEach(day => {
+            epgByDays[day] = [...new Set(epgByDays[day])];
+            if (epgByDays[day].length <= 1) delete epgByDays[day];
+        });
+        if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
+            else document.querySelector("#epg-date").className = "first-day last-day";
+        for (const day in epgByDays) {
+            document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
+                ${epgByDays[day].map(entry => {
+                    const now = Date.now();
+                    const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
+                        !entry.image && entry.description && entry.description.length > 145 ? true : false;
+
+                    return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
+                        <div class="epg-item">
+                            ${entry.image ? `<img src="${entry.image}" class="epg-image" onerror="this.parentElement.parentElement.classList.add('no-image'); this.remove();">` : ""}
+                            <div class="epg-info">
+                                <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
+                                <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
+                                ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
+                                ${entry.description ? `<div class="epg-description">
+                                    <p>${entry.description}</p>
+                                </div>` : ""}
+                                <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${new URL("/assets/icons/play.svg", import.meta.url)}">Guarda</a>` : ""}</div>
+                            </div>
+                        </div>
+                    </div>`
+                }).join("")}
+            </div>`);
+            if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
+        };
+        updateRestartablePrograms(true);
+        document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
+        document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
+        document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
+            el.addEventListener("click", () => {
+                el.closest(".epg-item-container").classList.toggle("expanded");
+            });
+        });
+        document.querySelector(".epg-items").animate({
+            left: "0"
+        }, {
+            duration: 0, fill: "forwards", easing: "ease"
+        });
+        document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
+        document.querySelector("#search-results").scrollIntoView();
+        document.querySelector("#channels").scrollIntoView();
+        document.querySelector("#channels-column").scrollIntoView();
+        document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
+        if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
+        mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
+    } else if (el.dataset.disabled != undefined) {
+        alert(returnErrorMessage(el.dataset.disabled));
+    };
+};
+
+let lastSource;
+const categoryIndexes = [-1].concat(zappr.channels.filter(el => el.categorySeparator).map(category => zappr.channels.indexOf(category)));
+let currentCategory = 0;
+const isElementInViewport = (el) => {
+    let rect = el.getBoundingClientRect();
+    return rect.top >= 0 && rect.left >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+};
+const sourceHeaderOnScroll = () => {
+    requestAnimationFrame(() => {
+        const firstVisibleElement = new URLSearchParams(location.search).get("androidtv") === null ? Array.from(document.querySelectorAll("*:not(.hbbtv-channels) > .channel")).filter(el => isElementInViewport(el))[0] : document.querySelectorAll("*:not(.hbbtv-channels) > .channel")[document.querySelectorAll("*:not(.hbbtv-channels) > .channel").length - 1];
+        if (firstVisibleElement) {
+            const currentSource = firstVisibleElement.dataset.category ? firstVisibleElement.dataset.category : locale["mainSource"];
+            if (lastSource != currentSource) {
+                document.querySelector(".current-source").innerText = currentSource;
+                lastSource = currentSource;
+                currentCategory = categoryIndexes.indexOf(zappr.channels.indexOf(zappr.channels.filter(el => el.categorySeparator === currentSource)[0]));
+                if (currentCategory === 0) {
+                    document.querySelector(".source-header").classList.remove("last-source");
+                    document.querySelector(".source-header").classList.add("first-source");
+                } else if (currentCategory === categoryIndexes.length - 1) {
+                    document.querySelector(".source-header").classList.remove("first-source");
+                    document.querySelector(".source-header").classList.add("last-source");
+                } else {
+                    document.querySelector(".source-header").classList.remove("first-source");
+                    document.querySelector(".source-header").classList.remove("last-source");
+                };
+            };
+        };
+    });
+    
+};
+
+let epgUpdateLastCallTime = 0;
+let epgUpdateTimeoutID = null;
+
+const virtualList = new VirtualList({
+    container: document.querySelector("#channels"),
+    items: zappr.channels,
+    initialItemHeights: channelElementHeights,
+    renderFunction: (item, index) => generateChannelHTML(item),
+    onScroll: () => {
+        updateHbbTVChannelsHeight();
+        if (fastChannelsPresent) sourceHeaderOnScroll();
+
+        const now = Date.now();
+        const elapsed = now - epgUpdateLastCallTime;
+        const wait = Math.max(0, 500 - elapsed);
+
+        clearTimeout(epgUpdateTimeoutID);
+
+        epgUpdateTimeoutID = setTimeout(() => {
+            updateCurrentlyPlayingEPG();
+            epgUpdateLastCallTime = Date.now();
+        }, wait);
+    },
+    onClick: channelOnClick,
+    manualClassName: "header"
+});
+virtualList.render();
 
 document.querySelector("#loading").classList.add("loaded");
 document.querySelector("#loading").animate({
@@ -1376,7 +1403,15 @@ document.querySelector("#loading").animate({
     easing: "ease",
     fill: "forwards"
 });
-addChannels(window.zappr.channels);
+
+if (fastChannelsPresent) {
+    document.querySelector(".source-header .previous").addEventListener("click", () => {
+        virtualList.scrollToIndex(currentCategory === 1 ? 0 : categoryIndexes[currentCategory - 1], true, true);
+    });
+    document.querySelector(".source-header .next").addEventListener("click", () => {
+        virtualList.scrollToIndex(categoryIndexes[currentCategory + 1], true, true);
+    });
+};
 
 const returnErrorMessage = (errorCode) => {
     return ({
@@ -1492,18 +1527,19 @@ const scheduleProgram = (program) => {
         const timeUntilEnd = endTime.getTime() - now.getTime();
         
         const endTimeoutId = setTimeout(() => {
-            loadStream({
+            loadChannel({
                 type: "hls",
                 url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
                 name: "Rai 3",
                 lcn: 103,
-                logo: getChannelLogoURL("rai3.svg")
+                logo: getChannelLogoURL("rai3.svg"),
+                license: window.zappr.channels.filter(el => el.lcn === 103)[0].license
             });
             scheduleProgram(program);
         }, timeUntilEnd);
         
         state.timeouts.set(`${program.title}-end`, endTimeoutId);
-        loadStream({
+        loadChannel({
             type: window.zappr.channels.filter(el => el.lcn === 3)[0].type,
             url: window.zappr.channels.filter(el => el.lcn === 3)[0].url,
             name: window.zappr.channels.filter(el => el.lcn === 3)[0].name,
@@ -1513,12 +1549,13 @@ const scheduleProgram = (program) => {
         state.playingRegional = true;
         return;
     } else if (!state.playingRegional) {
-        loadStream({
+        loadChannel({
             type: "hls",
             url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
             name: "Rai 3",
             lcn: 103,
-            logo: getChannelLogoURL("rai3.svg")
+            logo: getChannelLogoURL("rai3.svg"),
+            license: window.zappr.channels.filter(el => el.lcn === 103)[0].license
         });
     };
 
@@ -1884,57 +1921,74 @@ const updateRestartablePrograms = async (manual = false) => {
     };
 };
 
-const selectChannel = (channel, zapping) => {
-    try {
-        document.querySelector("input").value = "";
-        document.querySelector("#search").innerHTML = "";
+const selectChannel = async (channel, zapping, scroll = false) => {
+    document.querySelector("input").value = "";
+    document.querySelector("#search-results").style.display = "none";
+    document.querySelector("#channels").style.display = "block";
+    document.querySelector("#search").innerHTML = "";
+    document.querySelector("#search-results").innerHTML = "";
+    let targetedChannel;
 
-        if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`.channel[data-lcn="${channel}"]`);
+    if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`[data-lcn="${channel}"]`);
+    else if (typeof(channel) === "object") targetedChannel = channel;
+    
+    if (targetedChannel === null) {
+        let parentChannel = channel.toString();
+        if (parentChannel.includes(".")) parentChannel = parentChannel.split(".")[0];
+        const channelIndex = zappr.channels.indexOf(zappr.channels.filter(el => el.lcn === parseInt(parentChannel))[0]);
+        virtualList.scrollToIndex(channelIndex);
+        updateCurrentlyPlayingEPG();
+        
+        if (typeof(channel) === "number" || typeof(channel) === "string") targetedChannel = document.querySelector(`[data-lcn="${channel}"]`);
         else if (typeof(channel) === "object") targetedChannel = channel;
-    
-        if (targetedChannel === null) targetedChannel = document.querySelector(`.hbbtv-enabler[data-lcn="${channel}"]`);
-        setTimeout(() => {
-            try {
-                targetedChannel.scrollIntoView({
-                    block: "center",
-                    behavior: "smooth"
-                });
-            } catch {};
-        }, targetedChannel != undefined && targetedChannel.dataset.lcn.includes(".") && !zapping ? 250 : 0);
-        targetedChannel.classList.add("highlighted");
-    
-        if (zapping) {
-            if (targetedChannel.previousElementSibling != null) {
-                targetedChannel.previousElementSibling.classList.remove("highlighted");
-            }
-            if (targetedChannel.previousElementSibling != null && targetedChannel.previousElementSibling.querySelector(".channel") != null) {
-                targetedChannel.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
-            }
-            if (targetedChannel.parentElement.className === "hbbtv-container") {
-                if (targetedChannel.parentElement.previousElementSibling.querySelector(".channel") != null) {
-                    targetedChannel.parentElement.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
-                } else {
-                    targetedChannel.parentElement.previousElementSibling.classList.remove("highlighted");
-                };
-            };
-            if (targetedChannel.nextElementSibling != null) {
-                targetedChannel.nextElementSibling.classList.remove("highlighted");
-            }
-            if (targetedChannel.nextElementSibling != null && targetedChannel.nextElementSibling.querySelector(".channel") != null) {
-                targetedChannel.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
-            }
-            if (targetedChannel.parentElement.className === "hbbtv-container") {
-                if (targetedChannel.parentElement.nextElementSibling.querySelector(".channel") != null) {
-                    targetedChannel.parentElement.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
-                } else {
-                    targetedChannel.parentElement.nextElementSibling.classList.remove("highlighted");
-                };
+    };
+    setTimeout(() => {
+        try {
+            targetedChannel.scrollIntoView({
+                block: "center",
+                behavior: "smooth"
+            });
+        } catch {};
+    }, targetedChannel != undefined && targetedChannel.dataset.lcn.includes(".") && !zapping ? 250 : 0);
+    document.querySelectorAll(".highlighted").forEach(el => el.classList.remove("highlighted"));
+    targetedChannel.classList.add("highlighted");
+
+    if (targetedChannel.parentElement.className === "hbbtv-channels" && !targetedChannel.parentElement.previousElementSibling.classList.contains("clicked")) {
+        targetedChannel.parentElement.previousElementSibling.click();
+    };
+    if (zapping) {
+        if (targetedChannel.previousElementSibling != null) {
+            targetedChannel.previousElementSibling.classList.remove("highlighted");
+        }
+        if (targetedChannel.previousElementSibling != null && targetedChannel.previousElementSibling.querySelector(".channel") != null) {
+            targetedChannel.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
+        }
+        if (targetedChannel.parentElement.className === "hbbtv-container") {
+            if (targetedChannel.parentElement.previousElementSibling.querySelector(".channel") != null) {
+                targetedChannel.parentElement.previousElementSibling.querySelector(".channel").classList.remove("highlighted");
+            } else {
+                targetedChannel.parentElement.previousElementSibling.classList.remove("highlighted");
             };
         };
-    
+        if (targetedChannel.nextElementSibling != null) {
+            targetedChannel.nextElementSibling.classList.remove("highlighted");
+        }
+        if (targetedChannel.nextElementSibling != null && targetedChannel.nextElementSibling.querySelector(".channel") != null) {
+            targetedChannel.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
+        }
+        if (targetedChannel.parentElement.className === "hbbtv-container") {
+            if (targetedChannel.parentElement.nextElementSibling.querySelector(".channel") != null) {
+                targetedChannel.parentElement.nextElementSibling.querySelector(".channel").classList.remove("highlighted");
+            } else {
+                targetedChannel.parentElement.nextElementSibling.classList.remove("highlighted");
+            };
+        };
+    };
+
+    if (!scroll) {
         targetedChannel.focus();
         targetedChannel.click();
-    } catch {};
+    };
 };
 
 const toggleNightAdultChannelsStyle = () => {
@@ -1995,6 +2049,7 @@ const keydownHandler = (e) => {
                 case "NumpadDivide":
                 case "NumpadMultiply":
                 case "NumpadSubtract":
+                    if (multipleChannelSelection) multipleChannelSelection = false;
                     if (lcnTypedElement.innerText.slice(0, -1) === "") {
                         lcnTypingElement.style.display = "none";
                     };
@@ -2037,6 +2092,7 @@ const keydownHandler = (e) => {
                 const number = e.code.startsWith("Digit") ? e.key : e.code.replaceAll("Numpad", "");
 
                 if (number <= matchedChannel.length && number != 0 && [number - 1] != undefined) {
+                    selectChannel(matchedChannel[number - 1].lcn, false, true);
                     selectChannel(document.querySelector(`.channel[data-name="${matchedChannel[number - 1].name}"][data-lcn="${matchedChannel[number - 1].lcn}"]`));
                     lcnTypingElement.style.display = "none";
                     lcnTypedElement.innerText = "";
@@ -2086,8 +2142,58 @@ const keydownHandler = (e) => {
 
         };
     };
+
+    if (new URLSearchParams(location.search).get("androidtv") != null) {
+        let allNavigableElements = Array.from(document.querySelectorAll("*:not(.hbbtv-channels) > .channel:not(.hbbtv-app), .hbbtv-enabler, .hbbtv-enabler.clicked + .hbbtv-channels .channel"));
+        if (document.querySelector(".source-header") && (document.querySelector("#channels").scrollTop === 0 || document.querySelector(".source-header .androidtv-active"))) allNavigableElements = Array.from(document.querySelectorAll(".source-header.first-source .next, .source-header.last-source .previous, .source-header:not(.first-source, .last-source) .previous, .source-header:not(.first-source, .last-source) .next")).concat(allNavigableElements);
+        
+        if (window.location.hash != "#canPressBack") window.location.hash = "canPressBack";
+        if (!document.querySelector("#settings").classList.contains("visible")) {
+            e.preventDefault();
+            if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+                if (document.querySelector(".channel.watching") != null && document.querySelector("#channels-column").style.display === "none") {
+                    if (document.querySelector(".androidtv-active")) document.querySelector(".androidtv-active").classList.remove("androidtv-active");
+                    document.querySelector(".channel.watching").classList.add("androidtv-active");
+                    allNavigableElements[currentIndex].scrollIntoView({ block: "center" });
+                } else {
+                    if (document.querySelector(".androidtv-active")) currentIndex = allNavigableElements.indexOf(document.querySelector(".androidtv-active"));
+                    if (e.code === "ArrowUp") {
+                        if (currentIndex != 0) currentIndex = currentIndex - 1;
+                    } else if (e.code === "ArrowDown") {
+                        if (currentIndex != allNavigableElements.length - 1) currentIndex = currentIndex + 1;
+                    };
+                    if (document.querySelector(".androidtv-active")) document.querySelector(".androidtv-active").classList.remove("androidtv-active");
+                    allNavigableElements[currentIndex].classList.add("androidtv-active");
+                    if (allNavigableElements[currentIndex].classList.contains("channel") || allNavigableElements[currentIndex].classList.contains("hbbtv-mosaic")) allNavigableElements[currentIndex].scrollIntoView({ block: "center" })
+                    else if (allNavigableElements[currentIndex].classList.contains("hbbtv-enabler")) allNavigableElements[currentIndex].previousElementSibling.scrollIntoView({ block: "center" });
+                };
+                document.querySelector("#channels-column").style.display = "block";
+                document.querySelector("#overlays").classList.remove("full-width");
+            };
+            if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {
+                if (document.querySelector("#channels-column").style.display === "none") {
+                    if (player.paused()) player.play()
+                    else player.pause()
+                } else if (document.querySelector("#channels-column").style.display != "none" && e.key != "MediaPlayPause") {
+                    if (document.querySelector(".androidtv-active")) document.querySelector(".androidtv-active").click();
+                };
+            } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "MediaRewind" || e.key === "MediaFastForward") && document.querySelector("#channels-column").style.display === "none") {
+                player.userActive(true);
+                if (e.key === "ArrowLeft" || e.key === "MediaRewind") player.currentTime(player.currentTime() - 5)
+                else if (e.key === "ArrowRight" || e.key === "MediaFastForward") player.currentTime(player.currentTime() + 5);
+            } else if (e.key === "ArrowRight" && document.querySelector("#channels-column").style.display != "none" && document.querySelector("iframe") === null && document.querySelector("#hide-player").media === "not all") {
+                document.querySelector("#channels-column").style.display = "none";
+                document.querySelector("#overlays").classList.add("full-width");
+            };
+        } else {
+            if (e.key === "Enter" || e.key === " ") {
+                if (document.querySelector(":focus") != null) document.querySelector(":focus").click()
+            };
+        };
+    };
 };
 
+let currentIndex = -1;
 window.addEventListener("keydown", keydownHandler);
 
 document.querySelectorAll(".tooltip").forEach(el => {
@@ -2167,7 +2273,7 @@ const updateSelectWidth = (e) => {
 
 document.querySelector("#region").addEventListener("change", e => {
     if (document.querySelector("#region [selected]")) document.querySelector("#region [selected]").removeAttribute("selected");
-    document.querySelector(`#region option[value="${e.target.value}"]`).setAttribute("selected", "");
+    if (new URLSearchParams(location.search).get("androidtv") === null) document.querySelector(`#region option[value="${e.target.value}"]`).setAttribute("selected", "");
     document.querySelector("#save-and-reload").removeAttribute("hidden");
     localStorage.setItem("region", document.querySelector("#region").value);
 });
@@ -2222,28 +2328,53 @@ window.zappr.copyInfo = () => {
     navigator.clipboard.writeText(document.querySelector(".modal .code").innerText);
 };
 
+let searchUpdateLastCallTime = 0;
+let searchUpdateTimeoutID = null;
+
 document.querySelector("input").addEventListener("input", e => {
-    const search = encodeURIComponent(e.target.value.toLowerCase());
-    document.querySelector("#search").innerHTML = search ? `#channels > .channel:not([data-lowercase-name*="${search}"]), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])) + .hbbtv-enabler, .hbbtv-mosaic:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .category, .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .category {
-    display: none;
-}
-.hbbtv-channels:has([data-lowercase-name*="${search}"]) {
-    height: var(--scroll-height);
-    border-bottom: 2px #373737 solid;
-}
-.hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) > .channel + .hbbtv-enabler {
-    height: 2.5rem;
-    padding: 0.5rem 0 0.5rem 1rem;
-    border-bottom: 2px #373737 solid;
-}
-.hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) .hbbtv-enabler-arrow {
-    transform: rotate(90deg);
-}
-#channels-column .source-header {
-    transform: translateY(calc(-2.25rem - 1px));
-    user-select: none;
-    pointer-events: none;
-}` : "";
+    const search = new DOMParser().parseFromString(e.target.value.toLowerCase(), "text/html").documentElement.innerText.trim();
+    const now = Date.now();
+    const elapsed = now - searchUpdateLastCallTime;
+    const wait = Math.max(0, 500 - elapsed);
+
+    clearTimeout(searchUpdateTimeoutID);
+
+    searchUpdateTimeoutID = setTimeout(() => {
+        if (search) {
+            const elements = zappr.channels.filter(channel => (channel.name && channel.name.toLowerCase().includes(search)) || (channel.hbbtv && channel.hbbtv.filter(subchannel => subchannel.name && subchannel.name.toLowerCase().includes(search)).length > 0) || channel.categorySeparator);
+            document.querySelector("#search-results").style.display = "block";
+            document.querySelector("#channels").style.display = "none";
+            document.querySelector("#search-results").innerHTML = elements.map(el => generateChannelHTML(el)).join("");
+            document.querySelectorAll(".channel, .hbbtv-enabler").forEach(el => el.addEventListener("click", channelOnClick));
+            updateCurrentlyPlayingEPG();
+            document.querySelector("#search").innerHTML = `#channels > .channel:not([data-lowercase-name*="${search}"]), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])) + .hbbtv-enabler, .hbbtv-mosaic:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .category, .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .category {
+        display: none;
+    }
+    .hbbtv-channels:has([data-lowercase-name*="${search}"]) {
+        height: var(--scroll-height);
+        border-bottom: 2px #373737 solid;
+    }
+    .hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) > .channel + .hbbtv-enabler {
+        height: 2.5rem;
+        padding: 0.5rem 0 0.5rem 1rem;
+        border-bottom: 2px #373737 solid;
+    }
+    .hbbtv-container:has(.hbbtv-channels [data-lowercase-name*="${search}"]) .hbbtv-enabler-arrow {
+        transform: rotate(90deg);
+    }
+    #channels-column .source-header {
+        transform: translateY(calc(-2.25rem - 1px));
+        user-select: none;
+        pointer-events: none;
+    }`;
+        } else {
+            document.querySelector("#search-results").style.display = "none";
+            document.querySelector("#channels").style.display = "block";
+            document.querySelector("#search").innerHTML = "";
+            document.querySelector("#search-results").innerHTML = "";
+        };
+        searchUpdateLastCallTime = Date.now();
+    }, wait);
 });
 document.querySelector("#search-icon").addEventListener("click", () => {
     if (!document.querySelector("#channels-column").classList.contains("search-visible")) document.querySelector("input").focus();
@@ -2419,10 +2550,6 @@ document.querySelector("#epg-previous-day").addEventListener("click", () => {
             });
         }, 250);
     };
-});
-
-document.querySelectorAll(".hbbtv-channels").forEach(el => {
-    el.style.cssText = `--scroll-height: ${el.scrollHeight}px;`;
 });
 
 if (window.self !== window.top && document.referrer && new URL(document.referrer).hostname.endsWith("kritere.com")) {

@@ -996,6 +996,14 @@ zappr.ratios = await fetch(`${zappr.config.logos.host}/${selectedCountry}/_ratio
     .then(response => response.json())
     .catch(() => { return {} });
 
+const returnErrorMessage = (errorCode) => {
+    return ({
+        "not-working": locale["disabledNotWorking"],
+        "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS.",
+        "geoblock": locale["disabledGeoblock"]
+    })[errorCode];
+};
+
 const generateChannelHTML = (channel) => {
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isGeoblocked = ipLocation != selectedCountry;
@@ -1411,14 +1419,6 @@ if (fastChannelsPresent) {
     document.querySelector(".source-header .next").addEventListener("click", () => {
         virtualList.scrollToIndex(categoryIndexes[currentCategory + 1], true, true);
     });
-};
-
-const returnErrorMessage = (errorCode) => {
-    return ({
-        "not-working": locale["disabledNotWorking"],
-        "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS.",
-        "geoblock": locale["disabledGeoblock"]
-    })[errorCode];
 };
 
 const adultChannelConfirmation = async (night = false) => {

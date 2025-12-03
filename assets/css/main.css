@@ -415,7 +415,7 @@ body:not(.androidtv) .channel-program-end-time {
 #channels-column.overflow-visible {
     overflow: visible;
 }
-#channels-column.search-visible #channels {
+#channels-column.search-visible #search-results {
     height: calc(100% - 6.5rem - 4px);
     padding-bottom: calc(3.5rem + 4px);
 }
@@ -1548,7 +1548,7 @@ a#reopen-window svg {
     .epg-item-container.expandable.expanded .epg-image {
         margin-left: calc(100vw * -0.4 + 0.25rem);
     }
-    #channels, #epg {
+    #channels, #search-results, #epg {
         margin-top: 56.25%;
     }
     #epg {

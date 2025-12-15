@@ -33,7 +33,7 @@ export default {
         .epg-item-container::after {
             content: "Il programma richiesto inizierà a breve" !important;
         }
-        .epg-item-container.on-air .epg-start-time::after {
+        .epg-item-container.on-air .epg-start-time::before {
             content: "IN ONDA" !important;
         }
         #news.news-not-loaded .tooltip-content-box:after {
@@ -100,7 +100,7 @@ export default {
         playerLanguageCSS: `.epg-item-container::after {
             content: "The requested programme will start shortly" !important;
         }
-        .epg-item-container.on-air .epg-start-time::after {
+        .epg-item-container.on-air .epg-start-time::before {
             content: "ON AIR" !important;
         }
         #news.news-not-loaded .tooltip-content-box:after {

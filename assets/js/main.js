@@ -1117,19 +1117,11 @@ await fetch(getFASTChannelsURL(selectedCountry))
             fastChannels.channels = fastChannels.channels.filter(el => (el.url && !el.url.includes("pluto.tv") || (el.id && el.id != "plutotv")));
         };
         window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
-        if (new URLSearchParams(location.search).get("lcn") != null) {
-            player.volume(0);
-            selectChannel(new URLSearchParams(location.search).get("lcn"));
-        };
         fastChannelsPresent = true;
     })
     .catch(e => {
         console.warn(`Can't find FAST channels: ${e.stack}`);
         document.querySelector(".source-header").remove();
-        if (new URLSearchParams(location.search).get("lcn") != null) {
-            player.volume(0);
-            selectChannel(new URLSearchParams(location.search).get("lcn"));
-        };
     });
 
 const generateChannelElementHeight = (ratio, epg, mosaic, categorySeparator) => {
@@ -1384,7 +1376,7 @@ const virtualList = new VirtualList({
     initialItemHeights: channelElementHeights,
     renderFunction: (item, index) => generateChannelHTML(item),
     onScroll: () => {
-        updateHbbTVChannelsHeight();
+        if (!navigator.userAgent.includes("Firefox")) updateHbbTVChannelsHeight();
         if (fastChannelsPresent) sourceHeaderOnScroll();
 
         const now = Date.now();
@@ -1621,7 +1613,12 @@ const addAutoRestart = (el, startTime, manual) => {
     if (!el.querySelector(".epg-restart")) {
         el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart${manual ? " manual": ""}"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
         el.querySelector(".epg-restart").addEventListener("click", () => {
-            player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - startTime) / 1000) + 10);
+            if (!document.querySelector(`iframe[src*="clearkey/"]`)) player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - startTime) / 1000) + 10);
+            else {
+                const clearkeyWindow = document.querySelector(`iframe[src*="clearkey/"]`).contentWindow;
+                const clearkeyPlayer = clearkeyWindow.document.querySelector("video");
+                clearkeyPlayer.currentTime = clearkeyWindow.player.seekRange().end - (((DateTime.now().ts - startTime) / 1000) + 10);
+            };
             el.classList.add("restart-soon");
             setTimeout(() => {
                 el.classList.remove("restart-soon");
@@ -1832,7 +1829,7 @@ let manualRestart = {
                         else if (startTime.ts >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && startTime.ts <= DateTime.now().ts && !els[el].classList.contains("on-air")) addAutoRestart(els[el], startTime.ts, true);
                     });
                     
-                    if (els[el].classList.contains("on-air") && player.currentTime() != 0) {
+                    if (els[el].classList.contains("on-air")) {
                         const onAirStartTime = await fetch(`https://static.iltrovatore.it/StreamingStatus/${id}.rivedi2.txt`)
                             .then(response => response.text())
                             .then(text => DateTime.fromFormat(text.split("\t")[0], "yyyy.MM.dd-hh.mm.ss").toMillis());
@@ -1909,6 +1906,13 @@ let manualRestart = {
 };
 
 const updateRestartablePrograms = async (manual = false) => {
+    if (manual && document.querySelector(`.channel[data-epg-source="${document.querySelector("#epg").dataset.epgSource}"][data-epg-id="${document.querySelector("#epg").dataset.epgId}"]:not(.watching)`)) {
+        document.querySelector(".epg-item-container.on-air .epg-start-time:not(.clickable)").addEventListener("click", () => {
+            document.querySelector(`.channel[data-epg-source="${document.querySelector("#epg").dataset.epgSource}"][data-epg-id="${document.querySelector("#epg").dataset.epgId}"]`).click();
+            document.querySelector(`.channel[data-epg-source="${document.querySelector("#epg").dataset.epgSource}"][data-epg-id="${document.querySelector("#epg").dataset.epgId}"] .channel-program`).click();
+        });
+        document.querySelector(".epg-item-container.on-air .epg-start-time:not(.clickable)").classList.add("clickable");
+    };
     if (manual) manualRestart.fetchCache = {};  
     document.querySelectorAll(".epg-restart:not(.manual)").forEach(el => el.remove());
     if (document.querySelector(".channel.watching") && document.querySelector(".channel.watching").dataset.epgSource && document.querySelector("#channels-column").classList.contains("epg-visible") && document.querySelector(`#epg[data-epg-source="${document.querySelector(".channel.watching").dataset.epgSource}"][data-epg-id="${document.querySelector(".channel.watching").dataset.epgId}"]`)) {
@@ -2345,7 +2349,7 @@ document.querySelector("input").addEventListener("input", e => {
             document.querySelector("#search-results").style.display = "block";
             document.querySelector("#channels").style.display = "none";
             document.querySelector("#search-results").innerHTML = elements.map(el => generateChannelHTML(el)).join("");
-            document.querySelectorAll(".channel, .hbbtv-enabler").forEach(el => el.addEventListener("click", channelOnClick));
+            document.querySelectorAll("#search-results .channel, #search-results .hbbtv-enabler").forEach(el => el.addEventListener("click", channelOnClick));
             updateCurrentlyPlayingEPG();
             document.querySelector("#search").innerHTML = `#channels > .channel:not([data-lowercase-name*="${search}"]), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), #channels > .hbbtv-container > .channel:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-enabler + .hbbtv-channels > .channel[data-lowercase-name*="${search}"])) + .hbbtv-enabler, .hbbtv-mosaic:not([data-lowercase-name*="${search}"], :has(+ .hbbtv-channels > .channel[data-lowercase-name*="${search}"])), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .channel:not([data-lowercase-name*="${search}"]), .channel:not([data-lowercase-name*="${search}"]) + .hbbtv-enabler + .hbbtv-channels .category, .hbbtv-mosaic:not([data-lowercase-name*="${search}"]) + .hbbtv-channels .category {
         display: none;
@@ -2405,6 +2409,11 @@ const updateCurrentlyPlayingEPG = async () => {
         } else currentChannel.classList.add("epg-disabled");
         await updateRestartablePrograms();
     };
+};
+
+if (new URLSearchParams(location.search).get("lcn") != null) {
+    player.volume(0);
+    selectChannel(new URLSearchParams(location.search).get("lcn"));
 };
 
 fetch(getEPGURL(`${countries[selectedCountry].location}/national`))

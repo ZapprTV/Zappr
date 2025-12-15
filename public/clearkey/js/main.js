@@ -14,5 +14,7 @@ if (kid && key && url) {
             }
         });
         await player.load(url);
+
+        window.player = player;
     });
 };

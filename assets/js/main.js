@@ -2412,7 +2412,13 @@ const updateCurrentlyPlayingEPG = async () => {
 };
 
 if (new URLSearchParams(location.search).get("lcn") != null) {
-    player.volume(0);
+    if (navigator.getAutoplayPolicy("mediaelement") === "allowed") {
+        player.volume(1);
+    } else {
+        // The default autoplay policy allows only muted videos.
+        // TODO make toast-notification-container generic and show a warning.
+        player.volume(0);
+    }
     selectChannel(new URLSearchParams(location.search).get("lcn"));
 };
 

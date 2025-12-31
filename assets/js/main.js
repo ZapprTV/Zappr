@@ -2043,7 +2043,7 @@ const toggleNightAdultChannelsStyle = () => {
 toggleNightAdultChannelsStyle();
 
 const keydownHandler = (e) => {
-    if (document.activeElement != document.querySelector("input")) {
+    if ( document.activeElement.nodeName !== "INPUT" || document.activeElement.type !== "text" ) {
         if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) window.zappr.closeModal();
 
         if (["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {

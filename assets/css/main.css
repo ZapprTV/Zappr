@@ -5,6 +5,27 @@
     }
 }
 
+.ch-fav-btn,
+.fav-btn {
+  background-image: url('/assets/icons/heart-outline.svg');
+  background-size: 24px;
+  width: 24px;
+  height: 24px;
+  appearance: none;
+  margin: 0;
+  cursor: pointer;
+
+  &:checked {
+    background-image: url('/assets/icons/heart-fill.svg');
+  }
+}
+
+.ch-fav-btn {
+  margin: 0 0 0 5px;
+  min-width: 24px;
+}
+
+
 #block-message {
     display: flex;
     flex-direction: column;

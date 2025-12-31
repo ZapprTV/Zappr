@@ -1338,13 +1338,19 @@ const channelOnClick = async (e) => {
 let lastSource;
 const categoryIndexes = [-1].concat(zappr.channels.filter(el => el.categorySeparator).map(category => zappr.channels.indexOf(category)));
 let currentCategory = 0;
-const isElementInViewport = (el) => {
-    let rect = el.getBoundingClientRect();
-    return rect.top >= 0 && rect.left >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-};
 const sourceHeaderOnScroll = () => {
     requestAnimationFrame(() => {
-        const firstVisibleElement = new URLSearchParams(location.search).get("androidtv") === null ? Array.from(document.querySelectorAll("*:not(.hbbtv-channels) > .channel")).filter(el => isElementInViewport(el))[0] : document.querySelectorAll("*:not(.hbbtv-channels) > .channel")[document.querySelectorAll("*:not(.hbbtv-channels) > .channel").length - 1];
+        let firstVisibleElement;
+        if ( new URLSearchParams(location.search).get("androidtv") === null ) {
+            for ( const el of document.querySelectorAll("*:not(.hbbtv-channels) > .channel") ) {
+                if  ( el.parentElement.getBoundingClientRect().top < el.getBoundingClientRect().top ) {
+                    firstVisibleElement = el;
+                    break;
+                }
+            }
+        } else {
+            firstVisibleElement = document.querySelectorAll("*:not(.hbbtv-channels) > .channel")[document.querySelectorAll("*:not(.hbbtv-channels) > .channel").length - 1];
+        }
         if (firstVisibleElement) {
             const currentSource = firstVisibleElement.dataset.category ? firstVisibleElement.dataset.category : locale["mainSource"];
             if (lastSource != currentSource) {

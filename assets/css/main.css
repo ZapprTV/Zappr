@@ -409,8 +409,73 @@ body:not(.androidtv) .channel-program-end-time {
     background: #242424;
     overflow: hidden;
     z-index: 1;
-    transition: 500ms;
-    will-change: width, transform;
+
+    transition: width 500ms ease, max-width 500ms ease, flex-basis 500ms ease, transform 500ms ease;
+    will-change: width, max-width, flex-basis, transform;
+}
+#channels-column {
+    --collapsed-width: 104px; /* logo 88px + 16px margins */
+    --expanded-width: clamp(320px, 33vw, 540px);
+    flex: 0 0 auto;
+    flex-basis: var(--collapsed-width);
+    max-width: var(--collapsed-width);
+    width: var(--collapsed-width);
+}
+
+#channels-column:hover,
+#channels-column.epg-visible {
+    flex: 0 0 auto;
+    flex-basis: var(--expanded-width);
+    max-width: var(--expanded-width);
+    width: var(--expanded-width);
+}
+
+#channels-column.epg-visible.epg-expanded {
+    --expanded-width: auto;
+}
+
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) > :not(#channels) {
+    display: none;
+}
+
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) #channels .header,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) #channels .source-header,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-program,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-program-progress,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-program-progress-background,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-program-times,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-title-subtitle,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .lcn,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .hd,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .uhd,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .radio,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .ondemand,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .external,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .adult-marker,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .hbbtv-enabler,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .hbbtv-enabler-arrow,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .hbbtv-enabler-text,
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .category {
+    display: none;
+}
+
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-info > :not(.logo) {
+    display: none;
+}
+
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .channel-info .logo {
+    filter: grayscale(100%) contrast(110%);
+}
+
+#channels-column:not(:hover):not(.epg-expanded):not(.epg-visible) .watching .channel-info .logo,
+#channels-column:hover .channel-info .logo,
+#channels-column.epg-expanded .channel-info .logo,
+#channels-column.epg-visible   .channel-info .logo {
+    filter: none;
+}
+
+.channel-info .logo {
+    transition: filter 500ms ease;
 }
 #channels-column.overflow-visible {
     overflow: visible;
@@ -435,6 +500,7 @@ body:not(.androidtv) .channel-program-end-time {
     background-color: #242424;
     height: calc(100% - 3rem);
     overflow-y: auto;
+
     transition: 500ms;
     will-change: height, width;
 }
@@ -442,7 +508,7 @@ body:not(.androidtv) .channel-program-end-time {
     display: none;
 }
 #channels.overflow-hidden {
-    overflow: hidden !important;
+    overflow: hidden;
 }
 #epg {
     position: absolute;

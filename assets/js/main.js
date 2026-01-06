@@ -160,6 +160,7 @@ const player = videojs("tv", {
     errorDisplay: false,
     html5: {
         vhs: {
+            overrideNative: true,
             useBandwidthFromLocalStorage: true
         }
     },
@@ -938,15 +939,14 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 break;
 
             case "clearkey":
-                const kid = licenseDetails.split(":")[0];
-                const key = licenseDetails.split(":")[1];
+                let params = { url };
+                if (licenseDetails) {
+                    params.kid = licenseDetails.split(":")[0];
+                    params.key = licenseDetails.split(":")[1];
+                };
                 loadStream({
                     type: "iframe",
-                    url: `clearkey/?${new URLSearchParams({
-                        kid: kid,
-                        key: key,
-                        url: url
-                    }).toString()}`,
+                    url: `clearkey/?${new URLSearchParams(params).toString()}`,
                     name: name,
                     lcn: lcn,
                     logo: logo,

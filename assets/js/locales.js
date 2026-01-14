@@ -19,6 +19,7 @@ export default {
         saveAndReload: "Salva e ricarica",
         infoTooltip: `Zappr è il nuovo modo di guardare la TV. Guarda la maggior parte dei canali nazionali e locali del tuo paese, online, gratuitamente e senza configurazioni complesse.
         <br><br>
+        <a href="https://ko-fi.com/FrancescoRosi" target="_blank" class="tooltip-link" id="donation-link">Invia una donazione :)</a>
         <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">Visualizza il codice sorgente su GitHub</a>
         <div class="tooltip-link" id="news-links">Rimani aggiornato sulle ultime novità seguendoci su <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> o <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
         <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contattaci via email</a>`,
@@ -94,6 +95,7 @@ export default {
         saveAndReload: "Save and reload",
         infoTooltip: `Zappr is the new way to watch TV. Watch most of your country's national and local channels, online, for free and without any complicated setup.
         <br><br>
+        <a href="https://ko-fi.com/FrancescoRosi" target="_blank" class="tooltip-link" id="donation-link">Send a donation :)</a>
         <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">View the source code on GitHub</a>
         <div class="tooltip-link" id="news-links">Stay up to date with the latest by following us on <a href="https://x.com/ZapprStreamUK" target="_blank">Twitter</a> or <a href="https://mastodonapp.uk/@zappr" target="_blank">Mastodon</a></div>
         <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contact us via email</a>`,

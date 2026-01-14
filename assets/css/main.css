@@ -1070,6 +1070,9 @@ a.tooltip-link {
 #email-link:before {
     background-image: url("/assets/icons/mail.svg");
 }
+#donation-link:before {
+    background-image: url("/assets/icons/ko-fi.svg");
+}
 .modal, .modal-content {
     transition: 400ms;
     will-change: opacity, transform;

@@ -1520,7 +1520,7 @@ const scheduleProgram = (program) => {
         
         const endTimeoutId = setTimeout(() => {
             loadChannel({
-                type: "hls",
+                type: window.zappr.channels.filter(el => el.lcn === 103)[0].type,
                 url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
                 name: "Rai 3",
                 lcn: 103,
@@ -1542,7 +1542,7 @@ const scheduleProgram = (program) => {
         return;
     } else if (!state.playingRegional) {
         loadChannel({
-            type: "hls",
+            type: window.zappr.channels.filter(el => el.lcn === 103)[0].type,
             url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
             name: "Rai 3",
             lcn: 103,
@@ -1572,7 +1572,7 @@ const scheduleProgram = (program) => {
         
         const endTimeoutId = setTimeout(() => {
             loadStream({
-                type: "hls",
+                type: window.zappr.channels.filter(el => el.lcn === 103)[0].type,
                 url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
                 name: "Rai 3",
                 lcn: 103,

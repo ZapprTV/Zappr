@@ -121,6 +121,16 @@
                 transform: translateX(-8px);
             }
         </style>
+        <style id="native-hls-720p-iframe-fix" class="cssfix" media="not all">
+            #channels-column {
+                z-index: 4;
+            }
+            @media screen and (min-width: 1706.6666px) {
+                #overlays iframe {
+                    transform: scale(min(calc(75vw / 1280%), calc(100vh / 720%)));
+                }
+            }
+        </style>
         <style id="tv-style" media="not all">
             #tv-settings {
                 font-size: 0.825rem;

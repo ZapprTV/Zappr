@@ -175,9 +175,6 @@ window.zappr.player = player;
 window.zappr.videojs = videojs;
 
 player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
-player.on("play", () => {
-    document.querySelector("#hide-player").media = "not all";
-});
 player.on("loadeddata", () => {
     if (player.liveTracker.isLive() && !player.scrubbing() && !player.seeking()) {
         player.liveTracker.seekToLiveEdge();
@@ -706,6 +703,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
 };
 
 const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false, timeshift = 0 }) => {
+    document.querySelector("#hide-player").media = "not all";
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
         switch(url.split("/")[2]) {
@@ -1004,11 +1002,19 @@ const returnErrorMessage = (errorCode) => {
     })[errorCode];
 };
 
+const nativeHLSTest = document.createElement("video");
+const supportsNativeHLS = nativeHLSTest.canPlayType("application/vnd.apple.mpegurl") != "";
+
 const generateChannelHTML = (channel) => {
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isGeoblocked = ipLocation != selectedCountry;
 
     const channelIndex = zappr.channels.indexOf(channel);
+    if (channel.nativeHLS && supportsNativeHLS) {
+        channel.type = "iframe";
+        channel.url = channel.nativeHLS.url;
+        if (navigator.userAgentData && navigator.userAgentData.brands.some(data => data.brand === "Chromium") && channel.nativeHLS.quality) channel.cssfix = `native-hls-${channel.nativeHLS.quality}-iframe`;
+    };
     return `
         ${channel.categorySeparator === undefined
             ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}

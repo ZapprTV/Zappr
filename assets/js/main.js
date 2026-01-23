@@ -168,6 +168,19 @@ const player = videojs("tv", {
         qualityMenu: {},
         reloadSourceOnError: {},
         eme: {}
+    },
+    userActions: {
+        click: !window.matchMedia("(max-width: 100vh)").matches,
+        doubleClick: !window.matchMedia("(max-width: 100vh)").matches
+    },
+    controlBar: {
+        progressControl: {
+            seekBar: {
+                playProgressBar: {
+                    timeTooltip: true
+                }
+            }
+        }
     }
 });
 
@@ -180,6 +193,61 @@ player.on("loadeddata", () => {
         player.liveTracker.seekToLiveEdge();
     };
 });
+
+if (window.matchMedia("(max-width: 100vh)").matches) {
+    let skippingLastCallTime = 0;
+    let skippingClickCount = 0;
+    let skippingClickTimer = null;
+    let skippingInactivityTimer = null;
+    let skippingWasDoubleClicking = false;
+
+    player.on("touchstart", e => {
+        skippingClickCount++;
+
+        if (skippingClickTimer) clearTimeout(skippingClickTimer);
+        if (skippingInactivityTimer) clearTimeout(skippingInactivityTimer);
+
+        if (skippingClickCount === 2) {
+            const now = Date.now();
+
+            if (now - skippingLastCallTime >= 300) {
+                skippingLastCallTime = now;
+                skippingWasDoubleClicking = true;
+                console.log("Double click registered");
+                if (e.touches[0].clientX <= window.innerWidth / 3) {
+                    document.querySelector(".video-js").dataset.skippingDeactivating = "";
+                    document.querySelector(".video-js").dataset.skipping = "backwards";
+                    zappr.player.currentTime(zappr.player.currentTime() - 10);
+                } else if (e.touches[0].clientX >= (window.innerWidth / 3) * 2) {
+                    document.querySelector(".video-js").dataset.skippingDeactivating = "";
+                    document.querySelector(".video-js").dataset.skipping = "forwards";
+                    zappr.player.currentTime(zappr.player.currentTime() + 10);
+                };
+            };
+
+            skippingClickCount = 0;
+
+            skippingInactivityTimer = setTimeout(() => {
+                if (skippingWasDoubleClicking) {
+                    document.querySelector(".video-js").dataset.skippingDeactivating = "true";
+                    setTimeout(() => document.querySelector(".video-js").dataset.skipping = "", 1000);
+                    skippingWasDoubleClicking = false;
+                };
+            }, 1500);
+
+        } else {
+            skippingClickTimer = setTimeout(() => {
+                skippingClickCount = 0;
+                
+                if (skippingWasDoubleClicking) {
+                    document.querySelector(".video-js").dataset.skippingDeactivating = "true";
+                    setTimeout(() => document.querySelector(".video-js").dataset.skipping = "", 1000);
+                    skippingWasDoubleClicking = false;
+                };
+            }, 300);
+        }
+    });
+};
 
 const overlays = document.querySelector("#overlays"),
       nightAdultChannelsStyle = document.querySelector("#night-adult-channels");

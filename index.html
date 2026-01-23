@@ -22,15 +22,16 @@
         <link rel="stylesheet" href="/node_modules/@fontsource/ibm-plex-mono/latin.css">
         <link rel="stylesheet" href="/node_modules/@fontsource/ibm-plex-mono/latin-italic.css">
         <link rel="stylesheet" href="/node_modules/video.js/dist/video-js.min.css">
-        <link rel="stylesheet" href="/node_modules/videojs-plyr/css/videojs-plyr.min.css">
         <link rel="stylesheet" href="/assets/css/main.css">
+        <link rel="stylesheet" href="/node_modules/videojs-plyr/css/videojs-plyr.min.css">
         <style id="hide-player">
             #tv {
                 display: none !important;
+                height: 0 !important;
             }
             @media screen and (max-width: 100vh) {
                 #channels, #search-results, #epg {
-                    margin-top: 0%;
+                    margin-top: 0% !important;
                 }
                 #tv {
                     display: block !important;
@@ -231,6 +232,15 @@
             }
             * {
                 transition: none !important;
+            }
+        </style>
+        <style id="new-player-fix" media="screen and (max-width: 100vh)">
+            /* bruh */
+            .vjs-theme-plyr .vjs-play-progress .vjs-time-tooltip {
+                display: flex !important;
+            }
+            .vjs-theme-plyr .vjs-play-control {
+                margin-left: 0 !important;
             }
         </style>
         <style id="search"></style>

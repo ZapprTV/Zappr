@@ -1558,15 +1558,152 @@ a#reopen-window svg {
 .modal-buttons .button svg {
     margin-left: 1rem;
 }
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+@keyframes skipBackwardsStart {
+    0% {
+        opacity: 0;
+        padding: 0;
+        border-top-right-radius: 100%;
+        border-bottom-right-radius: 100%;
+        background-color: rgb(0 0 0 / 75%);
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        background-color: rgb(0 0 0 / 75%);
+        opacity: 1;
+    }
+    100% {
+        padding: 0 2rem;
+        opacity: 1;
+    }
+}
+@keyframes skipForwardsStart {
+    0% {
+        opacity: 0;
+        padding: 0;
+        border-top-left-radius: 100%;
+        border-bottom-left-radius: 100%;
+        background-color: rgb(0 0 0 / 75%);
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        background-color: rgb(0 0 0 / 75%);
+        opacity: 1;
+    }
+    100% {
+        padding: 0 2rem;
+        opacity: 1;
+    }
+}
+@keyframes deactivateSkippingBackwards {
+    0% {
+        border-top-right-radius: 100%;
+        border-bottom-right-radius: 100%;
+        padding: 0 2rem;
+        opacity: 1;
+        background-color: rgb(0 0 0 / 75%);
+    }
+    50% {
+        background-color: rgb(0 0 0 / 0%);
+    }
+    100% {
+        border-top-right-radius: 0%;
+        border-bottom-right-radius: 0%;
+        opacity: 0;
+        padding: 0;
+    }
+}
+@keyframes deactivateSkippingForwards {
+    0% {
+        border-top-left-radius: 100%;
+        border-bottom-left-radius: 100%;
+        padding: 0 2rem;
+        opacity: 1;
+        background-color: rgb(0 0 0 / 75%);
+    }
+    50% {
+        background-color: rgb(0 0 0 / 0%);
+    }
+    100% {
+        border-top-left-radius: 0%;
+        border-bottom-left-radius: 0%;
+        opacity: 0;
+        padding: 0;
+    }
+}
+.vjs-control-bar {
+    z-index: 2 !important;
+}
+.video-js::before {
+    content: "<< 10s";
+    left: 0;
+    border-top-right-radius: 100%;
+    border-bottom-right-radius: 100%;
+    z-index: 1;
+}
+.video-js::after {
+    content: ">> 10s";
+    right: 0;
+    border-top-left-radius: 100%;
+    border-bottom-left-radius: 100%;
+    z-index: 1;
+}
+.video-js[data-skipping="backwards"]::before {
+    animation: skipBackwardsStart 1s forwards, blink 1s infinite 1s;
+}
+.video-js[data-skipping="forwards"]::after {
+    animation: skipForwardsStart 1s forwards, blink 1s infinite 1s;
+}
+.video-js[data-skipping="backwards"][data-skipping-deactivating="true"]::before {
+    animation: deactivateSkippingBackwards 1s forwards;
+}
+.video-js[data-skipping="forwards"][data-skipping-deactivating="true"]::after {
+    animation: deactivateSkippingForwards 1s forwards;
+}
+.video-js[data-skipping="backwards"] .vjs-control-bar, .video-js[data-skipping="forwards"] .vjs-control-bar {
+    opacity: 1 !important;
+    transform: translateY(0%) !important;
+    pointer-events: all !important;
+}
+.video-js[data-skipping="backwards"] .vjs-control-bar::before, .video-js[data-skipping="forwards"] .vjs-control-bar::before {
+    transform: translateY(0%) !important;
+}
+.video-js::before, .video-js::after {
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    top: 0;
+    font-weight: bold;
+    font-size: 1.5rem;
+    height: 100%;
+    align-items: center;
+    background: rgb(0 0 0 / 75%);
+    text-shadow: 0 0 5px black;
+    opacity: 0;
+    padding: 0;
+    user-select: none;
+    pointer-events: none;
+}
 @media screen and (max-width: 100vh) {
     .channel.hbbtv-app {
         display: none;
     }
     .modal {
         position: fixed;
-    }
-    .video-js {
-        font-size: 0.8em !important;
     }
     #search-input {
         border-bottom: 0;
@@ -1662,6 +1799,50 @@ a#reopen-window svg {
     .source-header {
         backdrop-filter: none;
         box-shadow: none;
+    }
+    .vjs-control-bar {
+        padding-bottom: 4rem !important;
+        z-index: 1;
+    }
+    .vjs-play-control {
+        margin-left: 0 !important;
+    }
+    .vjs-skip-backward-5, .vjs-skip-forward-5, .vjs-volume-panel {
+        display: none !important;
+    }
+    .vjs-progress-control {
+        position: absolute !important;
+        bottom: 0;
+        left: calc(1rem - 16px + 0.5rem) !important;
+        width: calc(100svw - 53.61px - 8px - 2rem) !important;
+    }
+    .vjs-play-progress {
+        font: inherit !important;
+    }
+    .vjs-play-progress .vjs-time-tooltip {
+        z-index: 9;
+        visibility: visible !important;
+        display: flex !important;
+        transform: translateX(calc(-8px - 0.5rem + 100vw)) !important;
+        background: transparent;
+        padding: 0;
+        color: white;
+        font: inherit;
+        font-size: 0.75rem !important;
+        top: 3.3333em;
+        position: fixed !important;
+    }
+    .vjs-play-progress:before {
+        font-family: "VideoJS";
+    }
+    .vjs-seek-to-live-control {
+        padding-top: 2px !important;
+    }
+    .vjs-remaining-time {
+        height: 2.6em !important;
+    }
+    .vjs-theme-plyr.vjs-waiting .vjs-play-progress {
+        max-width: none !important;
     }
 }
 @media screen and (min-width: 769px) {

@@ -155,6 +155,13 @@ const player = videojs("tv", {
         skipButtons: {
             backward: 5,
             forward: 5
+        },
+        progressControl: {
+            seekBar: {
+                playProgressBar: {
+                    timeTooltip: true
+                }
+            }
         }
     },
     errorDisplay: false,
@@ -172,15 +179,6 @@ const player = videojs("tv", {
     userActions: {
         click: !window.matchMedia("(max-width: 100vh)").matches,
         doubleClick: !window.matchMedia("(max-width: 100vh)").matches
-    },
-    controlBar: {
-        progressControl: {
-            seekBar: {
-                playProgressBar: {
-                    timeTooltip: true
-                }
-            }
-        }
     }
 });
 

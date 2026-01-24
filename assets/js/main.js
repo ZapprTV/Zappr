@@ -247,6 +247,9 @@ if (window.matchMedia("(max-width: 100vh)").matches) {
     });
 };
 
+// grazie Vite
+document.head.appendChild(document.querySelector("#new-player-fix"));
+
 const overlays = document.querySelector("#overlays"),
       nightAdultChannelsStyle = document.querySelector("#night-adult-channels");
 

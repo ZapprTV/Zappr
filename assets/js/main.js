@@ -1081,7 +1081,7 @@ const generateChannelHTML = (channel) => {
     const channelIndex = zappr.channels.indexOf(channel);
     if (channel.nativeHLS && supportsNativeHLS) {
         channel.type = "iframe";
-        channel.url = channel.nativeHLS.url;
+        channel.url = `https://href.li/?${channel.nativeHLS.url}`;
         if (navigator.userAgentData && navigator.userAgentData.brands.some(data => data.brand === "Chromium") && channel.nativeHLS.quality) channel.cssfix = `native-hls-${channel.nativeHLS.quality}-iframe`;
     };
     return `

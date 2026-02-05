@@ -144,7 +144,61 @@ let currentType = "",
     typingLCN = false,
     multipleChannelSelection = false,
     currentlyPlaying = "",
-    target = "";
+    target = "",
+    lcnConfirmTimer = null;
+
+const clearLcnConfirmTimer = () => {
+    if (lcnConfirmTimer) {
+        clearTimeout(lcnConfirmTimer);
+        lcnConfirmTimer = null;
+    }
+};
+
+const scheduleLcnAutoConfirm = () => {
+    clearLcnConfirmTimer();
+    lcnConfirmTimer = setTimeout(() => {
+        try {
+            confirmLcnInput();
+        } finally {
+            clearLcnConfirmTimer();
+        }
+    }, 2000);
+};
+
+// Common confirmation routine used by Enter key and auto-timeout
+const confirmLcnInput = () => {
+    const lcnTypingElement = document.querySelector("#lcn-typing");
+    const lcnTypedElement = document.querySelector("#lcn-typed");
+    const controlsElement = document.querySelector("#controls");
+
+    if (!typingLCN) return;
+
+    let input = lcnTypedElement.innerText;
+    let matchedChannel = window.zappr.channels.filter(ch => ch.lcn === parseInt(input));
+
+    // invalidate matches for non-existing subchannels
+    if ((input.includes(".") && matchedChannel[0] != undefined && matchedChannel[0].hbbtv && matchedChannel[0].hbbtv.filter(subch => subch.sublcn == input.split(".")[1]).length === 0) || (input.includes(".") && matchedChannel[0] != undefined && !matchedChannel[0].hbbtv)) {
+        matchedChannel = [];
+    };
+
+    if (matchedChannel.length != 0 && input.slice(-1) != ".") {
+        if (matchedChannel.length > 1) {
+            multipleChannelSelection = true;
+            controlsElement.innerHTML = `<b>Premi ${matchedChannel.map((channel, index) => `${index + 1} per ${channel.name}`).join(",<br>")}<br>oppure Esc per annullare</b>`;
+        } else {
+            selectChannel(input);
+            lcnTypingElement.style.display = "none";
+            lcnTypedElement.innerText = "";
+            typingLCN = false;
+        };
+    } else {
+        // invalid confirmation feedback
+        lcnTypingElement.classList.add("shaking");
+        setTimeout(() => {
+            lcnTypingElement.classList.remove("shaking");
+        }, 500);
+    }
+};
 
 const player = videojs("tv", {
     playbackRates: [0.25, 0.5, 1, 1.25, 1.5, 2, 4],
@@ -2119,6 +2173,8 @@ const keydownHandler = (e) => {
             if (!(e.key === "." && lcnTypedElement.innerText.includes("."))) {
                 lcnTypedElement.innerText += e.code.startsWith("Digit") || e.key === "." ? e.key : e.code.replaceAll("Numpad", "").replaceAll("Decimal", ".");
             };
+
+            scheduleLcnAutoConfirm();
         };
 
         if (typingLCN) {
@@ -2133,31 +2189,25 @@ const keydownHandler = (e) => {
                         lcnTypingElement.style.display = "none";
                     };
                     lcnTypedElement.innerText = lcnTypedElement.innerText.slice(0, -1);
+
+                    if (lcnTypedElement.innerText !== "") {
+                        scheduleLcnAutoConfirm();
+                    } else {
+                        clearLcnConfirmTimer();
+                    }
                     break;
 
                 case "NumpadEnter":
                 case "Enter":
-                    if (matchedChannel.length != 0 && lcnTypedElement.innerText.slice(-1) != ".") {
-                        if (matchedChannel.length > 1) {
-                            multipleChannelSelection = true;
-                        } else {
-                            selectChannel(lcnTypedElement.innerText);
-                            lcnTypingElement.style.display = "none";
-                            lcnTypedElement.innerText = "";
-                            typingLCN = false;
-                        };
-                    } else {
-                        lcnTypingElement.classList.add("shaking");
-                        setTimeout(() => {
-                            lcnTypingElement.classList.remove("shaking");
-                        }, 500);
-                    };
+                    confirmLcnInput();
+                    clearLcnConfirmTimer();
                     break;
 
                 case "Escape":
                     lcnTypingElement.style.display = "none";
                     lcnTypedElement.innerText = "";
                     typingLCN = false;
+                    clearLcnConfirmTimer();
                     break;
 
             };
@@ -2178,6 +2228,7 @@ const keydownHandler = (e) => {
                     controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
                     typingLCN = false;
                     multipleChannelSelection = false;
+                    clearLcnConfirmTimer();
                 };
             } else if (e.code === "Escape") {
                 lcnTypingElement.style.display = "none";
@@ -2185,10 +2236,13 @@ const keydownHandler = (e) => {
                 controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
                 typingLCN = false;
                 multipleChannelSelection = false;
+                clearLcnConfirmTimer();
             };
         };
 
         if (e.code === "PageUp" || e.code === "PageDown") {
+            // cancel any pending auto-confirm when navigating channels
+            clearLcnConfirmTimer();
             if (currentlyPlaying === "") {
                 selectChannel(1);
             } else {

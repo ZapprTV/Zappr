@@ -132,6 +132,15 @@
                 }
             }
         </style>
+        <style id="letterbox-fix" class="cssfix" media="not all">
+            video {
+                object-fit: cover;
+                aspect-ratio: 16 / 9;
+                height: auto !important;
+                top: 50% !important;
+                transform: translateY(-50%);
+            }
+        </style>
         <style id="tv-style" media="not all">
             #tv-settings {
                 font-size: 0.825rem;

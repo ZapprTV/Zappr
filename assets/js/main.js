@@ -260,8 +260,10 @@ window.zappr.closeModal = () => {
     };
 };
 
-const createErrorModal = async ({ title, error, info, params }) => {
+const createErrorModal = async ({ title, error, info, params, type }) => {
     let urlParams = new URLSearchParams(params).toString();
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
     const modalHTML = `<div class="modal">
         <div class="modal-content">
             <div class="modal-title">
@@ -276,8 +278,12 @@ const createErrorModal = async ({ title, error, info, params }) => {
             </div>
             <div class="code" onclick="copyInfo()">${info}</div>    
             ` : ""}
-            <p id="report-error">${locale["reportError"]}</p>
-            <div class="modal-buttons">
+            <p id="report-error">${type === "dash" && isiOS
+                ? locale["unreportableErrorDASHiOS"]
+                : params.lcn >= 1000
+                    ? locale["unreportableErrorFAST"]
+                    : locale["reportError"]}</p>
+            ${!(type === "dash" && isiOS) && params.lcn < 1000 ? `<div class="modal-buttons">
                 <a class="button primary" href="https://github.com/ZapprTV/channels/issues/new?${urlParams}" target="_blank">
                     ${locale["reportViaGithub"]}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
@@ -292,7 +298,7 @@ ${locale["errorEmailFooter"]}
                     ${locale["reportViaEmail"]}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#000" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
                 </a>
-            </div>
+            </div>` : ""}
         </div>
     </div>`;
 
@@ -516,6 +522,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 createErrorModal({
                     title: locale["channelError"],
                     error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["formatServerError"]}${httpError ? `: <b>${httpError}</b>` : ` ${locale["unknownSuffix"]}.`}`,
+                    type: type,
                     params: {
                         template: `error-${language}.yml`,
                         title: `${lcn} - ${name}: ${locale["formatServerErrorTitle"]} (${httpError ? httpError : locale["unknownSuffix"]})`,
@@ -531,6 +538,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                     title: locale["channelError"],
                     error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["decodingError"]}.`,
                     info: videojsLog,
+                    type: type,
                     params: {
                         template: `error-${language}.yml`,
                         title: `${lcn} - ${name}: ${locale["decodingErrorTitle"]}`,
@@ -549,6 +557,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 createErrorModal({
                     title: locale["channelError"],
                     error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["serverError"]}${httpError ? `: <b>${httpError}</b>` : ` ${locale["unknownSuffix"]}`}.`,
+                    type: type,
                     params: {
                         template: `error-${language}.yml`,
                         title: `${lcn} - ${name}: ${locale["serverErrorTitle"]} (${httpError ? httpError : locale["unknownSuffix"]})`,
@@ -577,6 +586,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                     title: locale["channelError"],
                     error: `${locale["cantLoad"]} <b>${name}</b> <i>(${url})</i> ${locale["unknownError"]}.`,
                     info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`,
+                    type: type,
                     params: {
                         template: `error-${language}.yml`,
                         title: `${lcn} - ${name}: ${locale["unknownErrorTitle"]}`,
@@ -1087,7 +1097,7 @@ const generateChannelHTML = (channel) => {
     return `
         ${channel.categorySeparator === undefined
             ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""}>
                     <div class="channel-info">
                         <div class="lcn">${channel.lcn}</div>
                         <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[channel.logo] ? zappr.ratios[channel.logo] : "0.75"};">

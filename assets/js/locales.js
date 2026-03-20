@@ -73,7 +73,9 @@ export default {
         newsInstructions: "Clicca su un titolo per leggere la notizia completa, oppure clicca su un'immagine per ingrandirla.",
         newsHosting: `Hosting del feed fornito da <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)`,
         newsURL: "https://mastodon.uno/@zappr.rss",
-        epgLoading: "L'EPG sarà disponibile a breve"
+        epgLoading: "L'EPG sarà disponibile a breve",
+        unreportableErrorDASHiOS: "Molto probabilmente il tuo dispositivo non supporta lo streaming di questo canale. Prova su un altro dispositivo.",
+        unreportableErrorFAST: "I link di questi canali vengono aggiornati automaticamente ogni giorno. Riprova più tardi o tra 24 ore."
     },
     en: {
         languageName: "English",
@@ -141,6 +143,8 @@ export default {
         newsInstructions: "Click on a title to read the full post, or click on an image to view it in full.",
         newsHosting: `Feed hosting provided by <a href="https://mastodonapp.uk" target="_blank">mastodonapp.uk</a> :)`,
         newsURL: "https://mastodonapp.uk/@zappr.rss",
-        epgLoading: "EPG will be available shortly"
+        epgLoading: "EPG will be available shortly",
+        unreportableErrorDASHiOS: "Your device most likely doesn't support this type of livestream. Try on another device.",
+        unreportableErrorFAST: "The links of these channels' livestreams are automatically updated every day. Try again later or in 24 hours."
     }
 }

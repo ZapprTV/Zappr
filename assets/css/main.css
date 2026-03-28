@@ -8,7 +8,14 @@
 #block-message {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 3rem;
+    height: 100%;
+    max-width: 50rem;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    margin: auto;
 }
 #block-message h2 {
     margin: 0;
@@ -16,6 +23,7 @@
 }
 #block-message .button {
     margin: 2rem 0;
+    margin-bottom: 0;
     line-height: 1.2;
     cursor: pointer;
 }

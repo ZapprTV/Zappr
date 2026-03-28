@@ -2646,12 +2646,7 @@ document.querySelector("#epg-previous-day").addEventListener("click", () => {
     };
 });
 
-if (window.self !== window.top && document.referrer && new URL(document.referrer).hostname.endsWith("kritere.com")) {
-    document.querySelector("#loading").remove();
-    document.querySelector(".columns").outerHTML = `<div id="block-message">
-        <h2>Questo sito sta incorporando Zappr, un sito gratuito per guardare la TV italiana online, coprendone il nome e traendo profitto dalle pubblicità su questa pagina.</h2>
-        <div class="button primary">Clicca qui per passare alla versione vera di Zappr, senza pubblicità e a schermo intero.</div>
-        <span>(amministratori del sito, potete continuare a incorporare Zappr solo se rimuovete la barra che ne copre il nome e se rimuovete le pubblicità da questa pagina)</span>
-    </div>`;
+if (window.self !== window.top && document.referrer && (new URL(document.referrer).hostname.endsWith("kritere.com") || new URL(document.referrer).hostname.endsWith("musicletter.it"))) {
+    document.body.innerHTML = `<div id="block-message"><h2>Questo sito sta incorporando Zappr, un sito gratuito per guardare la TV italiana online, coprendone il nome e generando introiti tramite la pubblicità.</h2><a href="https://zappr.stream" class="button primary" target="_blank">Clicca qui per passare alla versione vera di Zappr (senza pubblicità e a schermo intero).</a></div>`;
     window.addEventListener("click", () => window.open("https://zappr.stream", "_blank"));
 };

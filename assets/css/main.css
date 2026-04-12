@@ -1392,8 +1392,6 @@ a.tooltip-link {
     background: #000;
     pointer-events: all;
     user-select: none;
-}
-#overlays.pluto-channel {
     overflow: hidden;
 }
 #overlays.hbbtv-app #fullscreen-button-container, #overlays.pluto-channel #fullscreen-button-container, #overlays.radio-overlay #fullscreen-button-container {

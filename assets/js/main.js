@@ -432,7 +432,7 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
     textNodesUnder(document.querySelector("#region")).filter(el => el.textContent === ",").forEach(el => el.remove());
 };
 
-const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false, timeshift = 0 }) => {
+const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false, fallbackCSSFix = null, timeshift = 0 }) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
@@ -489,6 +489,15 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
             player.off("loadeddata");
         });
     };
+
+    // per disattivare di default i sottotitoli
+    // https://github.com/videojs/video.js/issues/8662#issuecomment-2188549956
+    player.on("loadedmetadata", function () {
+        for (let i = 0; i < player.tech_.textTracks_.length; i++) {
+            player.tech_.textTracks_[i].mode = "disabled";
+        };
+    });
+
     player.off("error");
     player.on("error", async () => {
         window.zappr.closeModal();
@@ -605,6 +614,12 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 logo: logo,
                 api: fallbackAPI
             });
+            if (fallbackCSSFix != undefined) {
+                if (document.querySelector(`style.cssfix[media=""]`) != null) {
+                    document.querySelector(`style.cssfix[media=""]`).media = "not all";
+                };
+                document.querySelector(`style.cssfix#${fallbackCSSFix}-fix`).media = "";
+            };
         };
     });
 
@@ -781,7 +796,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
     };
 };
 
-const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false, timeshift = 0 }) => {
+const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false, fallbackCSSFix = null, timeshift = 0 }) => {
     document.querySelector("#hide-player").media = "not all";
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
@@ -1033,7 +1048,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 });
         };
     } else {
-        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI, timeshift: timeshift })
+        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI, fallbackCSSFix: fallbackCSSFix, timeshift: timeshift })
     };
 };
 
@@ -1097,7 +1112,7 @@ const generateChannelHTML = (channel) => {
     return `
         ${channel.categorySeparator === undefined
             ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""}>
+                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${channel.license != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license="${channel.license}"` : ""} ${channel.license === undefined && typeof channel.geoblock === "object" && channel.geoblock.license && isGeoblocked ? `data-license="${channel.geoblock.license}"` : ""} ${channel.licensedetails != undefined && (!isGeoblocked || !channel.geoblock) ? `data-license-details="${channel.licensedetails}"` : ""} ${channel.licensedetails === undefined && typeof channel.geoblock === "object" && channel.geoblock.licensedetails && isGeoblocked ? `data-license-details="${channel.geoblock.licensedetails}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.fallback && channel.fallback.cssfix ? `data-fallback-cssfix="${channel.fallback.cssfix}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""}>
                     <div class="channel-info">
                         <div class="lcn">${channel.lcn}</div>
                         <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpdotcomdynamiclogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[channel.logo] ? zappr.ratios[channel.logo] : "0.75"};">
@@ -1343,6 +1358,7 @@ const channelOnClick = async (e) => {
             fallbackType: el.dataset.fallbackType,
             fallbackURL: el.dataset.fallbackUrl,
             fallbackAPI: el.dataset.fallbackApi,
+            fallbackCSSFix: el.dataset.fallbackCssfix,
             timeshift: el.dataset.timeshift
         });
     } else if ((["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) || e.target.nodeName === "B")) {

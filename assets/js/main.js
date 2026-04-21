@@ -974,6 +974,62 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 });
                 document.head.appendChild(acdSolutionsScript);
                 break;
+
+            case "wbd":
+                const channelModulesURL = await fetch(`https://datahub.enhanced.tools/live/it/${parameter}.json`)
+                    .then(response => response.json())
+                    .then(json => json.containers[0].configUrl.replaceAll("http://", "https://"));
+
+                const channelModules = await fetch(channelModulesURL)
+                    .then(response => response.json());
+                const channelConfigURL = channelModules.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://");
+                const channelConfig = await fetch(channelConfigURL)
+                    .then(response => response.json());
+
+                const channelID = channelConfig.launchers.filter(el => el.style === "restart")[0].interactiveItem.action.payload.id;
+
+                const authToken = await fetch("https://public.aurora.enhanced.live/token?realm=it")
+                    .then(response => response.json())
+                    .then(json => json.data.attributes.token);
+
+                const hlsURL = await fetch("https://public.aurora.enhanced.live/playback/v3/channelPlaybackInfo", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${authToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        deviceInfo: {
+                            adBlocker: false,
+                            drmSupported: false,
+                            hdrCapabilities: ["SDR"],
+                            hwDecodingCapabilities: [],
+                            soundCapabilities: ["STEREO"]
+                        },
+                        wisteriaProperties: {
+                            device: {
+                                browser: {
+                                    name: "chrome",
+                                    version: "38"
+                                },
+                                type: "desktop"
+                            },
+                            platform: "desktop"
+                        },
+                        channelId: channelID
+                    })
+                })
+                    .then(response => response.json())
+                    .then(json => json.data.attributes.streaming[0].url);
+
+                loadStream({
+                    type: type,
+                    url: hlsURL,
+                    name: name,
+                    lcn: lcn,
+                    logo: logo
+                });
+
         };
     } else if (license) {
         switch(license) {
@@ -1814,7 +1870,7 @@ let manualRestart = {
                         .then(response => response.json())
                         .then(json => json.data.attributes.token);
 
-                    const dashURL = await fetch("https://public.aurora.enhanced.live/playback/v3/channelPlaybackInfo", {
+                    const hlsURL = await fetch("https://public.aurora.enhanced.live/playback/v3/channelPlaybackInfo", {
                         method: "POST",
                         headers: {
                             "Authorization": `Bearer ${authToken}`,
@@ -1834,9 +1890,9 @@ let manualRestart = {
                                         name: "chrome",
                                         version: "38"
                                     },
-                                    type: "hbbtv"
+                                    type: "desktop"
                                 },
-                                platform: "hbbtv"
+                                platform: "desktop"
                             },
                             channelId: data.restartID
                         })
@@ -1844,11 +1900,11 @@ let manualRestart = {
                         .then(response => response.json())
                         .then(json => json.data.attributes.streaming[0].url);
 
-                    const canRestart = await fetch(`${dashURL}&aws.manifestsettings=start:${playoutStartTime}`)
+                    const canRestart = await fetch(`${hlsURL}&aws.manifestsettings=start:${playoutStartTime}`)
                         .then(response => response.ok);
 
                     if (canRestart) {
-                        await loadStream({ type: "dash", url: `${dashURL}&aws.manifestsettings=start:${playoutStartTime}`, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
+                        await loadStream({ type: "hls", url: `${hlsURL}&aws.manifestsettings=start:${playoutStartTime}`, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
                         seekToStart = () => {
                             if (player.liveTracker.isLive()) player.currentTime(data.buffer / 1000);
                             player.off("loadeddata", seekToStart);

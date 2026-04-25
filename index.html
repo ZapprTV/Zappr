@@ -361,6 +361,42 @@
                 <div id="controls" data-translation-id="lcnTyping"></div>
             </div>
         </div>
+        <script>
+            (function () {
+                const NativeXHR = window.XMLHttpRequest;
+
+                window.XMLHttpRequest = new Proxy(NativeXHR, {
+                    construct(target, args) {
+                        const xhr = new target(...args);
+
+                        return new Proxy(xhr, {
+                            get(obj, prop) {
+                                if (prop === "status") return obj.status === 405 ? 200 : obj.status;
+                                if (prop === "open") {
+                                    return function (method, url, ...rest) {
+                                        if (/^https:\/\/rai[a-z]+[0-9]{1}-live\.akamaized\.net/g.test(url) && !/^https:\/\/raievent[0-9]{1,2}-live\.akamaized\.net/g.test(url) && !/^https:\/\/radio[a-z]+-live\.akamaized\.net/g.test(url) && new URL(url).searchParams.get("aka_me_session_id") === null) {
+                                            if (new URL(url).searchParams.get("hdnea") === null) url += zappr.raiAkamai.auth;
+                                            if (/media_.*([0-9]+)\.ts/.test(new URL(url).pathname.split("/").filter(el => el).slice(-1)[0])) {
+                                                const segmentNumber = /media_.*([0-9]+)\.ts/.exec(new URL(url).pathname.split("/").filter(el => el).slice(-1)[0])[1];
+                                                url += `&aka_me_session_id=${encodeURI(zappr.raiAkamai.sessionID)}&aka_msn=${segmentNumber}&aka_hls_version=3&aka_media_format_type=hls`;
+                                            };
+                                        };
+                                        return obj.open(method, url, ...rest);
+                                    };
+                                };
+
+                                const val = obj[prop];
+                                return typeof val === "function" ? val.bind(obj) : val;
+                            },
+                            set(obj, prop, value) {
+                                obj[prop] = value;
+                                return true;
+                            }
+                        });
+                    }
+                });
+            })();
+        </script>
         <script type="module">
             if (typeof navigator.serviceWorker != "undefined") {
                 navigator.serviceWorker.register(new URL("/assets/js/sw.js", import.meta.url));

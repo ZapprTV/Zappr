@@ -1054,19 +1054,18 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     if (window.zappr.raiAkamai != undefined && window.zappr.raiAkamai.expiration - Math.floor(Date.now() / 1000) > 10) {
                         auth = window.zappr.raiAkamai.auth;
                     } else {
-                        await fetch(`${window["zappr"].config.backend.host["alwaysdata"]}/rai-akamai`, { method: "POST" })
-                            .then(response => response.text())
-                            .then(search => auth = search);
+                        const authData = await fetch(`${window["zappr"].config.backend.host["alwaysdata"]}/rai-akamai`, { method: "POST" })
+                            .then(response => response.json());
                         
                         window.zappr.raiAkamai = {
-                            auth: auth,
-                            expiration: parseInt(new URLSearchParams(auth).get("hdnea").split("~").filter(el => el.startsWith("exp"))[0].split("=")[1])
+                            ...authData,
+                            expiration: parseInt(new URLSearchParams(authData.auth).get("hdnea").split("~").filter(el => el.startsWith("exp"))[0].split("=")[1])
                         };
                     };
     
                     loadStream({
                         type: type,
-                        url: `${url}${auth}`,
+                        url: `${url}${zappr.raiAkamai.auth}`,
                         name: name,
                         lcn: lcn,
                         logo: logo,

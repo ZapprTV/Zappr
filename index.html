@@ -376,6 +376,7 @@
                                     return function (method, url, ...rest) {
                                         if (/^https:\/\/rai[a-z]+[0-9]{1}-live\.akamaized\.net/g.test(url) && !/^https:\/\/raievent[0-9]{1,2}-live\.akamaized\.net/g.test(url) && !/^https:\/\/radio[a-z]+-live\.akamaized\.net/g.test(url) && new URL(url).searchParams.get("aka_me_session_id") === null) {
                                             if (new URL(url).searchParams.get("hdnea") === null) url += zappr.raiAkamai.auth;
+                                            if (new URL(url).pathname.split("/").filter(el => el).slice(-1)[0].endsWith(".m3u8")) url += `&t=${Date.now()}`;
                                             if (/media_.*([0-9]+)\.ts/.test(new URL(url).pathname.split("/").filter(el => el).slice(-1)[0])) {
                                                 const segmentNumber = /media_.*([0-9]+)\.ts/.exec(new URL(url).pathname.split("/").filter(el => el).slice(-1)[0])[1];
                                                 url += `&aka_me_session_id=${encodeURI(zappr.raiAkamai.sessionID)}&aka_msn=${segmentNumber}&aka_hls_version=3&aka_media_format_type=hls`;

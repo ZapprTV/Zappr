@@ -976,18 +976,6 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 break;
 
             case "wbd":
-                const channelModulesURL = await fetch(`https://datahub.enhanced.tools/live/it/${parameter}.json`)
-                    .then(response => response.json())
-                    .then(json => json.containers[0].configUrl.replaceAll("http://", "https://"));
-
-                const channelModules = await fetch(channelModulesURL)
-                    .then(response => response.json());
-                const channelConfigURL = channelModules.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://");
-                const channelConfig = await fetch(channelConfigURL)
-                    .then(response => response.json());
-
-                const channelID = channelConfig.launchers.filter(el => el.style === "restart")[0].interactiveItem.action.payload.id;
-
                 const authToken = await fetch("https://public.aurora.enhanced.live/token?realm=it")
                     .then(response => response.json())
                     .then(json => json.data.attributes.token);
@@ -1012,15 +1000,15 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                                     name: "chrome",
                                     version: "38"
                                 },
-                                type: "desktop"
+                                type: "mobile"
                             },
-                            platform: "desktop"
+                            platform: "mobile"
                         },
-                        channelId: channelID
+                        channelId: parameter
                     })
                 })
                     .then(response => response.json())
-                    .then(json => json.data.attributes.streaming[0].url);
+                    .then(json => json.data.attributes.streaming.filter(stream => stream.type === "hls")[0].url);
 
                 loadStream({
                     type: type,

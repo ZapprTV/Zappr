@@ -1780,46 +1780,6 @@ let manualRestart = {
     run: async (channel, source, data) => {
         let seekToStart = () => {};
         switch (source) {
-            case "mediaset":
-                const restartInfo = await fetch(`${data.restartUrl}?auto=true&balance=true&format=SMIL&formats=MPEG-DASH,MPEG4,M3U&tracking=true&assetTypes=HD,browser,widevine,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,widevine,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo`)
-                    .then(response => response.text())
-                    .then(smil => new DOMParser().parseFromString(smil, "text/xml"));
-                
-                const restartURL = restartInfo.querySelector("ref").getAttribute("src").replaceAll("manifest_hr.mpd", "manifest.mpd");
-                if (restartURL.includes("widevine")) {
-                    const authToken = await fetch("https://api-ott-prod-fe.mediaset.net/PROD/play/idm/anonymous/login/v2.0", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            "appName": "web//mediasetplay-web/5.11.8-f16d93c",
-                            "client_id": "994957a4-c91e-4e18-8236-f50c1b8e707f"
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(json => json.response.beToken);
-
-                    const releasePID = restartInfo.querySelector("param").getAttribute("value").split("|").filter(el => el.startsWith("pid="))[0].split("=")[1];
-                    await loadStream({ type: "dash", url: restartURL, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo, drm: {
-                        "com.widevine.alpha": `https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid=${releasePID}&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token=${authToken}`
-                    } });
-
-                } else {
-                    const hlsRestartInfo = await fetch(`${data.restartUrl}?auto=true&balance=true&format=SMIL&formats=MPEG4,M3U&tracking=true&assetTypes=HD,browser,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo`)
-                        .then(response => response.text())
-                        .then(smil => new DOMParser().parseFromString(smil, "text/xml"));
-
-                    const hlsRestartURL = hlsRestartInfo.querySelector("ref").getAttribute("src");
-                    await loadStream({ type: "hls", url: hlsRestartURL, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
-                };
-                seekToStart = () => {
-                    if (player.liveTracker.isLive()) player.currentTime(0);
-                    player.off("loadeddata", seekToStart);
-                };
-                player.on("loadeddata", seekToStart);
-                break;
-
             case "la7":
                 await fetch(`https://www.la7.it/getVideoInfoHbbtv?nid=${data}`)
                     .then(response => response.json())
@@ -1940,20 +1900,6 @@ let manualRestart = {
                                 .then(json => DateTime.fromISO(json.on_air.filter(el => el.palinsesto_url === id)[0].currentItem.tech_datetime_en).toMillis() + 25000);
                             addAutoRestart(els[el], onAirStartTime, true);
                         } else if (startTime.ts >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && startTime.ts <= DateTime.now().ts) addAutoRestart(els[el], startTime.ts, true);
-                    };
-                    break;
-
-                case "mediaset":
-                    if (ipLocation === selectedCountry) {
-                        if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
-                        else {
-                            json = await fetch(`https://static-api.mediaset.net/apigw/nownext/${id}.json`)
-                                .then(response => response.json());
-                            manualRestart.fetchCache[source] = {};
-                            manualRestart.fetchCache[source][id] = json;
-                        };
-
-                        if (els[el].classList.contains("on-air") && json.response.currentListing.mediasetlisting$restartAllowed) manualRestart.addButton(els[el], channel, source, json.response.currentListing);
                     };
                     break;
 

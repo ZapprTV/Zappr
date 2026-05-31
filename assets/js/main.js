@@ -1216,7 +1216,6 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
         });
 } else {
     window.zappr.channels = window.zappr.nationalChannels;
-    if (selectedCountry === "it") window.zappr.channels.filter(ch => ch.lcn === 103)[0].lcn = 3;
 };
 
 let fastChannelsPresent = false;

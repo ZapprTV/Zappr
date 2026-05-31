@@ -1036,43 +1036,6 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     });
                 break;
 
-            case "rai-akamai":
-                if (ipLocation === selectedCountry) {
-                    let auth;
-                    if (window.zappr.raiAkamai != undefined && window.zappr.raiAkamai.expiration - Math.floor(Date.now() / 1000) > 10) {
-                        auth = window.zappr.raiAkamai.auth;
-                    } else {
-                        const authData = await fetch(`${window["zappr"].config.backend.host["alwaysdata"]}/rai-akamai`, { method: "POST" })
-                            .then(response => response.json());
-                        
-                        window.zappr.raiAkamai = {
-                            ...authData,
-                            expiration: parseInt(new URLSearchParams(authData.auth).get("hdnea").split("~").filter(el => el.startsWith("exp"))[0].split("=")[1])
-                        };
-                    };
-    
-                    loadStream({
-                        type: type,
-                        url: `${url}${zappr.raiAkamai.auth}`,
-                        name: name,
-                        lcn: lcn,
-                        logo: logo,
-                        fallbackType: fallbackType,
-                        fallbackURL: fallbackURL,
-                        fallbackAPI: fallbackAPI
-                    });
-                } else {
-                    loadStream({
-                        type: type,
-                        url: url,
-                        name: name,
-                        lcn: lcn,
-                        logo: logo,
-                        api: api
-                    });
-                };
-                break;
-
             case "clearkey":
                 let params = { url };
                 if (licenseDetails) {
@@ -1334,10 +1297,6 @@ const channelOnClick = async (e) => {
         };
         currentlyPlaying = el;
 
-        if (state.schedule != {}) {
-            createScheduler("").remove();
-        };
-
         if (document.querySelector(".watching") != null) {
             document.querySelector(".watching").classList.remove("watching");
         };
@@ -1345,14 +1304,6 @@ const channelOnClick = async (e) => {
             document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
         };
         el.classList.add("watching");
-
-        if (el.dataset.lcn === "3" && el.dataset.name.includes("TGR")) {
-            const regionalPrograms = await fetch("https://www.rainews.it/dl/rai24/assets/json/palinsesto-tgr.json")
-                .then(response => response.json());
-
-            createScheduler(regionalPrograms).start();
-            return;
-        };
 
         if (document.querySelector(`style.cssfix[media=""]`) != null) {
             document.querySelector(`style.cssfix[media=""]`).media = "not all";
@@ -1586,177 +1537,6 @@ const adultChannelConfirmation = async (night = false) => {
     });
 };
 
-const state = {
-    schedule: {},
-    timeouts: new Map(),
-    playingRegional: false
-};
-  
-const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours * 60 + minutes;
-};
-  
-const getCurrentTime = () => {
-    const now = new Date();
-    return now.getHours() * 60 + now.getMinutes();
-};
-  
-const getCurrentDay = () => new Date().getDay();
-
-const isSpecificDate = (program) => "day" in program;
-
-const isProgramActive = (program) => {
-    const now = new Date();
-    const currentTime = getCurrentTime();
-    const startTime = parseTime(program.from);
-    const endTime = parseTime(program.to);
-    
-    if (isSpecificDate(program)) {
-        const programDate = new Date(program.day);
-        const isSameDate = now.toDateString() === programDate.toDateString();
-        return isSameDate && currentTime >= startTime && currentTime < endTime;
-    };
-    
-    const currentDay = getCurrentDay();
-    return program.days.includes(currentDay) && currentTime >= startTime && currentTime < endTime;
-};
-
-const getNextAirTime = (program) => {
-    const now = new Date();
-    const currentTime = getCurrentTime();
-    const startTime = parseTime(program.from);
-
-    if (isSpecificDate(program)) {
-        const programDate = new Date(program.day);
-        if (programDate >= now && (programDate.getDate() !== now.getDate() || currentTime < startTime)) {
-            return new Date(program.day + " " + program.from);
-        };
-        return null;
-    };
-
-    let nextDate = new Date();
-    let daysToAdd = 0;
-    const currentDay = getCurrentDay();
-
-    if (currentTime >= startTime) {
-        const nextDayIndex = program.days.find(day => day > currentDay);
-        if (nextDayIndex !== undefined) {
-            daysToAdd = nextDayIndex - currentDay;
-        } else {
-            daysToAdd = 7 - currentDay + program.days[0];
-        };
-    } else if (!program.days.includes(currentDay)) {
-        const nextDayIndex = program.days.find(day => day > currentDay);
-        if (nextDayIndex !== undefined) {
-            daysToAdd = nextDayIndex - currentDay;
-        } else {
-            daysToAdd = 7 - currentDay + program.days[0];
-        };
-    };
-
-    nextDate.setDate(nextDate.getDate() + daysToAdd);
-    nextDate.setHours(...program.from.split(":"), 0, 0);
-    return nextDate;
-};
-
-const scheduleProgram = (program) => {
-    if (isProgramActive(program)) {
-        const now = new Date();
-        const endTime = new Date(now.toDateString() + " " + program.to);
-        const timeUntilEnd = endTime.getTime() - now.getTime();
-        
-        const endTimeoutId = setTimeout(() => {
-            loadChannel({
-                type: window.zappr.channels.filter(el => el.lcn === 103)[0].type,
-                url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
-                name: "Rai 3",
-                lcn: 103,
-                logo: getChannelLogoURL("rai3.svg"),
-                license: window.zappr.channels.filter(el => el.lcn === 103)[0].license
-            });
-            scheduleProgram(program);
-        }, timeUntilEnd);
-        
-        state.timeouts.set(`${program.title}-end`, endTimeoutId);
-        loadChannel({
-            type: window.zappr.channels.filter(el => el.lcn === 3)[0].type,
-            url: window.zappr.channels.filter(el => el.lcn === 3)[0].url,
-            name: window.zappr.channels.filter(el => el.lcn === 3)[0].name,
-            lcn: 3,
-            logo: getChannelLogoURL("rai3.svg")
-        });
-        state.playingRegional = true;
-        return;
-    } else if (!state.playingRegional) {
-        loadChannel({
-            type: window.zappr.channels.filter(el => el.lcn === 103)[0].type,
-            url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
-            name: "Rai 3",
-            lcn: 103,
-            logo: getChannelLogoURL("rai3.svg"),
-            license: window.zappr.channels.filter(el => el.lcn === 103)[0].license
-        });
-    };
-
-    const nextAirTime = getNextAirTime(program);
-    if (!nextAirTime) return;
-
-    const timeUntilAir = nextAirTime.getTime() - new Date().getTime();
-    if (timeUntilAir <= 0) return;
-
-    const timeoutId = setTimeout(() => {
-        loadStream({
-            type: window.zappr.channels.filter(el => el.lcn === 3)[0].type,
-            url: window.zappr.channels.filter(el => el.lcn === 3)[0].url,
-            name: window.zappr.channels.filter(el => el.lcn === 3)[0].name,
-            lcn: 3,
-            logo: getChannelLogoURL("rai3.svg")
-        });
-        state.playingRegional = true;
-        
-        const endTime = new Date(nextAirTime.toDateString() + " " + program.to);
-        const timeUntilEnd = endTime.getTime() - nextAirTime.getTime();
-        
-        const endTimeoutId = setTimeout(() => {
-            loadStream({
-                type: window.zappr.channels.filter(el => el.lcn === 103)[0].type,
-                url: window.zappr.channels.filter(el => el.lcn === 103)[0].url,
-                name: "Rai 3",
-                lcn: 103,
-                logo: getChannelLogoURL("rai3.svg")
-            });
-            scheduleProgram(program);
-        }, timeUntilEnd);
-        
-        state.timeouts.set(`${program.title}-end`, endTimeoutId);
-      }, timeUntilAir);
-    
-
-    state.timeouts.set(program.title, timeoutId);
-};
-
-const start = (scheduleData) => {
-    state.schedule = scheduleData;
-
-    Object.values(scheduleData).flat().forEach(scheduleProgram);
-};
-
-const remove = () => {
-    for (const timeoutId of state.timeouts.values()) {
-        clearTimeout(timeoutId);
-    };
-
-    state.timeouts.clear();
-    state.schedule = {};
-    state.playingRegional = false;
-};
-
-const createScheduler = (scheduleData) => ({
-    start: () => start(scheduleData),
-    remove: () => remove()
-});
-
 const addAutoRestart = (el, startTime, manual) => {
     if (!el.querySelector(".epg-restart")) {
         el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart${manual ? " manual": ""}"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
@@ -1892,17 +1672,6 @@ let manualRestart = {
             let json;
 
             switch (source) {
-                case "rai":
-                    if (ipLocation === selectedCountry) {
-                        if (els[el].classList.contains("on-air")) {
-                            const onAirStartTime = await fetch(`https://www.raiplay.it/palinsesto/onAir.json`)
-                                .then(response => response.json())
-                                .then(json => DateTime.fromISO(json.on_air.filter(el => el.palinsesto_url === id)[0].currentItem.tech_datetime_en).toMillis() + 25000);
-                            addAutoRestart(els[el], onAirStartTime, true);
-                        } else if (startTime.ts >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && startTime.ts <= DateTime.now().ts) addAutoRestart(els[el], startTime.ts, true);
-                    };
-                    break;
-
                 case "la7":
                     if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
                     else {

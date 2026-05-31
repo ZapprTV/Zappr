@@ -731,10 +731,6 @@ body:not(.androidtv) .channel-program-end-time {
     font-size: 0.9rem;
     text-decoration: none;
 }
-#epg[data-epg-source="raiplay"] .epg-watch::after {
-    content: "su RaiPlay";
-    margin-left: -0.25rem;
-}
 .epg-buttons img {
     height: 1rem;
     filter: invert(1);

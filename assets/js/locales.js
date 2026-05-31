@@ -99,7 +99,7 @@ export default {
         <br><br>
         <a href="https://ko-fi.com/FrancescoRosi" target="_blank" class="tooltip-link" id="donation-link">Send a donation :)</a>
         <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">View the source code on GitHub</a>
-        <div class="tooltip-link" id="news-links">Stay up to date with the latest by following us on <a href="https://x.com/ZapprStreamUK" target="_blank">Twitter</a> or <a href="https://mastodonapp.uk/@zappr" target="_blank">Mastodon</a></div>
+        <div class="tooltip-link" id="news-links">Stay up to date with the latest by following us on <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> or <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
         <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contact us via email</a>`,
         playerLanguageCSS: `.epg-item-container::after {
             content: "The requested programme will start shortly" !important;
@@ -141,8 +141,8 @@ export default {
         welcomeTitle: "Welcome to Zappr!",
         welcomeText: "Zappr allows you to watch your country's free-to-air channels, national and local <span class=\"italic\">(remember to set your country and region in the settings!)</span>.<br><br>To start watching a channel, click on it or type its channel number on your keyboard and press <b>Enter</b>. To zap between channels, use the <b>PageDown</b> and <b>PageUp</b> keys.<br><br>That's all for now. <b>Enjoy!</b>",
         newsInstructions: "Click on a title to read the full post, or click on an image to view it in full.",
-        newsHosting: `Feed hosting provided by <a href="https://mastodonapp.uk" target="_blank">mastodonapp.uk</a> :)`,
-        newsURL: "https://mastodonapp.uk/@zappr.rss",
+        newsHosting: `Feed hosting provided by <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)`,
+        newsURL: "https://mastodon.uno/@zappr.rss",
         epgLoading: "EPG will be available shortly",
         unreportableErrorDASHiOS: "Your device most likely doesn't support this type of livestream. Try on another device.",
         unreportableErrorFAST: "The links of these channels' livestreams are automatically updated every day. Try again later or in 24 hours."

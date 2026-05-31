@@ -32,15 +32,5 @@ export default {
                 sicilia: "Sicilia"
             }
         }
-    },
-    uk: {
-        name: "United Kingdom",
-        location: "uk/freeview",
-        nationalBase: true,
-        regions: {
-            "England": {
-                london: "London"
-            }
-        }
     }
 }

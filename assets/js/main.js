@@ -11,15 +11,13 @@ import countries from "./countries";
 let ipLocation = await fetch("https://zappr.stream/cdn-cgi/trace")
     .then(response => response.text())
     .then(trace => trace.split("\n").filter(el => el.startsWith("loc="))[0].split("=")[1].toLowerCase())
-    .catch(() => "uk");
+    .catch(() => "it");
 
-ipLocation = ipLocation in countries ? ipLocation : "uk";
+ipLocation = ipLocation in countries ? ipLocation : "it";
 
 const isFirstVisit = JSON.stringify(localStorage) === "{}";
 const getCountry = () => {
-    if (new URLSearchParams(location.search).get("androidtv") != null) return "it";
-    if (localStorage.getItem("videojs-vhs") && !localStorage.getItem("country")) localStorage.setItem("country", "it")
-    else if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
+    if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
     if (ipLocation && !localStorage.getItem("country")) {
         localStorage.setItem("country", ipLocation);
         return ipLocation;
@@ -31,6 +29,10 @@ const getLanguage = () => {
 };
 
 let selectedCountry = getCountry();
+if (!countries[selectedCountry]) {
+    localStorage.setItem("country", "it");
+    selectedCountry = "it";
+};
 let selectedLanguage = getLanguage();
 try {
     if (!Object.keys(Object.assign({}, ...Object.keys(countries[selectedCountry].regions).map(group => countries[selectedCountry].regions[group]))).includes(localStorage.getItem("region"))) localStorage.removeItem("region");

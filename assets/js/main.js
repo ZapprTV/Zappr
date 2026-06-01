@@ -11,12 +11,14 @@ import countries from "./countries";
 let ipLocation = await fetch("https://zappr.stream/cdn-cgi/trace")
     .then(response => response.text())
     .then(trace => trace.split("\n").filter(el => el.startsWith("loc="))[0].split("=")[1].toLowerCase())
-    .catch(() => "it");
-
-ipLocation = ipLocation in countries ? ipLocation : "it";
+    .catch(() => "xx");
 
 const isFirstVisit = JSON.stringify(localStorage) === "{}";
 const getCountry = () => {
+    if (!countries[ipLocation]) {
+        localStorage.setItem("country", "it");
+        return "it";
+    };
     if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
     if (ipLocation && !localStorage.getItem("country")) {
         localStorage.setItem("country", ipLocation);

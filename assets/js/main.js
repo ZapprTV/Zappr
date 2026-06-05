@@ -1060,6 +1060,23 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     fallbackURL: fallbackURL,
                     fallbackAPI: fallbackAPI
                 });
+                break;
+
+            case "widevine":
+                loadStream({
+                    type: type,
+                    url: url,
+                    name: name,
+                    lcn: lcn,
+                    logo: logo,
+                    fallbackType: fallbackType,
+                    fallbackURL: fallbackURL,
+                    fallbackAPI: fallbackAPI,
+                    drm: {
+                        "com.widevine.alpha": JSON.parse(decodeURIComponent(licenseDetails))
+                    }
+                });
+
         };
     } else {
         await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI, fallbackCSSFix: fallbackCSSFix, timeshift: timeshift })

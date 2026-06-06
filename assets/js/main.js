@@ -579,7 +579,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                         info: `MEDIA_ERR_NETWORK: ${httpError ? httpError : `${locale["unknownErrorInfo"]}.`}`
                     }
                 });
-            } else if (player.error().code === 1 || player.error().code === 5) {
+            } else if (player.error().code === 1 || (player.error().code === 5 && currentType != "iframe")) {
                 let errors = {
                     1: "MEDIA_ERR_ABORTED",
                     2: "MEDIA_ERR_NETWORK",

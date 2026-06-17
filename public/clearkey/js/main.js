@@ -41,5 +41,15 @@ if (finalURL) {
         if (playerOptions["clearkeyPlayer.audioLanguage"] && player.getAudioLanguages().includes(playerOptions["clearkeyPlayer.audioLanguage"])) player.selectAudioLanguage(playerOptions["clearkeyPlayer.audioLanguage"]);
 
         window.player = player;
+
+        if (playerOptions["clearkeyPlayer.redirectTo"] && parseInt(playerOptions["clearkeyPlayer.redirectToAfterMs"])) {
+            setTimeout(async () => {
+                const redirectTo = await fetch(playerOptions["clearkeyPlayer.redirectTo"])
+                    .then(response => response.url)
+                    .catch(() => playerOptions["clearkeyPlayer.redirectTo"]);
+                
+                window.location.href = redirectTo;
+            }, parseInt(playerOptions["clearkeyPlayer.redirectToAfterMs"]));
+        };
     });
 };

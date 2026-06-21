@@ -24,7 +24,7 @@ jobs:
       - name: Installa pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 8.14.0
 
       - name: Installa dipendenze e builda
         run: |

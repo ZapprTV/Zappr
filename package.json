@@ -43,6 +43,7 @@
     "videojs-plyr": "^1.0.3"
   },
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "isomorphic-git": "^1.25.2",
     "rollup": "^4.62.2",
     "vite": "^8.0.16",

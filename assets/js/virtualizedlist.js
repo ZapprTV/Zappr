@@ -112,6 +112,7 @@ export default class VirtualizedList {
                 itemDiv = document.createElement("div");
                 
                 const content = this.renderFunction(this.items[i], i);
+                if (!content) continue;
                 itemDiv.innerHTML = content;
                 itemDiv = itemDiv.children[0];
                 if (this.onClick) {

@@ -1,18 +1,25 @@
-import videojs from "video.js";
-import "videojs-contrib-quality-menu";
-import { DateTime } from "luxon";
-import mediumZoom from "medium-zoom";
-import { merge } from "lodash";
-import "videojs-contrib-eme";
-import VirtualList from "./virtualizedlist";
+const videojs = (await import("video.js")).default;
+await import("videojs-contrib-quality-menu");
+const { DateTime } = await import("luxon");
+await import("videojs-contrib-eme");
+const VirtualList = (await import("./virtualizedlist")).default;
 import locales from "./locales";
 import countries from "./countries";
+
+const restartIcon = (await import("/assets/icons/restart.svg?url")).default;
+const playIcon = (await import("/assets/icons/play.svg?url")).default;
+const listIcon = (await import("/assets/icons/list.svg?url")).default;
+const editIcon = (await import("/assets/icons/edit.svg?url")).default;
+const deleteIcon = (await import("/assets/icons/delete.svg?url")).default;
+const tvIcon = (await import("/assets/icons/tv.svg?url")).default;
+const shareIcon = (await import("/assets/icons/share.svg?url")).default;
 
 let ipLocation = await fetch("https://zappr.stream/cdn-cgi/trace")
     .then(response => response.text())
     .then(trace => trace.split("\n").filter(el => el.startsWith("loc="))[0].split("=")[1].toLowerCase())
     .catch(() => "xx");
 
+if (!localStorage.getItem("selected-base-list") && localStorage.getItem("country")) document.querySelector("#my-list-icon .promo-tooltip").classList.add("active");
 const isFirstVisit = JSON.stringify(localStorage) === "{}";
 const getCountry = () => {
     if (!countries[ipLocation]) {
@@ -96,6 +103,10 @@ document.querySelectorAll("[data-translation-id], [data-translation-hide]").forE
         if (languages.includes(language)) el.remove();
     };
 });
+
+const baseLists = JSON.parse(localStorage.getItem("base-lists")) ?? {};
+const additionalLists = JSON.parse(localStorage.getItem("additional-lists")) ?? {};
+if (!localStorage.getItem("selected-base-list") || (!baseLists[localStorage.getItem("selected-base-list")] && localStorage.getItem("selected-base-list") != "favorites")) localStorage.setItem("selected-base-list", "default");
 
 await fetch("/config.json")
     .then(response => response.json())
@@ -189,7 +200,13 @@ const player = videojs("tv", {
 window.zappr.player = player;
 window.zappr.videojs = videojs;
 
-player.on("fullscreenchange", () => screen.orientation.lock("landscape-primary").catch(() => {}));
+player.on("fullscreenchange", () => {
+    if (document.fullscreenElement) {
+        screen.orientation.lock("landscape-primary").catch(() => {});
+    } else {
+        screen.orientation.unlock().catch(() => {});
+    };
+});
 player.on("loadeddata", () => {
     if (player.liveTracker.isLive() && !player.scrubbing() && !player.seeking()) {
         player.liveTracker.seekToLiveEdge();
@@ -215,7 +232,6 @@ if (window.matchMedia("(max-width: 100vh)").matches) {
             if (now - skippingLastCallTime >= 300) {
                 skippingLastCallTime = now;
                 skippingWasDoubleClicking = true;
-                console.log("Double click registered");
                 if (e.touches[0].clientX <= window.innerWidth / 3) {
                     document.querySelector(".video-js").dataset.skippingDeactivating = "";
                     document.querySelector(".video-js").dataset.skipping = "backwards";
@@ -264,7 +280,7 @@ window.zappr.closeModal = () => {
     };
 };
 
-const createErrorModal = async ({ title, error, info, params, type }) => {
+const createErrorModal = async ({ title, error, info, params, type, additional = false }) => {
     let urlParams = new URLSearchParams(params).toString();
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
@@ -282,7 +298,7 @@ const createErrorModal = async ({ title, error, info, params, type }) => {
             </div>
             <div class="code" onclick="copyInfo()">${info}</div>    
             ` : ""}
-            <p id="report-error">${type === "dash" && isiOS
+            ${!additional && localStorage.getItem("selected-base-list") === "default" && localStorage.getItem("selected-base-list") === "favorites" ? `<p id="report-error">${type === "dash" && isiOS
                 ? locale["unreportableErrorDASHiOS"]
                 : params.lcn >= 1000
                     ? locale["unreportableErrorFAST"]
@@ -302,7 +318,7 @@ ${locale["errorEmailFooter"]}
                     ${locale["reportViaEmail"]}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#000" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z"></path></svg>
                 </a>
-            </div>` : ""}
+            </div>` : ""}` : ""}
         </div>
     </div>`;
 
@@ -436,7 +452,7 @@ if (new URLSearchParams(location.search).get("androidtv") != null) {
     textNodesUnder(document.querySelector("#region")).filter(el => el.textContent === ",").forEach(el => el.remove());
 };
 
-const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false, fallbackCSSFix = null, fallbackLicense = null, fallbackLicenseDetails = null, timeshift = 0 }) => {
+const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, feed = false, drm = null, fallbackType = null, fallbackURL = null, fallbackAPI = false, fallbackCSSFix = null, fallbackLicense = null, fallbackLicenseDetails = null, timeshift = 0, additional = false }) => {
     if (api) {
         url = `${window["zappr"].config.backend.host[api]}/api?${url}`;
     };
@@ -542,7 +558,8 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                         name: name,
                         lcn: lcn,
                         info: `MEDIA_ERR_SRC_NOT_SUPPORTED: ${httpError ? httpError : `${locale["unknownErrorInfo"]}.`}`
-                    }
+                    },
+                    additional: additional
                 });
             } else if (player.error().code === 3) {
                 let videojsLog = videojs.log.history().slice(Math.max(videojs.log.history().length - 50, 1)).map(el => el.map(key => typeof key === "object" ? JSON.stringify(key) : key).join(" ")).join("\n");
@@ -558,7 +575,8 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                         name: name,
                         lcn: lcn,
                         info: videojsLog
-                    }
+                    },
+                    additional: additional
                 });
             } else if (player.error().code === 2) {
                 let httpError;
@@ -577,7 +595,8 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                         name: name,
                         lcn: lcn,
                         info: `MEDIA_ERR_NETWORK: ${httpError ? httpError : `${locale["unknownErrorInfo"]}.`}`
-                    }
+                    },
+                    additional: additional
                 });
             } else if (player.error().code === 1 || (player.error().code === 5 && currentType != "iframe")) {
                 let errors = {
@@ -606,7 +625,8 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                         name: name,
                         lcn: lcn,
                         info: `${httpStatus ? `HTTP: ${httpStatus} - ` : ""}Video.js (${errors[player.error().code]}): ${videojsLog}`
-                    }
+                    },
+                    additional: additional
                 });
             };
         } else if (fallbackType != null && fallbackURL != null) {
@@ -618,7 +638,8 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                 logo: logo,
                 api: fallbackAPI,
                 license: fallbackLicense,
-                licenseDetails: fallbackLicenseDetails
+                licenseDetails: fallbackLicenseDetails,
+                additional: additional
             });
             if (fallbackCSSFix != undefined) {
                 if (document.querySelector(`style.cssfix[media=""]`) != null) {
@@ -708,23 +729,23 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
 
         if (!window.zappr.popupPlayer) {
             createModal({
-                title: "Accesso ai popup negato",
-                text: `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
+                title: locale["popupAccessDeniedTitle"],
+                text: locale["popupAccessDeniedText"](name),
                 buttons: [{
                     type: "primary",
                     href: url,
                     newtab: true,
-                    text: "Apri in una nuova finestra"
+                    text: locale["openInNewWindow"]
                 },
                 {
                     type: "secondary",
                     href: "javascript:window.zappr.closeModal();",
-                    text: "Chiudi"
+                    text: locale["closeModal"]
                 }]
             });
         };
         window.addEventListener("unload", () => window.zappr.popupPlayer.close());
-        document.querySelector("#overlays").insertAdjacentHTML("afterbegin", `<a href="#" id="reopen-window"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h6q.425 0 .713.288T12 4t-.288.713T11 5H5v14h14v-6q0-.425.288-.712T20 12t.713.288T21 13v6q0 .825-.587 1.413T19 21zM19 6.4L10.4 15q-.275.275-.7.275T9 15t-.275-.7t.275-.7L17.6 5H15q-.425 0-.712-.288T14 4t.288-.712T15 3h5q.425 0 .713.288T21 4v5q0 .425-.288.713T20 10t-.712-.288T19 9z"/></svg>Riapri player</a>`);
+        document.querySelector("#overlays").insertAdjacentHTML("afterbegin", `<a href="#" id="reopen-window"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" viewBox="0 0 24 24"><path fill="#fff" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h6q.425 0 .713.288T12 4t-.288.713T11 5H5v14h14v-6q0-.425.288-.712T20 12t.713.288T21 13v6q0 .825-.587 1.413T19 21zM19 6.4L10.4 15q-.275.275-.7.275T9 15t-.275-.7t.275-.7L17.6 5H15q-.425 0-.712-.288T14 4t.288-.712T15 3h5q.425 0 .713.288T21 4v5q0 .425-.288.713T20 10t-.712-.288T19 9z"/></svg>${locale["popupReopenPlayer"]}</a>`);
         document.querySelector("#reopen-window").addEventListener("click", () => {
             if (window.zappr.popupPlayer.closed) document.querySelector(".channel.watching").click()
             else window.zappr.popupPlayer.focus();
@@ -802,7 +823,7 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
     };
 };
 
-const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false, fallbackCSSFix = null, fallbackLicense = null, fallbackLicenseDetails = null, timeshift = 0 }) => {
+const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, radio = false, http = false, license = false, licenseDetails = null, feed = false, fallbackType = null, fallbackURL = null, fallbackAPI = false, fallbackCSSFix = null, fallbackLicense = null, fallbackLicenseDetails = null, timeshift = 0, additional = false }) => {
     document.querySelector("#hide-player").media = "not all";
     if (url.startsWith("zappr://")) {
         const parameter = url.split("/")[3];
@@ -817,7 +838,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: json.streaming_url,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -831,7 +853,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: json.main,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -863,7 +886,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: json.srcs[0].uniqueStreamer,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -881,7 +905,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: type === "youtube" ? videoId : videoURL.replaceAll("/embed/", "/watch?v="),
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -897,7 +922,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: xml.querySelector("url").textContent,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -911,7 +937,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: json.channels.filter(ch => ch.logicalChannel == parameter)[0].urls[0].url,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -926,7 +953,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                                 url: json.Data.Buttons.filter(el => el[0].Id == url.split("/")[6])[0][0].Media.HLS,
                                 name: name,
                                 lcn: lcn,
-                                logo: logo
+                                logo: logo,
+                                additional: additional
                             });
                         });
                 }
@@ -945,7 +973,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: json.streams[0].url,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                         setTimeout(() => {
                             if (document.querySelector(".watching").dataset.url === url) {
@@ -954,7 +983,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                                     url: url,
                                     name: name,
                                     lcn: lcn,
-                                    logo: logo
+                                    logo: logo,
+                                    additional: additional
                                 });
                             };
                         }, ((json.expire_time - DateTime.now().toSeconds()) * 1000) - 3000);
@@ -968,7 +998,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                         url: url,
                         name: name,
                         lcn: lcn,
-                        logo: logo
+                        logo: logo,
+                        additional: additional
                     });
                 };
                 const acdSolutionsScript = document.createElement("script");
@@ -1021,7 +1052,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     url: hlsURL,
                     name: name,
                     lcn: lcn,
-                    logo: logo
+                    logo: logo,
+                    additional: additional
                 });
 
         };
@@ -1037,7 +1069,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                             url: `${url}?wmsAuthSign=${json.was}`,
                             name: name,
                             lcn: lcn,
-                            logo: logo
+                            logo: logo,
+                            additional: additional
                         });
                     });
                 break;
@@ -1062,7 +1095,8 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     fallbackURL: fallbackURL,
                     fallbackAPI: fallbackAPI,
                     fallbackLicense: fallbackLicense,
-                    fallbackLicenseDetails: fallbackLicenseDetails
+                    fallbackLicenseDetails: fallbackLicenseDetails,
+                    additional: additional
                 });
                 break;
 
@@ -1080,19 +1114,19 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     fallbackLicenseDetails: fallbackLicenseDetails,
                     drm: {
                         "com.widevine.alpha": JSON.parse(decodeURIComponent(licenseDetails))
-                    }
+                    },
+                    additional: additional
                 });
-
         };
     } else {
-        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI, fallbackCSSFix: fallbackCSSFix, fallbackLicense: fallbackLicense, fallbackLicenseDetails: fallbackLicenseDetails, timeshift: timeshift })
+        await loadStream({ type: type, url: url, api: api, name: name, lcn: lcn, logo: logo, fullLogo: fullLogo, radio: radio, http: http, feed: feed, fallbackType: fallbackType, fallbackURL: fallbackURL, fallbackAPI: fallbackAPI, fallbackCSSFix: fallbackCSSFix, fallbackLicense: fallbackLicense, fallbackLicenseDetails: fallbackLicenseDetails, timeshift: timeshift, additional: additional })
     };
 };
 
 const getChannelLogoURL = (logo, optimized) => {
     const config = zappr.config.logos;
 
-    if (logo.startsWith("http://") || logo.startsWith("https://")) return logo
+    if (logo.startsWith("http://") || logo.startsWith("https://") || logo.startsWith("data:")) return logo
     else {
         if (optimized === false) {
             return `${config.host}/${selectedCountry}/${logo}${logo.endsWith(".svg") ? "" : ".png"}`;
@@ -1136,28 +1170,32 @@ const returnErrorMessage = (errorCode) => {
 const nativeHLSTest = document.createElement("video");
 const supportsNativeHLS = nativeHLSTest.canPlayType("application/vnd.apple.mpegurl") != "";
 
-const generateChannelHTML = (channel) => {
+const generateChannelHTML = (channel, index) => {
+    const favorites = JSON.parse(localStorage.getItem("favorites")) ?? [];
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isGeoblocked = ipLocation != selectedCountry;
 
-    const channelIndex = zappr.channels.indexOf(channel);
+    const channelIndex = zappr.channels.indexOf(channel) ?? 0;
     if (channel.nativeHLS && supportsNativeHLS) {
         channel.type = "iframe";
         channel.url = `https://href.li/?${channel.nativeHLS.url}`;
         if (navigator.userAgentData && navigator.userAgentData.brands.some(data => data.brand === "Chromium") && channel.nativeHLS.quality) channel.cssfix = `native-hls-${channel.nativeHLS.quality}-iframe`;
     };
+
+    const className = `${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${index === zappr.channels.length - 1 ? "last-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${favorites.includes(`${channel.lcn}|${channel.name}`) ? "marked-as-favorite" : ""} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}`.trim().replaceAll(/\s+/g, " ");
+
     return `
         ${channel.categorySeparator === undefined
             ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.license ? `data-license="${channel.geoblock.license}"` : channel.license != undefined ? `data-license="${channel.license}"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.licensedetails ? `data-license-details="${encodeURI(JSON.stringify(channel.geoblock.licensedetails))}"` : channel.licensedetails != undefined ? `data-license-details="${encodeURI(JSON.stringify(channel.licensedetails))}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.fallback && channel.fallback.cssfix ? `data-fallback-cssfix="${channel.fallback.cssfix}"` : ""} ${channel.fallback && channel.fallback.license ? `data-fallback-license="${channel.fallback.license}"` : ""} ${channel.fallback && channel.fallback.licensedetails ? `data-fallback-license-details="${encodeURI(JSON.stringify(channel.fallback.licensedetails))}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""}>
+                <div class="${className}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.license ? `data-license="${channel.geoblock.license}"` : channel.license != undefined ? `data-license="${channel.license}"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.licensedetails ? `data-license-details="${encodeURI(JSON.stringify(channel.geoblock.licensedetails))}"` : channel.licensedetails != undefined ? `data-license-details="${encodeURI(JSON.stringify(channel.licensedetails))}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.fallback && channel.fallback.cssfix ? `data-fallback-cssfix="${channel.fallback.cssfix}"` : ""} ${channel.fallback && channel.fallback.license ? `data-fallback-license="${channel.fallback.license}"` : ""} ${channel.fallback && channel.fallback.licensedetails ? `data-fallback-license-details="${encodeURI(JSON.stringify(channel.fallback.licensedetails))}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""} ${channel.additional ? `data-additional="true"` : ""}>
                     <div class="channel-info">
-                        <div class="lcn">${channel.lcn}</div>
-                        <img class="logo${channel.logo.startsWith("http://") || channel.logo.startsWith("https://") ? " fast-logo" : ""}${channel.logo.includes("tvpnlogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[channel.logo] ? zappr.ratios[channel.logo] : "0.75"};">
+                        <div class="left-hand-badges">
+                            <svg class="favorites-icon" xmlns="http://www.w3.org/2000/svg" viewBox="1 2.1 34 32.53"><path fill="white" d="M27.287 34.627c-.404 0-.806-.124-1.152-.371L18 28.422l-8.135 5.834c-.693.496-1.623.496-2.312-.008-.689-.499-.979-1.385-.721-2.194l3.034-9.792-8.062-5.681c-.685-.505-.97-1.393-.708-2.203.264-.808 1.016-1.357 1.866-1.363L12.947 13l3.179-9.549c.268-.809 1.023-1.353 1.874-1.353.851 0 1.606.545 1.875 1.353L23 13l10.036.015c.853.006 1.606.556 1.867 1.363.263.81-.022 1.698-.708 2.203l-8.062 5.681 3.034 9.792c.26.809-.033 1.695-.72 2.194-.347.254-.753.379-1.16.379z"></path></svg>
+                            <div class="lcn">${channel.lcn}</div>
+                        </div>
+                        <img class="logo${channel.logo.includes("tvpnlogopeu.samsungcloud.tv") ? " samsung-logo" : ""}" src="${getChannelLogoURL(channel.logo)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[channel.logo] ? zappr.ratios[channel.logo] : "0.75"};">
                         <div class="channel-title-subtitle">
-                            <div class="channel-name">${channel.name}</div>
-                            ${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}
-                            ${channel.hbbtvmosaic ? `<div class="channel-subtitle">${locale["hbbtvMosaic"]}</div>` : ""}
-                            ${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
+                            <div class="channel-name">${channel.name}${channel.subtitle ? `<div class="channel-subtitle">${channel.subtitle}</div>` : ""}${channel.feed && !channel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}${channel.hbbtvmosaic ? `<div class="channel-subtitle">${locale["hbbtvMosaic"]}</div>` : ""}</div>
                             ${channel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
                         </div>
                         ${channel.hd ? `<div class="hd"></div>` : ""}
@@ -1191,9 +1229,8 @@ const generateChannelHTML = (channel) => {
                                     <div class="lcn">${channel.lcn}.${subchannel.sublcn}</div>
                                     <img class="logo" src="${getChannelLogoURL(subchannel.logo)}" data-full="${getChannelLogoURL(subchannel.logo, false)}" crossorigin="anonymous" loading="lazy" style="--ratio: ${zappr.ratios && zappr.ratios[subchannel.logo] ? zappr.ratios[subchannel.logo] : "0.75"};">
                                     <div class="channel-title-subtitle">
-                                        <div class="channel-name">${subchannel.name}</div>
-                                        ${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
-                                        ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}
+                                        <div class="channel-name">${subchannel.name}${subchannel.subtitle != null ? `<div class="channel-subtitle">${subchannel.subtitle}</div>` : ""}
+                                        ${subchannel.feed && !subchannel.subtitle ? `<div class="channel-subtitle">${locale["not247"]}</div>` : ""}</div>
                                         ${subchannel.epg ? `<div class="channel-program" title="${locale["viewFullEPG"]}"></div>` : ""}
                                     </div>
                                     ${subchannel.hd ? `<div class="hd"></div>` : ""}
@@ -1222,14 +1259,121 @@ const generateChannelHTML = (channel) => {
     `;
 };
 
-await fetch(getChannelsListURL(`${countries[selectedCountry].location}/national`))
+const isURL = (url) => {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    };
+};
+const isJSON = (json) => {
+    try {
+        JSON.parse(json);
+        return true;
+    } catch {
+        return false;
+    };
+};
+const sanitize = (text) => text.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+const baseListURLToFetch =
+    isURL(localStorage.getItem("selected-base-list"))
+        ? localStorage.getItem("selected-base-list")
+        : localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites"
+            ? getChannelsListURL(`${countries[selectedCountry].location}/national`)
+            : "data:application/json,{}";
+
+await fetch(baseListURLToFetch)
     .then(response => response.json())
-    .then(nationalChannels => {
-        window.zappr.nationalChannels = nationalChannels.channels;
+    .then(async nationalChannels => {
+        if (localStorage.getItem("selected-base-list") != "default" && localStorage.getItem("selected-base-list") != "favorites") {
+            if (baseListURLToFetch === "data:application/json,{}") {
+                window.zappr.nationalChannels = baseLists[localStorage.getItem("selected-base-list")].channels.sort((a, b) => a.lcn - b.lcn);
+            } else {
+                nationalChannels = JSON.parse(sanitize(JSON.stringify(nationalChannels)));
+                const schema = await fetch(`${zappr.config.channels.host}/schema.json`).then(response => response.json()).catch(async () => {
+                    const fallbackSchema = await fetch("https://channels.zappr.stream/schema.json").then(response => response.json()).catch(() => false);
+                    return fallbackSchema;
+                });
+                if (schema) {
+                    const { Validator } = await import("jsonschema");
+                    const schemaValidator = new Validator();
+                    const schemaValidation = schemaValidator.validate(nationalChannels, schema, { base: "https://channels.zappr.stream" });
+                    if (schemaValidation.valid) {
+                        window.zappr.nationalChannels = nationalChannels.channels.sort((a, b) => a.lcn - b.lcn);
+                    } else {
+                        alert(locale["notSchemaCompliantOnLoading"](schemaValidation.errors.toString()));
+                        localStorage.setItem("selected-base-list", "default");
+                        window.location.reload();
+                    };
+                } else {
+                    alert(locale["couldntFetchSchema"]);
+                    localStorage.setItem("selected-base-list", "default");
+                    window.location.reload();
+                };
+            };
+        } else window.zappr.nationalChannels = nationalChannels.channels.sort((a, b) => a.lcn - b.lcn);
     });
 
+window.zappr.epg = {};
+if (localStorage.getItem("selected-additional-lists") && isJSON(localStorage.getItem("selected-additional-lists"))) {
+    let selectedAdditionalLists = JSON.parse(localStorage.getItem("selected-additional-lists"));
+    let collectedAdditionalChannels = [];
+    window.zappr.channels = window.zappr.nationalChannels;
+    await Promise.all(selectedAdditionalLists.map(async (list) => {
+        const listURLToFetch = isURL(list) ? list : "data:application/json,{}";
+        const response = await fetch(listURLToFetch);
+        let additionalChannels = await response.json();
+
+        if (additionalLists[list]?.epg && isURL(additionalLists[list]?.epg)) fetch(additionalLists[list].epg)
+            .then(response => response.json())
+            .then(async json => {
+                const { merge } = await import("lodash");
+                window.zappr.epg = merge({}, window.zappr.epg, json);
+            })
+            .catch(() => {});
+        if (listURLToFetch === "data:application/json,{}") {
+            collectedAdditionalChannels = collectedAdditionalChannels.concat(additionalLists[list].channels);
+            return;
+        };
+
+        additionalChannels = JSON.parse(sanitize(JSON.stringify(additionalChannels)));
+
+        const schema = await fetch(`${zappr.config.channels.host}/schema.json`)
+            .then(response => response.json())
+            .catch(async () => {
+                const fallbackSchema = await fetch("https://channels.zappr.stream/schema.json").then(response => response.json()).catch(() => false);
+                return fallbackSchema;
+            });
+
+        if (!schema) {
+            alert(locale["couldntFetchSchemaAdditionalList"](additionalLists[list].name));
+            selectedAdditionalLists = selectedAdditionalLists.filter(selectedList => selectedList != list);
+            localStorage.setItem("selected-additional-lists", JSON.stringify(selectedAdditionalLists));
+            window.location.reload();
+            return;
+        };
+
+        const { Validator } = await import("jsonschema");
+        const schemaValidator = new Validator();
+        const schemaValidation = schemaValidator.validate(additionalChannels, schema, { base: "https://channels.zappr.stream" });
+
+        if (!schemaValidation.valid) {
+            alert(locale["notSchemaCompliantAdditionalList"](additionalLists[list].name, schemaValidation.errors.toString()));
+            selectedAdditionalLists = selectedAdditionalLists.filter(selectedList => selectedList != list);
+            localStorage.setItem("selected-additional-lists", JSON.stringify(selectedAdditionalLists));
+            window.location.reload();
+            return;
+        };
+
+        collectedAdditionalChannels = collectedAdditionalChannels.concat(additionalChannels.channels);
+    }));
+    collectedAdditionalChannels = collectedAdditionalChannels.map(channel => ({ ...channel, additional: true }));
+    window.zappr.additionalChannels = collectedAdditionalChannels;
+};
 if (new URLSearchParams(location.search).get("androidtv") != null && localStorage.getItem("region") === "national") document.querySelector(`input[value="national"]`).checked = true;
-if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
+if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
     if (new URLSearchParams(location.search).get("androidtv") === null) document.querySelector("select").value = localStorage.getItem("region")
     else document.querySelector(`input[value="${localStorage.getItem("region")}"]`).checked = true;
 
@@ -1246,19 +1390,31 @@ if (localStorage.getItem("region") != null && localStorage.getItem("region") != 
 };
 
 let fastChannelsPresent = false;
-await fetch(getFASTChannelsURL(selectedCountry))
-    .then(response => response.json())
-    .then(async fastChannels => {
-        if (ipLocation != selectedCountry) {
-            fastChannels.channels = fastChannels.channels.filter(el => (el.url && !el.url.includes("pluto.tv") || (el.id && el.id != "plutotv")));
-        };
-        window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
-        fastChannelsPresent = true;
-    })
-    .catch(e => {
-        console.warn(`Can't find FAST channels: ${e.stack}`);
-        document.querySelector(".source-header").remove();
-    });
+if (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites") {
+    await fetch(getFASTChannelsURL(selectedCountry))
+        .then(response => response.json())
+        .then(async fastChannels => {
+            if (ipLocation != selectedCountry) {
+                fastChannels.channels = fastChannels.channels.filter(el => (el.url && !el.url.includes("pluto.tv") || (el.id && el.id != "plutotv")));
+            };
+            window.zappr.channels = window.zappr.channels.concat(fastChannels.channels);
+            fastChannelsPresent = true;
+        })
+        .catch(e => {
+            console.warn(`Can't find FAST channels: ${e.stack}`);
+            document.querySelector(".source-header").remove();
+        });
+} else document.querySelector(".source-header").remove();
+
+const todoEditFavorites = localStorage.getItem("todo-edit-favorites") === "true";
+const favorites = JSON.parse(localStorage.getItem("favorites")) ?? [];
+if (localStorage.getItem("selected-base-list") === "favorites" && !todoEditFavorites) window.zappr.channels = window.zappr.channels.filter(channel => favorites.includes(`${channel.lcn}|${channel.name}`));
+if (localStorage.getItem("selected-base-list") === "favorites") {
+    document.querySelector(".source-header").remove();
+    fastChannelsPresent = false;
+};
+
+if (window.zappr.additionalChannels) window.zappr.channels = window.zappr.channels.concat(window.zappr.additionalChannels).sort((a, b) => a.lcn - b.lcn);
 
 const generateChannelElementHeight = (ratio, epg, mosaic, categorySeparator) => {
     let documentFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -1280,7 +1436,7 @@ const generateChannelElementHeight = (ratio, epg, mosaic, categorySeparator) => 
         return (2 * documentFontSize) + logoHeight + 1;
     };
 };
-const channelElementHeights = zappr.channels.map(channel => {
+const channelElementHeights = zappr.channels?.map(channel => {
     let ratio;
     if (zappr.ratios[channel.logo]) ratio = zappr.ratios[channel.logo]
     else {
@@ -1296,174 +1452,195 @@ const updateHbbTVChannelsHeight = () => {
     });
 };
 const channelOnClick = async (e) => {
-    updateHbbTVChannelsHeight();
-    let el = e.target;
-    if (el.closest(".hbbtv-mosaic")) el = el.closest(".hbbtv-mosaic");
-
-    if (el.classList.contains("hbbtv-enabler")) {
-        el.classList.toggle("clicked");
-        let channelLCN;
-        let newHeight = el.scrollHeight;
-        if (el.classList.contains("hbbtv-mosaic")) channelLCN = parseInt(el.dataset.lcn)
-        else {
-            channelLCN = parseInt(el.previousElementSibling.dataset.lcn);
-            newHeight += el.previousElementSibling.scrollHeight;
-        };
-
-        let channelIndex = zappr.channels.indexOf(zappr.channels.filter(el => el.lcn === channelLCN)[0]);
-        if (el.classList.contains("clicked")) newHeight += parseFloat(getComputedStyle(el.nextElementSibling).getPropertyValue("--scroll-height"));
-        virtualList.itemHeights[channelIndex] = newHeight;
-        virtualList.itemOffsets = virtualList.itemOffsets.map((offset, index) => index > channelIndex ? offset + newHeight : offset);
-        virtualList.initializeOffsets();
-    } else if ((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") && el.dataset.disabled === undefined) {
-        if (el.closest(".channel").contains(el)) el = el.closest(".channel");
-        if (el.dataset.disabled) {
-            alert(returnErrorMessage(el.dataset.disabled));
-            return;
-        };
-        currentlyPlaying = el;
-
-        if (document.querySelector(".watching") != null) {
-            document.querySelector(".watching").classList.remove("watching");
-        };
-        if (document.querySelector(".watching-hbbtv") != null) {
-            document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
-        };
-        el.classList.add("watching");
-
-        if (document.querySelector(`style.cssfix[media=""]`) != null) {
-            document.querySelector(`style.cssfix[media=""]`).media = "not all";
-        };
-
-        if (el.dataset.cssfix != undefined) {
-            document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
-        };
-
-        if (el.classList.contains("hbbtv-app")) {
-            overlays.classList.add("hbbtv-app");
-        } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
-            overlays.classList.remove("hbbtv-app");
-        };
-        if (el.classList.contains("pluto-channel")) {
-            overlays.classList.add("pluto-channel");
-        } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
-            overlays.classList.remove("pluto-channel");
-        };
-
-        if (el.dataset.lcn.includes(".")) {
-            el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
-            if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
-                el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
+    if (document.querySelector("#channels-column").classList.contains("favorites-picker-mode")) {
+        let el = e.target.closest(".channel");
+        if (!el.dataset.additional) {
+            let currentFavorites = JSON.parse(localStorage.getItem("favorites")) ?? [];
+            let channelID = `${el.dataset.lcn}|${el.dataset.name}`;
+            if (!el.dataset.lcn.includes(".")) {
+                if (el.classList.contains("marked-as-favorite")) {
+                    el.classList.remove("marked-as-favorite");
+                    currentFavorites = currentFavorites.filter(channel => channel != channelID);
+                } else {
+                    el.classList.add("marked-as-favorite");
+                    currentFavorites.push(channelID);
+                };
+                localStorage.setItem("favorites", JSON.stringify(currentFavorites));
             };
-        };
-        
-        if (el.classList.contains("adult")) {
-            if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
-                adultChannelConfirmation();
-                return;
-            } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
-                adultChannelConfirmation(true);
+        } else alert(locale["additionalChannelFavoritingDisabled"]);
+    } else {
+        updateHbbTVChannelsHeight();
+        let el = e.target;
+        if (el.closest(".hbbtv-mosaic")) el = el.closest(".hbbtv-mosaic");
+
+        if (el.classList.contains("hbbtv-enabler")) {
+            el.classList.toggle("clicked");
+            let channelLCN;
+            let newHeight = el.scrollHeight;
+            if (el.classList.contains("hbbtv-mosaic")) channelLCN = parseInt(el.dataset.lcn)
+            else {
+                channelLCN = parseInt(el.previousElementSibling.dataset.lcn);
+                newHeight += el.previousElementSibling.scrollHeight;
+            };
+
+            let channelIndex = zappr.channels.indexOf(zappr.channels.filter(el => el.lcn === channelLCN)[0]);
+            if (el.classList.contains("clicked")) newHeight += parseFloat(getComputedStyle(el.nextElementSibling).getPropertyValue("--scroll-height"));
+            virtualList.itemHeights[channelIndex] = newHeight;
+            virtualList.itemOffsets = virtualList.itemOffsets.map((offset, index) => index > channelIndex ? offset + newHeight : offset);
+            virtualList.initializeOffsets();
+        } else if ((!["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) && e.target.nodeName != "B") && el.dataset.disabled === undefined) {
+            if (el.closest(".channel").contains(el)) el = el.closest(".channel");
+            if (el.dataset.disabled) {
+                alert(returnErrorMessage(el.dataset.disabled));
                 return;
             };
-        };
-        await loadChannel({
-            type: el.dataset.type,
-            url: el.dataset.url,
-            api: el.dataset.api,
-            name: el.dataset.name,
-            lcn: el.dataset.lcn,
-            logo: el.dataset.logo,
-            fullLogo: el.dataset.fullLogo,
-            radio: el.dataset.radio,
-            http: el.dataset.http,
-            license: el.dataset.license,
-            licenseDetails: el.dataset.licenseDetails,
-            feed: el.dataset.feed,
-            fallbackType: el.dataset.fallbackType,
-            fallbackURL: el.dataset.fallbackUrl,
-            fallbackAPI: el.dataset.fallbackApi,
-            fallbackCSSFix: el.dataset.fallbackCssfix,
-            fallbackLicense: el.dataset.fallbackLicense,
-            fallbackLicenseDetails: el.dataset.fallbackLicenseDetails,
-            timeshift: el.dataset.timeshift
-        });
-    } else if ((["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) || e.target.nodeName === "B")) {
-        if (!el.classList.contains("channel")) el = el.closest(".channel");
-        document.querySelector("#epg-channel").innerText = el.dataset.name;
-        document.querySelector("#channels-column").classList.add("epg-visible");
-        document.querySelectorAll(".epg-items").forEach(el => el.remove());
-        document.querySelector("#channels-column").classList.remove("overflow-visible");
-        document.querySelector("#epg").classList.remove("is-hidden");
-        document.querySelector("#epg").classList.remove("long-channel-name");
-        document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
-        document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
-        const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
-            const startDate = entry.startTime.iso.split("T")[0];
-            const endDate = entry.endTime.iso.split("T")[0];
-            if (!accumulator[startDate]) accumulator[startDate] = [];
-            accumulator[startDate].push(entry);
-            if (!accumulator[endDate]) accumulator[endDate] = [];
-            accumulator[endDate].push(entry);
-            return accumulator;
-        }, {});
-        Object.keys(epgByDays).forEach(day => {
-            epgByDays[day] = [...new Set(epgByDays[day])];
-            if (epgByDays[day].length <= 1) delete epgByDays[day];
-        });
-        if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
-            else document.querySelector("#epg-date").className = "first-day last-day";
-        for (const day in epgByDays) {
-            document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
-                ${epgByDays[day].map(entry => {
-                    const now = Date.now();
-                    const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
-                        !entry.image && entry.description && entry.description.length > 145 ? true : false;
+            currentlyPlaying = el;
 
-                    return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
-                        <div class="epg-item">
-                            ${entry.image ? `<img src="${entry.image}" class="epg-image" onerror="this.parentElement.parentElement.classList.add('no-image'); this.remove();">` : ""}
-                            <div class="epg-info">
-                                <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
-                                <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
-                                ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
-                                ${entry.description ? `<div class="epg-description">
-                                    <p>${entry.description}</p>
-                                </div>` : ""}
-                                <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${new URL("/assets/icons/play.svg", import.meta.url)}">Guarda</a>` : ""}</div>
-                            </div>
-                        </div>
-                    </div>`
-                }).join("")}
-            </div>`);
-            if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
-        };
-        updateRestartablePrograms(true);
-        document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
-        document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
-        document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
-            el.addEventListener("click", () => {
-                el.closest(".epg-item-container").classList.toggle("expanded");
+            if (document.querySelector(".watching") != null) {
+                document.querySelector(".watching").classList.remove("watching");
+            };
+            if (document.querySelector(".watching-hbbtv") != null) {
+                document.querySelector(".watching-hbbtv").classList.remove("watching-hbbtv");
+            };
+            el.classList.add("watching");
+
+            if (document.querySelector(`style.cssfix[media=""]`) != null) {
+                document.querySelector(`style.cssfix[media=""]`).media = "not all";
+            };
+
+            if (el.dataset.cssfix != undefined) {
+                document.querySelector(`style.cssfix#${el.dataset.cssfix}-fix`).media = "";
+            };
+
+            if (el.classList.contains("hbbtv-app")) {
+                overlays.classList.add("hbbtv-app");
+            } else if (overlays.classList.contains("hbbtv-app") && !el.classList.contains("hbbtv-app")) {
+                overlays.classList.remove("hbbtv-app");
+            };
+            if (el.classList.contains("pluto-channel")) {
+                overlays.classList.add("pluto-channel");
+            } else if (overlays.classList.contains("pluto-channel") && !el.classList.contains("pluto-channel")) {
+                overlays.classList.remove("pluto-channel");
+            };
+
+            if (el.dataset.lcn.includes(".")) {
+                el.closest(".hbbtv-container").querySelector(".channel").classList.add("watching-hbbtv");
+                if (!el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.contains("clicked")) {
+                    el.closest(".hbbtv-container").querySelector(".hbbtv-enabler").classList.add("clicked");
+                };
+            };
+            
+            if (el.classList.contains("adult")) {
+                if (!el.classList.contains("at-night") && window.sessionStorage.getItem("adultChannelConfirmation") != "true") {
+                    adultChannelConfirmation();
+                    return;
+                } else if (el.classList.contains("at-night") && (new Date().getHours() >= 23 || new Date().getHours() < 7) && window.sessionStorage.getItem("nightAdultChannelConfirmation") != "true") {
+                    adultChannelConfirmation(true);
+                    return;
+                };
+            };
+            await loadChannel({
+                type: el.dataset.type,
+                url: el.dataset.url,
+                api: el.dataset.api,
+                name: el.dataset.name,
+                lcn: el.dataset.lcn,
+                logo: el.dataset.logo,
+                fullLogo: el.dataset.fullLogo,
+                radio: el.dataset.radio,
+                http: el.dataset.http,
+                license: el.dataset.license,
+                licenseDetails: el.dataset.licenseDetails,
+                feed: el.dataset.feed,
+                fallbackType: el.dataset.fallbackType,
+                fallbackURL: el.dataset.fallbackUrl,
+                fallbackAPI: el.dataset.fallbackApi,
+                fallbackCSSFix: el.dataset.fallbackCssfix,
+                fallbackLicense: el.dataset.fallbackLicense,
+                fallbackLicenseDetails: el.dataset.fallbackLicenseDetails,
+                timeshift: el.dataset.timeshift,
+                additional: el.dataset.additional
             });
-        });
-        document.querySelector(".epg-items").animate({
-            left: "0"
-        }, {
-            duration: 0, fill: "forwards", easing: "ease"
-        });
-        document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
-        document.querySelector("#search-results").scrollIntoView();
-        document.querySelector("#channels").scrollIntoView();
-        document.querySelector("#channels-column").scrollIntoView();
-        document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
-        if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
-        mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
-    } else if (el.dataset.disabled != undefined) {
-        alert(returnErrorMessage(el.dataset.disabled));
+        } else if ((["channel-program", "channel-program-progress", "channel-program-progress-background", "channel-program-times"].includes(e.target.className) || e.target.nodeName === "B")) {
+            if (!el.classList.contains("channel")) el = el.closest(".channel");
+            document.querySelector("#epg-channel").innerText = el.dataset.name;
+            document.querySelector("#channels-column").classList.add("epg-visible");
+            document.querySelectorAll(".epg-items").forEach(el => el.remove());
+            document.querySelector("#channels-column").classList.remove("overflow-visible");
+            document.querySelector("#epg").classList.remove("is-hidden");
+            document.querySelector("#epg").classList.remove("long-channel-name");
+            document.querySelector("#epg").dataset.epgSource = el.dataset.epgSource;
+            document.querySelector("#epg").dataset.epgId = el.dataset.epgId;
+            const epgByDays = window.zappr.epg[el.dataset.epgSource][el.dataset.epgId].reduce((accumulator, entry) => {
+                const startDate = entry.startTime.iso.split("T")[0];
+                const endDate = entry.endTime.iso.split("T")[0];
+                if (!accumulator[startDate]) accumulator[startDate] = [];
+                accumulator[startDate].push(entry);
+                if (!accumulator[endDate]) accumulator[endDate] = [];
+                accumulator[endDate].push(entry);
+                return accumulator;
+            }, {});
+            Object.keys(epgByDays).forEach(day => {
+                epgByDays[day] = [...new Set(epgByDays[day])];
+                if (epgByDays[day].length <= 1) delete epgByDays[day];
+            });
+            if (Object.keys(epgByDays).length > 1) document.querySelector("#epg-date").className = "first-day"
+                else document.querySelector("#epg-date").className = "first-day last-day";
+            for (const day in epgByDays) {
+                document.querySelector("#epg").insertAdjacentHTML("beforeend", `<div class="epg-items" data-date="${day}">
+                    ${epgByDays[day].map(entry => {
+                        const now = Date.now();
+                        const expandable = entry.image && entry.description && entry.description.length > 75 ? true :
+                            !entry.image && entry.description && entry.description.length > 145 ? true : false;
+
+                        return `<div class="epg-item-container${expandable ? " expandable" : ""}${entry.startTime.unix <= now && entry.endTime.unix >= now ? " on-air" : ""}${!entry.image ? " no-image" : ""}" ${entry.image ? `style="background-image: url('${entry.image}');"` : ""} data-start-time="${entry.startTime.unix}">
+                            <div class="epg-item">
+                                ${entry.image ? `<img src="${entry.image}" class="epg-image" onerror="this.parentElement.parentElement.classList.add('no-image'); this.remove();">` : ""}
+                                <div class="epg-info">
+                                    <span class="epg-start-time">${DateTime.fromMillis(entry.startTime.unix).toFormat("HH:mm")}</span>
+                                    <h1 class="epg-name">${entry.name}${entry.season ? ` <b>S${entry.season}</b>` : " "}${entry.episode ? `<b>E${entry.episode}</b>` : ""}${entry.rating && entry.rating.label != "6+" ? `<span class="epg-rating" style="background-color: ${entry.rating.background}; color: ${entry.rating.text};">${entry.rating.label}</span>` : ""}</h1>
+                                    ${entry.subtitle ? `<h3 class="epg-subtitle">${entry.subtitle}</h3>` : ""}
+                                    ${entry.description ? `<div class="epg-description">
+                                        <p>${entry.description}</p>
+                                    </div>` : ""}
+                                    <div class="epg-buttons">${entry.link ? `<a class="epg-watch" href="${entry.link}"><img src="${playIcon}">${locale["watch"]}</a>` : ""}</div>
+                                </div>
+                            </div>
+                        </div>`
+                    }).join("")}
+                </div>`);
+                if (document.querySelector(".epg-item-container.on-air") === null) document.querySelector(`.epg-items[data-date="${day}"]`).remove();
+            };
+            updateRestartablePrograms(true);
+            document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("has-on-air");
+            document.querySelector(".epg-item-container.on-air").closest(".epg-items").classList.add("active");
+            document.querySelectorAll(".epg-item-container.expandable .epg-description").forEach(el => {
+                el.addEventListener("click", () => {
+                    el.closest(".epg-item-container").classList.toggle("expanded");
+                });
+            });
+            document.querySelector(".epg-items").animate({
+                left: "0"
+            }, {
+                duration: 0, fill: "forwards", easing: "ease"
+            });
+            document.querySelector(".epg-item-container.on-air").scrollIntoView({ block: "center" });
+            document.querySelector("#search-results").scrollIntoView();
+            document.querySelector("#channels").scrollIntoView();
+            document.querySelector("#channels-column").scrollIntoView();
+            document.querySelector("#epg-date span").innerText = DateTime.fromFormat(document.querySelector(".epg-items.has-on-air").dataset.date, "yyyy-MM-dd").setLocale(language).toLocaleString(DateTime.DATE_FULL);
+            if (document.querySelector("#epg-channel").offsetTop > 16) document.querySelector("#epg").classList.add("long-channel-name");
+
+            const mediumZoom = (await import("medium-zoom")).default;
+            mediumZoom(".epg-image:not(.no-image)", { background: "rgba(0, 0, 0, 0.8)", margin: window.matchMedia("(max-width: 100vh)").matches ? 16 : 160 });
+        } else if (el.dataset.disabled != undefined) {
+            alert(returnErrorMessage(el.dataset.disabled));
+        };
     };
 };
 
 let lastSource;
-const categoryIndexes = [-1].concat(zappr.channels.filter(el => el.categorySeparator).map(category => zappr.channels.indexOf(category)));
+const categoryIndexes = [-1].concat(zappr.channels?.filter(el => el.categorySeparator).map(category => zappr.channels.indexOf(category)));
 let currentCategory = 0;
 const isElementInViewport = (el) => {
     let rect = el.getBoundingClientRect();
@@ -1497,30 +1674,33 @@ const sourceHeaderOnScroll = () => {
 let epgUpdateLastCallTime = 0;
 let epgUpdateTimeoutID = null;
 
-const virtualList = new VirtualList({
-    container: document.querySelector("#channels"),
-    items: zappr.channels,
-    initialItemHeights: channelElementHeights,
-    renderFunction: (item, index) => generateChannelHTML(item),
-    onScroll: () => {
-        if (!navigator.userAgent.includes("Firefox")) updateHbbTVChannelsHeight();
-        if (fastChannelsPresent) sourceHeaderOnScroll();
+let virtualList;
+if (zappr.channels?.length > 0) {
+    virtualList = new VirtualList({
+        container: document.querySelector("#channels"),
+        items: zappr.channels,
+        initialItemHeights: channelElementHeights,
+        renderFunction: (item, index) => generateChannelHTML(item, index),
+        onScroll: () => {
+            if (!navigator.userAgent.includes("Firefox")) updateHbbTVChannelsHeight();
+            if (fastChannelsPresent) sourceHeaderOnScroll();
 
-        const now = Date.now();
-        const elapsed = now - epgUpdateLastCallTime;
-        const wait = Math.max(0, 500 - elapsed);
+            const now = Date.now();
+            const elapsed = now - epgUpdateLastCallTime;
+            const wait = Math.max(0, 500 - elapsed);
 
-        clearTimeout(epgUpdateTimeoutID);
+            clearTimeout(epgUpdateTimeoutID);
 
-        epgUpdateTimeoutID = setTimeout(() => {
-            updateCurrentlyPlayingEPG();
-            epgUpdateLastCallTime = Date.now();
-        }, wait);
-    },
-    onClick: channelOnClick,
-    manualClassName: "header"
-});
-virtualList.render();
+            epgUpdateTimeoutID = setTimeout(() => {
+                updateCurrentlyPlayingEPG();
+                epgUpdateLastCallTime = Date.now();
+            }, wait);
+        },
+        onClick: channelOnClick,
+        manualClassName: "header"
+    });
+    virtualList.render();
+};
 
 document.querySelector("#loading").classList.add("loaded");
 document.querySelector("#loading").animate({
@@ -1542,19 +1722,19 @@ if (fastChannelsPresent) {
 
 const adultChannelConfirmation = async (night = false) => {
     createModal({
-        title: "Attenzione!",
-        text: `${night ? `In questa fascia oraria (23:00 - 07:00), questo canale potrebbe trasmettere contenuti vietati ai minori di 18 anni.`
-            : `Questo canale trasmette contenuti vietati ai minori di 18 anni.`}
-            <br><br>Cliccando sul pulsante <b>Continua</b> qui sotto, confermi di essere consapevole della natura del materiale trasmesso e di avere l'età necessaria per poter guardarlo. Inoltre, accetti di assumerti la piena responsabilità della visione di questo canale, esonerando Zappr e i suoi affiliati da qualsiasi conseguenza derivante da un uso improprio o non autorizzato.<br><br><b>Continuare?</b>`,
+        title: locale["warning"],
+        text: `${night ? locale["nightAdultChannelModalText"]
+            : locale["fullyAdultChannelModalText"]}
+            <br><br>${locale["adultChannelModalText"]}`,
         buttons: [{
             type: "primary",
             href: "#",
-            text: "Continua"
+            text: locale["continue"]
         },
         {
             type: "secondary",
             href: "javascript:window.zappr.closeModal();",
-            text: "Annulla"
+            text: locale["cancel"]
         }]
     });
 
@@ -1567,7 +1747,7 @@ const adultChannelConfirmation = async (night = false) => {
 
 const addAutoRestart = (el, startTime, manual) => {
     if (!el.querySelector(".epg-restart")) {
-        el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart${manual ? " manual": ""}"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
+        el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart${manual ? " manual": ""}"><img src="${restartIcon}">Restart</div>`);
         el.querySelector(".epg-restart").addEventListener("click", () => {
             if (!document.querySelector(`iframe[src*="clearkey/"]`)) player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - startTime) / 1000) + 10);
             else {
@@ -1681,7 +1861,7 @@ let manualRestart = {
         };
     },
     addButton: (el, channel, source, data) => {
-        el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart manual"><img src="${new URL("/assets/icons/restart.svg", import.meta.url)}">Restart</div>`);
+        el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart manual"><img src="${restartIcon}">Restart</div>`);
         el.querySelector(".epg-restart").addEventListener("click", async () => {
             await manualRestart.run(channel, source, data);
             el.classList.add("restart-soon");
@@ -1817,7 +1997,7 @@ const updateRestartablePrograms = async (manual = false) => {
 };
 
 const selectChannel = async (channel, zapping, scroll = false) => {
-    document.querySelector("input").value = "";
+    document.querySelector("#search-input").value = "";
     document.querySelector("#search-results").style.display = "none";
     document.querySelector("#channels").style.display = "block";
     document.querySelector("#search").innerHTML = "";
@@ -1911,10 +2091,10 @@ const toggleNightAdultChannelsStyle = () => {
 toggleNightAdultChannelsStyle();
 
 const keydownHandler = (e) => {
-    if (document.activeElement != document.querySelector("input")) {
+    if (document.activeElement.tagName != "INPUT") {
         if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) window.zappr.closeModal();
 
-        if (["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
+        if ((["Backspace", "Delete", "NumpadEnter", "Enter", "Escape", "PageUp", "PageDown"].includes(e.code) || e.key === "." || e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) && !["INPUT", "EMOJI-PICKER"].includes(document.activeElement.tagName)) {
             e.preventDefault();
             e.stopImmediatePropagation();
             e.stopPropagation();
@@ -1981,7 +2161,7 @@ const keydownHandler = (e) => {
         };
 
         if (multipleChannelSelection) {
-            controlsElement.innerHTML = `<b>Premi ${matchedChannel.map((channel, index) => `${index + 1} per ${channel.name}`).join(",<br>")}<br>oppure Esc per annullare</b>`;
+            controlsElement.innerHTML = locale["multipleChannelSelectionText"](matchedChannel);
 
             if (e.code.startsWith("Digit") || (e.code.startsWith("Numpad") && e.code.length === 7)) {
                 const number = e.code.startsWith("Digit") ? e.key : e.code.replaceAll("Numpad", "");
@@ -1991,14 +2171,14 @@ const keydownHandler = (e) => {
                     selectChannel(document.querySelector(`.channel[data-name="${matchedChannel[number - 1].name}"][data-lcn="${matchedChannel[number - 1].lcn}"]`));
                     lcnTypingElement.style.display = "none";
                     lcnTypedElement.innerText = "";
-                    controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
+                    controlsElement.innerHTML = locale["lcnTyping"];
                     typingLCN = false;
                     multipleChannelSelection = false;
                 };
             } else if (e.code === "Escape") {
                 lcnTypingElement.style.display = "none";
                 lcnTypedElement.innerText = "";
-                controlsElement.innerHTML = "Invio per confermare<br>o Esc per annullare";
+                controlsElement.innerHTML = locale["lcnTyping"];
                 typingLCN = false;
                 multipleChannelSelection = false;
             };
@@ -2092,50 +2272,614 @@ let currentIndex = -1;
 window.addEventListener("keydown", keydownHandler);
 
 document.querySelectorAll(".tooltip").forEach(el => {
-    el.addEventListener("click", async () => {
-        document.querySelectorAll(`.tooltip-content:not(${el.dataset.target})`).forEach(el => {
-            el.classList.remove("visible");
-        });
-        document.querySelector(el.dataset.target).classList.toggle("visible");
-        if (el.dataset.target === "#news" && document.querySelector("#news").classList.contains("news-not-loaded")) {
-            await fetch(locale["newsURL"])
-                .then(response => response.text())
-                .then(xml => {
-                    const rss = new DOMParser().parseFromString(xml, "application/xml");
-                    const posts = rss.querySelectorAll("item");
-                    posts.forEach(post => {
-                        const postContent = new DOMParser().parseFromString(post.querySelector("description").textContent, "text/html");
-                        if (!postContent.body.innerText.includes("⠀")) {
-                            const postLink = postContent.querySelector("a:not(.mention, .hashtag)") != null ? postContent.querySelector("a:not(.mention, .hashtag)").getAttribute("href") : post.querySelector("link").textContent;
-                            if (postContent.querySelector("a:not(.mention, .hashtag)") != null) {
-                                postContent.querySelectorAll("a:not(.mention, .hashtag)").forEach(link => {
-                                    link.remove();
-                                });
+    el.addEventListener("click", async e => {
+        if (el.querySelector(".promo-tooltip")) el.querySelector(".promo-tooltip").classList.remove("active");
+        if (!e.target.classList.contains("close")) {
+            document.querySelectorAll(`.tooltip-content:not(${el.dataset.target})`).forEach(el => {
+                el.classList.remove("visible");
+            });
+            document.querySelector("#channels-column").classList.toggle("tooltip-visible");
+            document.querySelector(el.dataset.target).classList.toggle("visible");
+            if (el.dataset.target === "#news" && document.querySelector("#news").classList.contains("news-not-loaded")) {
+                await fetch(locale["newsURL"])
+                    .then(response => response.text())
+                    .then(xml => {
+                        const rss = new DOMParser().parseFromString(xml, "application/xml");
+                        const posts = rss.querySelectorAll("item");
+                        posts.forEach(post => {
+                            const postContent = new DOMParser().parseFromString(post.querySelector("description").textContent, "text/html");
+                            postContent.body.innerHTML = postContent.body.innerHTML.replaceAll("<br>", "\n");
+                            if (!postContent.body.innerText.includes("⠀")) {
+                                const postLink = postContent.querySelector("a:not(.mention, .hashtag)") != null ? postContent.querySelector("a:not(.mention, .hashtag)").getAttribute("href") : post.querySelector("link").textContent;
+                                if (postContent.querySelector("a:not(.mention, .hashtag)") != null) {
+                                    postContent.querySelectorAll("a:not(.mention, .hashtag)").forEach(link => {
+                                        link.remove();
+                                    });
+                                };
+                                if (postContent.querySelector(":empty") != null) {
+                                    postContent.querySelectorAll(":empty").forEach(paragraph => {
+                                        paragraph.remove();
+                                    });
+                                };
+                                document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
+                                    <div class="news-item">
+                                        <a class="news-content" href="${postLink}" target="_blank">
+                                            <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale(language).toLocaleString()}</span>
+                                            ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>").replaceAll("\n", "<br>")}
+                                        </a>
+                                        ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
+                                            ? `<img class="news-image" src="${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")}" data-zoom-src="${post.children[post.children.length - 1].getAttribute("url")}">`
+                                            : ""
+                                        }
+                                    </div>
+                                `)
                             };
-                            if (postContent.querySelector(":empty") != null) {
-                                postContent.querySelectorAll(":empty").forEach(paragraph => {
-                                    paragraph.remove();
-                                });
-                            };
-                            document.querySelector("#news-list").insertAdjacentHTML("afterbegin", `
-                                <div class="news-item">
-                                    <a class="news-content" href="${postLink}" target="_blank">
-                                        <span class="news-date">${DateTime.fromRFC2822(post.querySelector("pubDate").textContent).setLocale(language).toLocaleString()}</span>
-                                        ${Array.from(postContent.querySelectorAll("p")).map(paragraph => paragraph.innerText).join("<br><br>")}
-                                    </a>
-                                    ${post.children[post.children.length - 1].tagName === "media:content" && post.children[post.children.length - 1].getAttribute("type").startsWith("image/")
-                                        ? `<img class="news-image" src="${post.children[post.children.length - 1].getAttribute("url").replaceAll("/original/", "/small/")}" data-zoom-src="${post.children[post.children.length - 1].getAttribute("url")}">`
-                                        : ""
-                                    }
-                                </div>
-                            `)
-                        };
+                        });
                     });
-                });
-            
-            mediumZoom(".news-image", { background: "rgba(0, 0, 0, 0.8)", margin: 32 });
-            document.querySelector("#news").classList.remove("news-not-loaded");
+                
+                const mediumZoom = (await import("medium-zoom")).default;
+                mediumZoom(".news-image", { background: "rgba(0, 0, 0, 0.8)", margin: 32 });
+                document.querySelector("#news").classList.remove("news-not-loaded");
+            };
         };
+    });
+});
+
+const generateListHTML = ({ id, name, publisher = null, icon = null, publisherLink = null, donationLink = null }) => `<div class="list" data-id="${id}">
+    <img src="${icon ? icon : listIcon}" class="list-icon" loading="lazy">
+    <div class="list-info">
+        <span class="list-name">${name ? name : locale["untitledList"]}</span>
+        ${publisher ? `<span>Publisher: ${publisherLink ? `<a href="${publisherLink}" target="_blank">${publisher}</a>` : publisher} ${donationLink ? `<a class="list-publisher-donate" href="${donationLink}" target="_blank"><b>$</b> Dona</a>` : ""}</span>` : `<span><i>${locale["localList"]}</i></span>`}
+    </div>
+    <div class="list-icons">
+        <img class="share-list" src="${shareIcon}" alt="${locale["shareList"]}">
+        ${!isURL(id) ? `<img class="edit-list" src="${editIcon}" alt="${locale["editList"]}">` : ""}
+        <img class="delete-list" src="${deleteIcon}" alt="${locale["deleteList"]}">
+    </div>
+</div>`;
+for (const list of Object.keys(baseLists)) {
+    document.querySelector("#my-list #base-list-tab .add-list").insertAdjacentHTML("beforebegin", generateListHTML({
+        id: list,
+        name: baseLists[list].name,
+        publisher: baseLists[list].publisher,
+        icon: baseLists[list].icon,
+        publisherLink: baseLists[list].publisherLink,
+        donationLink: baseLists[list].donationLink
+    }));
+};
+for (const list of Object.keys(additionalLists)) {
+    document.querySelector("#my-list #additional-list-tab .add-list").insertAdjacentHTML("beforebegin", generateListHTML({
+        id: list,
+        name: additionalLists[list].name,
+        publisher: additionalLists[list].publisher,
+        icon: additionalLists[list].icon,
+        publisherLink: additionalLists[list].publisherLink,
+        donationLink: additionalLists[list].donationLink
+    }));
+};
+
+if (document.querySelector(`#my-list #base-list-tab [data-id="${localStorage.getItem("selected-base-list")}"]`)) document.querySelector(`#my-list #base-list-tab [data-id="${localStorage.getItem("selected-base-list")}"]`).classList.add("selected");
+else document.querySelector(`#my-list [data-id="default"]`).classList.add("selected");
+
+if (localStorage.getItem("selected-additional-lists") && isJSON(localStorage.getItem("selected-additional-lists"))) {
+    for (const additionalList of JSON.parse(localStorage.getItem("selected-additional-lists"))) {
+        if (document.querySelector(`#my-list #additional-list-tab [data-id="${additionalList}"]`)) document.querySelector(`#my-list #additional-list-tab [data-id="${additionalList}"]`).classList.add("selected");
+    };
+};
+document.querySelectorAll("#my-list .tab-links a").forEach(el => {
+    el.addEventListener("click", () => {
+        const activeTab = document.querySelector("#list-picker").classList.contains("second-tab-active") ? document.querySelector("#base-list-tab") : document.querySelector("#additional-list-tab");
+        document.querySelector(".tabs").animate([{
+            height: `${document.querySelector(".tabs").scrollHeight}px`
+        }, {
+            height: `${activeTab.scrollHeight}px`
+        }], { duration: 500, fill: "forwards", easing: "ease" });
+    });
+});
+document.querySelectorAll("#my-list .tab-links a:last-child").forEach(el => {
+    el.addEventListener("click", () => el.closest(".tooltip-content-box").classList.add("second-tab-active"));
+});
+document.querySelectorAll("#my-list .tab-links a:first-child").forEach(el => {
+    el.addEventListener("click", () => el.closest(".tooltip-content-box").classList.remove("second-tab-active"));
+});
+document.querySelector("#list-picker .save-tab").addEventListener("click", () => {
+    if (document.querySelector("#my-list #base-list-tab .selected").dataset.id === "favorites" && (!localStorage.getItem("favorites") || localStorage.getItem("favorites") === "[]")) {
+        alert(locale["favoritesListEmpty"]);
+    } else {
+        localStorage.setItem("selected-base-list", document.querySelector("#my-list #base-list-tab .selected").dataset.id);
+        localStorage.setItem("selected-additional-lists", JSON.stringify(Array.from(document.querySelectorAll("#additional-list-tab .list.selected")).map(el => el.dataset.id)));
+        window.location.reload();
+    };
+});
+document.querySelector("#list-editor .save-tab").addEventListener("click", () => {
+    const listUUID = document.querySelector("#list-editor").dataset.editing;
+    const isAdditionalList = document.querySelector("#list-picker").classList.contains("second-tab-active");
+    const listStorage = isAdditionalList ? "additional-lists" : "base-lists";
+    const list = JSON.parse(localStorage.getItem(listStorage))[listUUID] ?? {};
+
+    const listContainer = isAdditionalList ? document.querySelector("#additional-list-tab") : document.querySelector("#base-list-tab");
+    const listHTML = generateListHTML({
+        id: listUUID,
+        name: list.name,
+        icon: list.icon
+    });
+    let previouslySelected = false;
+
+    if (listContainer.querySelector(`.list[data-id="${listUUID}"]`)) {
+        if (listContainer.querySelector(`.list[data-id="${listUUID}"]`).classList.contains("selected")) previouslySelected = true;
+        listContainer.querySelector(`.list[data-id="${listUUID}"]`).outerHTML = listHTML;
+    } else {
+        listContainer.querySelector(".add-list").insertAdjacentHTML("beforebegin", listHTML);
+    };
+    addListEventListeners(listContainer.querySelector(`.list[data-id="${listUUID}"]`), isAdditionalList);
+    if (!isAdditionalList && !document.querySelector("#base-list-tab .list.selected")) listContainer.querySelector(`.list[data-id="${listUUID}"]`).classList.add("selected");
+    if (isAdditionalList && previouslySelected) listContainer.querySelector(`.list[data-id="${listUUID}"]`).classList.add("selected");
+    document.querySelector("#my-list").classList.remove("editor-active");
+});
+document.querySelector("#my-list .tabs").addEventListener("click", () => {
+    document.querySelector("#my-list-explanation-link").classList.remove("active");
+    document.querySelector("#list-picker .save-tab").classList.add("active");
+});
+document.querySelectorAll("#my-list #list-picker .add-list").forEach(el => {
+    el.addEventListener("click", e => {
+        if (!document.querySelector("#my-list .add-list-options").contains(e.target)) el.classList.add("active");
+    });
+});
+
+const addListEventListeners = (list, additional) => {
+    if (additional) {
+        list.addEventListener("click", e => {
+            if (!list.querySelector(".list-icons")?.contains(e.target)) list.classList.toggle("selected");
+        });
+    } else {
+        list.addEventListener("click", e => {
+            if (!list.querySelector(".list-icons")?.contains(e.target)) {
+                document.querySelectorAll("#base-list-tab .list.selected").forEach(el => el.classList.remove("selected"));
+                list.classList.add("selected");
+            };
+        });
+    };
+    if (list.querySelector(".edit-list") && list.dataset?.id != "favorites") list.querySelector(".edit-list").addEventListener("click", () => enterListEditor(list.closest(".list").dataset.id));
+    if (list.querySelector(".delete-list")) list.querySelector(".delete-list").addEventListener("click", () => {
+        if (confirm(locale["deleteListConfirmation"])) deleteList(list.dataset.id);
+    });
+    if (list.querySelector(".share-list")) list.querySelector(".share-list").addEventListener("click", async () => {
+        if (isURL(list.dataset.id)) navigator.clipboard.writeText(list.dataset.id);
+        else {
+            const { strToU8, gzipSync } = await import("fflate");
+            const listStorage = document.querySelector("#list-picker").classList.contains("second-tab-active") ? "additional-lists" : "base-lists";
+            const currentLists = JSON.parse(localStorage.getItem(listStorage)) ?? {};
+
+            const listJSON = JSON.stringify(currentLists[list.dataset.id]);
+            const compressedListJSON = gzipSync(strToU8(listJSON));
+            const base64CompressedListJSON = btoa(String.fromCharCode(...compressedListJSON));
+            const listURL = `data:application/gzip,${base64CompressedListJSON}`;
+            navigator.clipboard.writeText(listURL);
+        };
+        alert(locale["listURLCopied"]);
+    });
+};
+document.querySelectorAll("#base-list-tab .list:not(.add-list)").forEach(el => addListEventListeners(el, false));
+document.querySelectorAll("#additional-list-tab .list:not(.add-list)").forEach(el => addListEventListeners(el, true));
+
+const listEmojiPrefix = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg";
+const enterListEditor = async (listUUID = null) => {
+    const listStorage = document.querySelector("#list-picker").classList.contains("second-tab-active") ? "additional-lists" : "base-lists";
+    let currentLists = JSON.parse(localStorage.getItem(listStorage)) ?? {};
+    if (!listUUID) {
+        listUUID = crypto.randomUUID();
+        currentLists[listUUID] = {
+            name: "",
+            icon: listIcon,
+            channels: []
+        };
+    };
+    document.querySelector("#list-editor").dataset.editing = listUUID;
+    const saveChanges = () => localStorage.setItem(listStorage, JSON.stringify(currentLists));
+    saveChanges();
+
+    document.querySelector("#my-list").classList.add("editor-active");
+    document.querySelector("#list-editor #list-info-tab").innerHTML = `<div class="list">
+        <img src="${listIcon}" class="list-icon" loading="lazy">
+        <div class="list-info">
+            <span class="list-name">${locale["untitledList"]}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="list-name-input">${locale["listNameInputLabel"]}</label>
+        <input id="list-name-input" type="text" placeholder="${locale["listNameInput"]}" required>
+    </div>
+    <div class="form-group">
+        <label for="list-icon-url-input">${locale["listIconInputLabel"]}</label>
+        <div id="icon-picker">
+            <input type="url" placeholder="${locale["listIconInput"]}" id="list-icon-url-input">
+            <div>🙂 ${locale["useEmoji"]}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="list-epg-url-input">${locale["listEPGInputLabel"]}</label>
+        <input id="list-epg-url-input" type="url" placeholder="${locale["listEPGInput"]}">
+    </div>`;
+    if (currentLists[listUUID].name) {
+        document.querySelector("#list-editor #list-info-tab .list-name").innerText = currentLists[listUUID].name;
+        document.querySelector("#list-editor #list-info-tab #list-name-input").value = currentLists[listUUID].name;
+    };
+    if (currentLists[listUUID].icon != listIcon) {
+        document.querySelector("#list-editor #list-info-tab img").src = currentLists[listUUID].icon;
+        if (!currentLists[listUUID].icon.startsWith(listEmojiPrefix)) document.querySelector("#list-editor #list-info-tab #list-icon-url-input").value = currentLists[listUUID].icon;
+    };
+    if (currentLists[listUUID].epg) document.querySelector("#list-editor #list-info-tab #list-epg-url-input").value = currentLists[listUUID].epg;
+
+    document.querySelector("#list-editor #list-info-tab #list-name-input").addEventListener("input", () => {
+        if (document.querySelector("#list-editor #list-info-tab #list-name-input").value != "") document.querySelector("#list-editor #list-info-tab .list-name").innerText = document.querySelector("#list-editor #list-info-tab #list-name-input").value;
+        else document.querySelector("#list-editor #list-info-tab .list-name").innerText = locale["untitledList"];
+        currentLists[listUUID].name = document.querySelector("#list-editor #list-info-tab #list-name-input").value;
+        saveChanges();
+    });
+    document.querySelector("#list-editor #list-info-tab #list-icon-url-input").addEventListener("input", () => {
+        document.querySelector("#list-editor #list-info-tab .list-icon").src = document.querySelector("#list-editor #list-info-tab #list-icon-url-input").value;
+        currentLists[listUUID].icon = document.querySelector("#list-editor #list-info-tab #list-icon-url-input").value;
+        saveChanges();
+    });
+    document.querySelector("#list-editor #list-info-tab #list-epg-url-input").addEventListener("input", () => {
+        currentLists[listUUID].epg = document.querySelector("#list-editor #list-info-tab #list-epg-url-input").value;
+        saveChanges();
+    });
+
+    await import("../fonts/Twemoji.css");
+    const twemojiAPI = (await import("@twemoji/api")).default;
+    const { Picker } = await import("emoji-picker-element");
+    const emojiDataLanguages = ["bn", "da", "de", "en", "en-gb", "es", "es-mx", "et", "fi", "fr", "hi", "hu", "it", "ja", "ko", "lt", "ms", "nb", "nl", "pl", "pt", "ru", "sv", "th", "uk", "vi", "zh", "zh-hant"];
+    const picker = new Picker({
+        locale: selectedLanguage,
+        dataSource: `https://unpkg.com/emoji-picker-element-data@1.8.0/${emojiDataLanguages.includes(selectedLanguage) ? selectedLanguage : "en"}/cldr/data.json`
+    });
+    picker.classList.add("dark");
+    document.querySelector("#list-editor #list-info-tab #icon-picker").appendChild(picker);
+    document.querySelector("#list-editor #icon-picker div").addEventListener("click", () => {
+        document.querySelector("#list-editor #icon-picker div").classList.toggle("active");
+        if (document.querySelector("#list-editor #icon-picker div").classList.contains("active")) document.querySelector("#list-editor #icon-picker div").innerText = `✕ ${locale["useEmoji"]}`;
+        else document.querySelector("#list-editor #icon-picker div").innerText = `🙂 ${locale["useEmoji"]}`;
+        document.querySelector("#list-editor emoji-picker").classList.toggle("active");
+    });
+
+    picker.addEventListener("emoji-click-sync", async e => {
+        const emoji = (await e.detail).emoji.unicode;
+        const twemojiFile = new DOMParser().parseFromString(twemojiAPI.parse(emoji, { base: "", size: " ", ext: ".svg" }), "text/html").querySelector("img").getAttribute("src").trim();
+        const twemojiURL = `${listEmojiPrefix}${twemojiFile}`;
+        document.querySelector("#list-editor #list-info-tab .list-icon").src = twemojiURL;
+        document.querySelector("#list-editor #list-info-tab #icon-picker input").value = "";
+        currentLists[listUUID].icon = twemojiURL;
+        saveChanges();
+    });
+
+    const schema = await fetch(`${zappr.config.channels.host}/schema.json`).then(response => response.json()).catch(async () => {
+        const fallbackSchema = await fetch("https://channels.zappr.stream/schema.json").then(response => response.json()).catch(() => false);
+        return fallbackSchema;
+    });
+
+    let channelData = {};
+    let lastEditorEPGKey = null;
+    const { set, unset } = await import("lodash");
+    const morphdom = (await import("morphdom")).default;
+    const updateChannelData = async (key, input) => {
+        let value = input.value;
+        if (!value || value === "false" || (input.type === "checkbox" && !input.checked)) unset(channelData, key)
+        else {
+            switch (input.type) {
+                case "number": value = parseInt(value); break;
+                case "checkbox": value = input.checked; break;
+            };
+            if (input.type === "select-one" && input.dataset.acceptedTypes.split(",").includes("boolean") && input.value === "true") value = true;
+            if (input.type === "text" && input.dataset.acceptedTypes.split(",").includes("object") && isJSON(input.value)) value = JSON.parse(value);
+            set(channelData, key, value);
+        };
+        const tempChannelElementContainer = document.createElement("div");
+        tempChannelElementContainer.innerHTML = generateChannelHTML({
+            lcn: "X",
+            logo: tvIcon,
+            name: locale["channel"],
+            ...channelData
+        });
+        tempChannelElementContainer.querySelectorAll("*").forEach(el => {
+            for (const key in el.dataset) {
+                if (!["epgSource", "epgId"].includes(key)) delete el.dataset[key];
+            };
+        })
+
+        morphdom(document.querySelector("#edit-channel-options .channel"), tempChannelElementContainer.querySelector(".channel"), {
+            onBeforeElUpdated: (original, morph) => {
+                if (typeof original.className === "string" && (original.className === "channel-program" || original.className.startsWith("channel-program-"))) return false;
+                return true;
+            }
+        });
+        const epgKey = channelData.epg?.source && channelData.epg?.id ? `${channelData.epg.source}|${channelData.epg.id}` : null;
+        if (epgKey != lastEditorEPGKey) {
+            lastEditorEPGKey = epgKey;
+            if (epgKey) updateCurrentlyPlayingEPG();
+        };
+    };
+    const flattenObject = (object, prefix = "") => {
+        return Object.entries(object).reduce((acc, [key, value]) => {
+            const newKey = prefix ? `${prefix}.${key}` : key;
+            if (value && typeof value === "object" && !Array.isArray(value)) {
+                Object.assign(acc, flattenObject(value, newKey));
+            } else {
+                acc[newKey] = value;
+            };
+            return acc;
+        }, {});
+    };
+    const enterChannelEditor = (channel = null) => {
+        document.querySelector("#edit-channel").classList.add("active");
+        document.querySelector("#edit-channel").animate([{ height: "1.5rem" }, {
+            height: `calc(${document.querySelector("#edit-channel-options").scrollHeight}px - 2.5rem)`
+        }], { duration: 500, easing: "ease", fill: "forwards" });
+        if (channel) {
+            document.querySelector("#edit-channel-options .channel").outerHTML = generateChannelHTML(channel);
+
+            const flattenedChannel = flattenObject(channel);
+            for (const property of Object.keys(flattenedChannel)) {
+                if (document.querySelector(`#edit-channel-options [data-key="${property}"]`) && !(property === "logo" && flattenedChannel[property] === tvIcon)) {
+                    document.querySelector(`#edit-channel-options [data-key="${property}"]`).value = flattenedChannel[property];
+                    if (flattenedChannel[property] === true) document.querySelector(`#edit-channel-options [data-key="${property}"]`).checked = true;
+                    updateChannelData(property, document.querySelector(`#edit-channel-options [data-key="${property}"]`));
+                };
+            };
+            for (const property of ["lcn", "name", "type", "url"]) {
+                document.querySelector("#edit-channel-options").setAttribute(`data-${property}`, flattenedChannel[property]);
+            };
+        } else {
+            for (const key in document.querySelector("#edit-channel-options").dataset) {
+                delete document.querySelector("#edit-channel-options").dataset[key];
+            };
+        };
+        updateCurrentlyPlayingEPG();
+    };
+    document.querySelector("#edit-channel").addEventListener("click", e => {
+        if (!document.querySelector("#edit-channel-options").contains(e.target)) enterChannelEditor();
+    });
+    document.querySelector("#list-channels").innerHTML = "";
+    const generateEditableChannelElement = (channel) => {
+        const channelElementContainer = document.createElement("div");
+        channelElementContainer.innerHTML = generateChannelHTML(channel);
+        channelElementContainer.querySelector(".channel").insertAdjacentHTML("beforeend", `<div class="edit-channel-actions">
+            <img class="edit-channel" src="${editIcon}" alt="${locale["editList"]}">
+            <img class="delete-channel" src="${deleteIcon}" alt="${locale["deleteList"]}">
+        </div>`);
+        channelElementContainer.querySelector(".edit-channel").addEventListener("click", () => enterChannelEditor(channel));
+        channelElementContainer.querySelector(".delete-channel").addEventListener("click", () => {
+            if (confirm(locale["deleteChannelConfirmation"])) {
+                if (document.querySelector(`#list-channels [data-lcn="${channel.lcn}"][data-name="${channel.name}"][data-type="${channel.type}"][data-url="${channel.url}"]`)) document.querySelector(`#list-channels [data-lcn="${channel.lcn}"][data-name="${channel.name}"][data-type="${channel.type}"][data-url="${channel.url}"]`).remove();
+                const channelInList = currentLists[listUUID].channels.filter(ch => ch.lcn === parseInt(channel.lcn) && ch.name === channel.name && ch.type === channel.type && ch.url === channel.url)[0];
+                if (channelInList) {
+                    const channelIndex = currentLists[listUUID].channels.indexOf(channelInList);
+                    currentLists[listUUID].channels.splice(channelIndex, 1);
+                    saveChanges();
+                };
+            };
+        });
+        return channelElementContainer.querySelector(".channel");
+    };
+    if (currentLists[listUUID].channels) {
+        for (const channel of currentLists[listUUID].channels.sort((a, b) => a.lcn - b.lcn)) {
+            document.querySelector("#list-channels").insertAdjacentElement("beforeend", generateEditableChannelElement(channel));
+        };
+    };
+
+    document.querySelector("#edit-channel-options").innerHTML = "";
+    document.querySelector("#edit-channel-options").insertAdjacentHTML("afterbegin", generateChannelHTML({ lcn: "X", logo: tvIcon, name: locale["channel"] }));
+    const properties = schema.properties.channels.items.properties;
+    const editorGroups = schema.properties.channels.items["meta:channel-editor-groups"];
+    for (const group of editorGroups) {
+        const editorProperties = Object.fromEntries(Object.entries(properties).flatMap(([key, value]) => {
+            if (value["meta:channel-editor-group"] === group && value.type === "object" && value.properties) {
+                return Object.entries(value.properties).map(([subkey, subvalue]) => [`${key}.${subkey}`, {
+                    ...subvalue,
+                    "meta:channel-editor-group": value["meta:channel-editor-group"]
+                }]);
+            };
+
+            return value["meta:channel-editor-group"] === group ? [[key, value]] : [];
+        }).sort(([, a], [, b]) => {
+            const aIsBoolean = a.type === "boolean";
+            const bIsBoolean = b.type === "boolean";
+
+            if (aIsBoolean === bIsBoolean) return 0;
+            return aIsBoolean ? 1 : -1;
+        }));
+        const requiredProperties = ["lcn", "name", "type", "url"];
+
+        const groupHeader = document.createElement("h4");
+        groupHeader.innerText = locale.channelEditorSchema["_groups"][group];
+        document.querySelector("#edit-channel-options").insertAdjacentElement("beforeend", groupHeader);
+        const groupContainer = document.createElement("div");
+        groupContainer.classList.add("group-container");
+
+        for (const property of Object.keys(editorProperties)) {
+            const formGroup = document.createElement("div");
+            formGroup.classList.add("form-group");
+            formGroup.classList.add(editorProperties[property].type);
+            const formGroupLabel = document.createElement("label");
+            formGroupLabel.innerText = typeof(locale.channelEditorSchema[property]) === "object" ? locale.channelEditorSchema[property][0] : locale.channelEditorSchema[property];
+            formGroupLabel.setAttribute("for", `edit-channel-input--${property}`);
+
+            const formGroupInput = editorProperties[property]["enum"] ? document.createElement("select") : document.createElement("input");
+            formGroupInput.id = `edit-channel-input--${property}`;
+            formGroupInput.classList.add("edit-channel-input");
+            formGroupInput.dataset.acceptedTypes = editorProperties[property].type;
+            formGroupInput.dataset.key = property;
+            formGroupInput.required = requiredProperties.includes(property);
+            if (editorProperties[property]["enum"]) {
+                const defaultOptionElement = document.createElement("option");
+                defaultOptionElement.value = "";
+                defaultOptionElement.selected = true;
+                defaultOptionElement.innerText = "N/A";
+                formGroupInput.appendChild(defaultOptionElement);
+                const options = editorProperties[property]["enum"].filter(option => option != false);
+                for (const option of options) {
+                    const optionElement = document.createElement("option");
+                    optionElement.value = option;
+                    optionElement.innerText = `${option} - ${locale.channelEditorSchema[property][1][option]}`;
+                    formGroupInput.appendChild(optionElement);
+                };
+                formGroupInput.addEventListener("change", () => updateChannelData(property, formGroupInput));
+            } else {
+                if (editorProperties[property].type === "string" || editorProperties[property].type.includes("string")) formGroupInput.placeholder = locale.channelEditorSchema[property][1] ?? locale.channelEditorSchema[property][0];
+                formGroupInput.type = {
+                    number: "number",
+                    string: "text",
+                    boolean: "checkbox"
+                }[editorProperties[property].type] ?? "text";
+                formGroupInput.addEventListener("input", () => updateChannelData(property, formGroupInput));
+            };
+            formGroup.appendChild(formGroupLabel);
+            formGroup.appendChild(formGroupInput);
+            groupContainer.appendChild(formGroup);
+        };
+        document.querySelector("#edit-channel-options").appendChild(groupContainer);
+    };
+    document.querySelector("#edit-channel-options").insertAdjacentHTML("beforeend", `<a class="save-channel"><img src="${tvIcon}">${locale["saveChannel"]}</a>`);
+    document.querySelector("#edit-channel-options .save-channel").addEventListener("click", () => {
+        const allInputsValid = ![...new Set(Array.from(document.querySelector("#edit-channel-options").querySelectorAll("input, select")).reverse().map(el => el.reportValidity()))].includes(false);
+        if (allInputsValid) {
+            const patchedChannelData = {
+                logo: tvIcon,
+                ...channelData
+            };
+            document.querySelector("#edit-channel").classList.remove("active");
+            document.querySelector("#edit-channel").animate([{
+                height: `calc(${document.querySelector("#edit-channel-options").scrollHeight}px - 2.5rem)`
+            }, { height: "1.5rem" }], { duration: 500, easing: "ease", fill: "forwards" });
+
+            const oldChannelData = Object.fromEntries(Object.keys(document.querySelector("#edit-channel-options").dataset).map(key => [key, document.querySelector("#edit-channel-options").dataset[key]]));
+            if (oldChannelData && document.querySelector(`#list-channels [data-lcn="${oldChannelData.lcn}"][data-name="${oldChannelData.name}"][data-type="${oldChannelData.type}"][data-url="${oldChannelData.url}"]`)) {
+                document.querySelector(`#list-channels [data-lcn="${oldChannelData.lcn}"][data-name="${oldChannelData.name}"][data-type="${oldChannelData.type}"][data-url="${oldChannelData.url}"]`).remove();
+                const oldChannel = currentLists[listUUID].channels.filter(channel => channel.lcn === parseInt(oldChannelData.lcn) && channel.name === oldChannelData.name && channel.type === oldChannelData.type && channel.url === oldChannelData.url)[0];
+                if (oldChannel) {
+                    const oldChannelIndex = currentLists[listUUID].channels.indexOf(oldChannel);
+                    currentLists[listUUID].channels[oldChannelIndex] = patchedChannelData;
+                };
+            } else currentLists[listUUID].channels.push(patchedChannelData);
+            
+            saveChanges();
+            const nextChannelSibling = Array.from(document.querySelector("#list-channels").children).filter(el => parseInt(el.dataset.lcn) > patchedChannelData.lcn)[0];
+            if (nextChannelSibling) {
+                nextChannelSibling.insertAdjacentElement("beforebegin", generateEditableChannelElement(patchedChannelData));
+            } else {
+                document.querySelector("#list-channels").insertAdjacentElement("beforeend", generateEditableChannelElement(patchedChannelData));
+            };
+            setTimeout(() => {
+                document.querySelector("#edit-channel-options .channel").outerHTML = generateChannelHTML({ lcn: "X", logo: tvIcon, name: locale["channel"] });
+                document.querySelector("#edit-channel-options").querySelectorAll("input, select").forEach(el => {
+                    el.value = "";
+                    el.checked = false;
+                });
+                channelData = {};
+                updateCurrentlyPlayingEPG();
+            }, 500);
+        };
+    });
+
+    updateCurrentlyPlayingEPG();
+};
+document.querySelectorAll("#my-list .add-list .create-manually").forEach(el => {
+    el.addEventListener("click", () => enterListEditor());
+});
+document.querySelector("#my-list-explanation").style.setProperty("--height", `${document.querySelector("#my-list-explanation").scrollHeight}px`);
+document.querySelector("#my-list-explanation-link").addEventListener("click", () => document.querySelector("#my-list-explanation-link").classList.toggle("active"));
+
+const enterFavoritesPickerMode = () => {
+    document.querySelector("#my-list").classList.remove("visible");
+    document.querySelector("#channels-column").classList.add("favorites-picker-mode");
+    document.querySelector(".toast-notification span").innerText = locale["clickChannelToFavorite"];
+    document.querySelector(".toast-notification-container").classList.add("visible");
+    document.querySelector(".toast-notification-container").removeAttribute("hidden");
+    document.querySelector(".toast-notification .save-favorites").addEventListener("click", () => {
+        document.querySelector(`[data-id="favorites"]`).click();
+        document.querySelector("#channels-column").classList.remove("favorites-picker-mode");
+        document.querySelector("#my-list").classList.add("visible");
+        document.querySelector(".toast-notification-container").classList.remove("visible");
+        localStorage.removeItem("todo-edit-favorites");
+    });
+}
+document.querySelector(`#my-list [data-id="favorites"] .edit-list`).addEventListener("click", () => {
+    if (localStorage.getItem("selected-base-list") != "default") {
+        localStorage.setItem("todo-edit-favorites", "true");
+        localStorage.setItem("selected-base-list", "default");
+        window.location.reload();
+    } else enterFavoritesPickerMode();
+});
+const deleteList = (id) => {
+    const isAdditionalList = document.querySelector("#list-picker").classList.contains("second-tab-active");
+    if (isAdditionalList) delete additionalLists[id];
+    else delete baseLists[id];
+    
+    localStorage.setItem(isAdditionalList ? "additional-lists" : "base-lists", JSON.stringify(isAdditionalList ? additionalLists : baseLists));
+    const listContainer = isAdditionalList ? document.querySelector("#additional-list-tab") : document.querySelector("#base-list-tab");
+    listContainer.querySelector(`.list[data-id="${id}"]`).remove();
+    if (!listContainer.querySelector(".list.selected") && !isAdditionalList) listContainer.querySelector(`.list[data-id="default"]`).classList.add("selected");
+};
+if (todoEditFavorites) {
+    document.querySelector("#my-list .save-tab").classList.add("active");
+    document.querySelector(".list.selected").classList.remove("selected");
+    document.querySelector(`.list[data-id="favorites"]`).classList.add("selected");
+    enterFavoritesPickerMode();
+};
+
+const addCustomList = ({ id, name, publisher, icon = null, publisherLink = null, donationLink = null, epg, channels = id }) => {
+    const isAdditionalList = document.querySelector("#list-picker").classList.contains("second-tab-active");
+    
+    const listStorage = isAdditionalList ? "additional-lists" : "base-lists";
+    let currentLists = JSON.parse(localStorage.getItem(listStorage)) ?? {};
+    if (!currentLists[id]) {
+        currentLists[id] = { channels, name, publisher, icon, publisherLink, donationLink, epg };
+        localStorage.setItem(listStorage, JSON.stringify(currentLists));
+    
+        const activeTab = isAdditionalList ? document.querySelector("#additional-list-tab") : document.querySelector("#base-list-tab");
+        activeTab.querySelector(".add-list").insertAdjacentHTML("beforebegin", generateListHTML({ id, name, publisher, icon, publisherLink, donationLink }));
+        addListEventListeners(document.querySelector(`.list[data-id="${id}"]`), isAdditionalList);
+        activeTab.querySelector("input.add-list-option").value = "";
+        document.querySelector("#my-list .add-list.active").classList.remove("active");
+    } else alert(`${locale["alreadyAddedRemoteList"]} (${currentLists[id].name}).`);
+};
+
+const fetchCustomList = async (url) => { 
+    let listJSON;
+    const isLocalExport = url.startsWith("data:application/gzip,");
+    if (isLocalExport) {
+        const { decompressSync, strFromU8 } = await import("fflate");
+        const binary = atob(url.replace("data:application/gzip,", ""));
+        const decompressedBinary = decompressSync(Uint8Array.from(binary, c => c.charCodeAt(0)));
+        listJSON = JSON.parse(strFromU8(decompressedBinary));
+        listJSON = Object.fromEntries(Object.keys(listJSON).filter(el => listJSON[el]).map(el => [el, listJSON[el]]));
+    } else {
+        listJSON = await fetch(url)
+            .then(response => response.json())
+            .catch(err => alert(`${locale["couldntFetchChannelList"]}: ${err.stack}`));
+    };
+
+    if (listJSON) {
+        listJSON = JSON.parse(sanitize(JSON.stringify(listJSON)));
+        const schema = await fetch(`${zappr.config.channels.host}/schema.json`).then(response => response.json()).catch(async () => {
+            const fallbackSchema = await fetch("https://channels.zappr.stream/schema.json").then(response => response.json()).catch(() => false);
+            return fallbackSchema;
+        });
+        if (schema) {
+            const { Validator } = await import("jsonschema");
+            const schemaValidator = new Validator();
+            const schemaValidation = schemaValidator.validate(listJSON, schema, { base: "https://channels.zappr.stream" });
+
+            if (schemaValidation.valid || (isLocalExport && schemaValidation.errors.length === 1 && schemaValidation.errors[0].argument === "publisher")) {
+                addCustomList({ id: isLocalExport ? crypto.randomUUID() : url, name: listJSON.name, publisher: listJSON.publisher, icon: listJSON.icon, publisherLink: listJSON.publisherLink, donationLink: listJSON.donationLink, epg: listJSON.epg, channels: isLocalExport ? listJSON.channels : url });
+            } else alert(`${locale["listFormatInvalid"]}:\n${schemaValidation.errors.toString()}`);
+        };
+    };
+};
+document.querySelectorAll("#my-list .load-custom-url").forEach(el => {
+    el.addEventListener("click", async () => {
+        if (el.previousElementSibling.value && el.previousElementSibling.checkValidity()) await fetchCustomList(el.previousElementSibling.value);
+        else alert(locale["invalidURL"])
     });
 });
 
@@ -2176,8 +2920,18 @@ document.querySelector("#region").addEventListener("change", e => {
 if (new URLSearchParams(location.search).get("androidtv") === null) {
     document.querySelectorAll("#settings select").forEach(el => {
         updateSelectWidth(el);
-        el.addEventListener("change", e => updateSelectWidth(e.target))
+        el.addEventListener("change", e => updateSelectWidth(e.target));
     });
+    if (localStorage.getItem("selected-base-list") != "default" && localStorage.getItem("selected-base-list") != "favorites") {
+        const settingsToDisable = Array.from(document.querySelector("#region-selector").children).slice(2);
+        settingsToDisable.forEach(el => el.setAttribute("disabled", true));
+        const disabledLayerWidth = settingsToDisable.map(el => el.scrollWidth).sort((a, b) => b - a)[0];
+        const disabledLayerHeight = settingsToDisable.map(el => el.scrollHeight + parseInt(getComputedStyle(el).marginTop) + parseInt(getComputedStyle(el).marginBottom)).reduce((partialSum, a) => partialSum + a, 0);
+        document.querySelector("#region-selector .disabled-layer").style.width = `${disabledLayerWidth}px`;
+        document.querySelector("#region-selector .disabled-layer").style.height = `${disabledLayerHeight}px`;
+        document.querySelector("#region-selector .disabled-layer").classList.add("active");
+        document.querySelector("#region-selector .disabled-layer").addEventListener("click", () => alert(locale["disabledRegionSettings"]));
+    };
 };
 
 document.querySelector("#save-and-reload").addEventListener("click", () => {
@@ -2210,10 +2964,10 @@ window.addEventListener("appinstalled", () => {
 });
 
 window.zappr.copyInfo = () => {
-    document.querySelector(".modal .technical-info a").innerText = "Copiato!";
+    document.querySelector(".modal .technical-info a").innerText = locale["errorCopiedInfo"];
     document.querySelector(".modal .technical-info a").classList.add("copied");
     setTimeout(() => {
-        document.querySelector(".modal .technical-info a").innerText = "Copia";
+        document.querySelector(".modal .technical-info a").innerText = locale["errorCopyInfo"];
         document.querySelector(".modal .technical-info a").classList.remove("copied");
     }, 2500);
     let range = document.createRange();
@@ -2226,7 +2980,7 @@ window.zappr.copyInfo = () => {
 let searchUpdateLastCallTime = 0;
 let searchUpdateTimeoutID = null;
 
-document.querySelector("input").addEventListener("input", e => {
+document.querySelector("#search-input").addEventListener("input", e => {
     const search = new DOMParser().parseFromString(e.target.value.toLowerCase(), "text/html").documentElement.innerText.trim();
     const now = Date.now();
     const elapsed = now - searchUpdateLastCallTime;
@@ -2272,7 +3026,7 @@ document.querySelector("input").addEventListener("input", e => {
     }, wait);
 });
 document.querySelector("#search-icon").addEventListener("click", () => {
-    if (!document.querySelector("#channels-column").classList.contains("search-visible")) document.querySelector("input").focus();
+    if (!document.querySelector("#channels-column").classList.contains("search-visible")) document.querySelector("#search-input input").focus();
     document.querySelector("#channels-column").classList.toggle("search-visible");
 });
 
@@ -2307,21 +3061,30 @@ if (new URLSearchParams(location.search).get("lcn") != null) {
     selectChannel(new URLSearchParams(location.search).get("lcn"));
 };
 
-fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
+const baseEPGToFetch =
+    localStorage.getItem("selected-base-list") != "default" && localStorage.getItem("selected-base-list") != "favorites"
+        ? baseLists[localStorage.getItem("selected-base-list")]?.epg
+            ? baseLists[localStorage.getItem("selected-base-list")].epg
+            : baseLists[localStorage.getItem("selected-base-list")]?.epg === false 
+                ? "data:text/html,"
+                : getEPGURL(`${countries[selectedCountry].location}/national`)
+        : getEPGURL(`${countries[selectedCountry].location}/national`);
+
+fetch(baseEPGToFetch)
     .then(response => response.json())
     .then(async json => {
-        window.zappr.nationalEPG = json;
+        const { merge } = await import("lodash");
+        window.zappr.epg = merge({}, window.zappr.epg, json);
 
-        if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
+        if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
             await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
                 .then(response => response.json())
-                .then(json => {
+                .then(async json => {
+                    const { merge } = await import("lodash");
                     window.zappr.regionalEPG = json;
-                    window.zappr.epg = merge({}, window.zappr.nationalEPG, window.zappr.regionalEPG);
+                    window.zappr.epg = merge({}, window.zappr.epg, window.zappr.regionalEPG);
                 })
-                .catch(() => window.zappr.epg = window.zappr.nationalEPG);
-        } else {
-            window.zappr.epg = window.zappr.nationalEPG;
+                .catch(() => {});
         };
 
         updateCurrentlyPlayingEPG();
@@ -2333,12 +3096,16 @@ fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
             updateCurrentlyPlayingEPG();
             setInterval(updateCurrentlyPlayingEPG, 15000);
         }, delay);
-        document.querySelector(".toast-notification-container").classList.remove("visible");
-        setTimeout(() => document.querySelector(".toast-notification-container").setAttribute("hidden", ""), 500);
+        if (!todoEditFavorites) {
+            document.querySelector(".toast-notification-container").classList.remove("visible");
+            setTimeout(() => document.querySelector(".toast-notification-container").setAttribute("hidden", ""), 500);
+        };
     })
     .catch(e => {
-        console.warn(`Can't find EPG: ${e.stack}`);
-        document.querySelector(".toast-notification-container").setAttribute("hidden", "");
+        if (baseEPGToFetch === "data:text/html,") console.warn("EPG disabled by base list");
+        else console.warn(`Can't find EPG: ${e.stack}`);
+
+        if (!todoEditFavorites) document.querySelector(".toast-notification-container").setAttribute("hidden", "");
         updateCurrentlyPlayingEPG();
         const now = DateTime.now();
         const nextQuarter = Math.ceil(now.second / 15) * 15;
@@ -2351,20 +3118,32 @@ fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
         window.zappr.epg = {};
     });
 
+for (const listStorage of ["base-lists", "additional-lists"]) {
+    let lists = JSON.parse(localStorage.getItem(listStorage)) ?? [];
+    const remoteLists = Object.keys(lists).filter(list => isURL(list));
+    for (const list of remoteLists) {
+        fetch(list)
+            .then(response => response.json())
+            .then(listJSON => {
+                lists[list] = { id: list, name: listJSON.name, publisher: listJSON.publisher, icon: listJSON.icon, publisherLink: listJSON.publisherLink, donationLink: listJSON.donationLink, epg: listJSON.epg };
+                localStorage.setItem(listStorage, JSON.stringify(lists));
+            });
+    };
+};
+
 setTimeout(() => document.querySelector(".toast-notification-container").classList.add("visible"), 1000);
 setInterval(async () => {
     window.zappr.nationalEPG = await fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
         .then(response => response.json());
 
-    if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national") {
+    if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
         await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
             .then(response => response.json())
-            .then(json => {
+            .then(async json => {
+                const { merge } = await import("lodash");
                 window.zappr.regionalEPG = json;
-                window.zappr.epg = merge({}, window.zappr.nationalEPG, window.zappr.regionalEPG);
+                window.zappr.epg = merge({}, window.zappr.epg, window.zappr.regionalEPG);
             });
-    } else {
-        window.zappr.epg = window.zappr.nationalEPG;
     };
 }, 3600000);
 

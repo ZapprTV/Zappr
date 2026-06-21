@@ -1,3 +1,4 @@
+const listIcon = (await import("/assets/icons/list.svg?url")).default;
 export default {
     it: {
         languageName: "Italiano",
@@ -20,6 +21,7 @@ export default {
         infoTooltip: `Zappr è il nuovo modo di guardare la TV. Guarda la maggior parte dei canali nazionali e locali del tuo paese, online, gratuitamente e senza configurazioni complesse.
         <br><br>
         <a href="https://ko-fi.com/FrancescoRosi" target="_blank" class="tooltip-link" id="donation-link">Invia una donazione :)</a>
+        <a href="https://trustpilot.com/evaluate/zappr.stream" target="_blank" id="trustpilot-link" class="tooltip-link">Recensisci Zappr su Trustpilot</a>
         <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">Visualizza il codice sorgente su GitHub</a>
         <div class="tooltip-link" id="news-links">Rimani aggiornato sulle ultime novità seguendoci su <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> o <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
         <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contattaci via email</a>`,
@@ -39,10 +41,14 @@ export default {
         }
         #news.news-not-loaded .tooltip-content-box:after {
             content: "Caricamento..." !important;
+        }
+        #my-list .list:after {
+            content: "✓ Selezionata";
         }`,
         lcnTyping: "Invio per confermare<br>o Esc per annullare",
         errorTechnicalInfo: "Informazioni tecniche",
         errorCopyInfo: "Copia",
+        errorCopiedInfo: "Copiato!",
         reportError: "Per favore segnala questo errore via GitHub o email. Cliccando su uno dei pulsanti qui sotto le informazioni principali dell'errore verranno compilate automaticamente.",
         reportViaGithub: "Segnala tramite GitHub",
         reportViaEmail: "Segnala tramite email",
@@ -66,16 +72,137 @@ export default {
         viewHbbTVChannels: "Visualizza canali HbbTV",
         disabledNotWorking: "Lo streaming di questo canale non funziona al momento.",
         disabledGeoblock: "Questo canale è visibile solo nel suo paese di origine.",
+        continue: "Continua",
+        cancel: "Annulla",
         warning: "Attenzione!",
         geoblockMessage: "La nazione del tuo indirizzo IP non corrisponde a quella della nazione scelta. Ciò significa che alcuni canali non saranno visibili.<br><br>Per evitare completamente questi blocchi geografici, usa una VPN.",
         welcomeTitle: "Ti diamo il benvenuto a Zappr!",
-        welcomeText: "Zappr ti permette di guardare facilmente e gratuitamente il digitale terrestre, nazionale e locale <span class=\"italic\">(ricordati di impostare la tua regione nelle impostazioni!)</span>, e i canali di Samsung TV Plus e Pluto TV.<br><br>Per iniziare a vedere un canale, cliccaci sopra o scrivi la sua numerazione sulla tua tastiera e premi <b>Invio</b>. Per fare zapping, invece, puoi usare i tasti <b>PageDown</b> e <b>PageUp</b> per scorrere tra i canali.<br><br>Infine, se un canale ha la guida TV, puoi cliccare sopra al nome del programma in onda per visionare la guida TV completa fino a 7 giorni dal giorno corrente.<br><br>Questo è quanto. <b>Buona visione!</b>",
+        welcomeText: `Zappr ti permette di guardare facilmente e gratuitamente il digitale terrestre, nazionale e locale <span class="italic">(ricordati di impostare la tua regione nelle impostazioni!)</span>, e i canali di Samsung TV Plus e Pluto TV.<br><br>Per iniziare a guardare un canale, cliccaci sopra o scrivi la sua numerazione sulla tua tastiera e premi <b>Invio</b>. Per fare zapping, invece, puoi usare i tasti <b>PageDown</b> e <b>PageUp</b> per scorrere tra i canali.<br><br>Se un canale ha la guida TV, puoi cliccare sopra al nome del programma in onda per visionare la guida TV completa fino a 7 giorni dal giorno corrente.<br><br>Infine, se vuoi personalizzare la lista dei canali, assemblando una lista dei preferiti o creandone di nuove con i canali che vuoi tu, proprio come in un client IPTV, puoi fare ciò con la funzione <b>My List</b>, a cui puoi accedere cliccando l'icona <img src="${listIcon}"> nella barra inferiore.<br><br>Questo è quanto. <b>Buona visione!</b>`,
         newsInstructions: "Clicca su un titolo per leggere la notizia completa, oppure clicca su un'immagine per ingrandirla.",
         newsHosting: `Hosting del feed fornito da <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)`,
         newsURL: "https://mastodon.uno/@zappr.rss",
         epgLoading: "L'EPG sarà disponibile a breve",
         unreportableErrorDASHiOS: "Molto probabilmente il tuo dispositivo non supporta lo streaming di questo canale. Prova su un altro dispositivo.",
-        unreportableErrorFAST: "I link di questi canali vengono aggiornati automaticamente ogni giorno. Riprova più tardi o tra 24 ore."
+        unreportableErrorFAST: "I link di questi canali vengono aggiornati automaticamente ogni giorno. Riprova più tardi o tra 24 ore.",
+        search: "Cerca",
+        news: "Notizie",
+        info: "Info",
+        settings: "Impostazioni",
+        save: "Salva",
+        saveList: "Salva lista",
+        watch: "Guarda",
+        selectBaseList: "Seleziona una lista base",
+        officialZapprList: "Lista ufficiale di Zappr",
+        listPublisherDonate: "<b>$</b> Dona",
+        favoritesBaseList: "Preferiti",
+        shareList: "Condividi lista",
+        editList: "Modifica lista",
+        addList: "Aggiungi una lista...",
+        createListManually: "Crea manualmente...",
+        insertListURL: "Inserisci URL...",
+        selectAdditionalLists: "Seleziona una o più liste aggiuntive",
+        baseList: "Lista base",
+        additionalLists: "Liste aggiuntive",
+        howDoesMyListWork: "Come funziona My List?",
+        myListExplanation: "My List ti permette di personalizzare la lista dei canali di Zappr. Scegli una lista base, che fungerà da sorgente principale di canali, e arricchiscila con quante liste aggiuntive desideri. I canali delle liste aggiuntive verranno integrati con quelli della lista base.",
+        addChannel: "Aggiungi un canale...",
+        listEditorInfo: "Info",
+        listEditorChannels: "Canali",
+        disabledRegionSettings: "Queste impostazioni sono disponibili solo con la lista base ufficiale di Zappr (o dei preferiti).",
+        multipleChannelSelectionText: (matchedChannel) => `<b>Premi ${matchedChannel.map((channel, index) => `${index + 1} per ${channel.name}`).join(",<br>")}<br>oppure Esc per annullare</b>`,
+        popupReopenPlayer: "Riapri player",
+        popupAccessDeniedTitle: "Accesso ai popup negato",
+        popupAccessDeniedText: (channel) => `Il tuo browser non ha permesso a Zappr di aprire una finestra popup per la visione di <b>${name}</b>. Per vedere il canale, devi dare il permesso a Zappr di poter aprire finestre popup, oppure puoi aprire la finestra sottoforma di una nuova scheda e vedere il canale lì.`,
+        openInNewWindow: "Apri in una nuova scheda",
+        closeModal: "Chiudi",
+        couldntFetchSchema: "Attenzione: Zappr non riesce a verificare la conformità della lista selezionata al formato previsto per le liste dei canali. Pertanto, per la tua sicurezza, abbiamo ripristinato la lista dei canali predefinita.",
+        notSchemaCompliantOnLoading: (errors) => `Attenzione: Il formato della lista base dei canali che hai scelto non è valido. Pertanto, abbiamo ripristinato la lista dei canali predefinita.\n\nErrori:\n${errors}`,
+        couldntFetchSchemaAdditionalList: (list) => `Attenzione: Zappr non riesce a verificare la conformità di una delle liste aggiuntive che hai selezionato al formato previsto per le liste dei canali. Pertanto, per la tua sicurezza, l'abbiamo disattivata.\n\nLista: ${list}`,
+        notSchemaCompliantAdditionalList: (list, errors) => `Attenzione: Il formato di una delle liste dei canali aggiuntive che hai scelto non è valido. Pertanto, l'abbiamo disattivata.\n\nLista: ${list}\nErrori:\n${errors}`,
+        couldntFetchChannelList: "Impossibile recuperare lista dei canali",
+        alreadyAddedRemoteList: "Hai già una lista con questo URL",
+        listFormatInvalid: "Formato della lista non valido",
+        nightAdultChannelModalText: "In questa fascia oraria (23:00 - 07:00), questo canale potrebbe trasmettere contenuti vietati ai minori di 18 anni.",
+        fullyAdultChannelModalText: "Questo canale trasmette contenuti vietati ai minori di 18 anni.",
+        adultChannelModalText: "Cliccando sul pulsante <b>Continua</b> qui sotto, confermi di essere consapevole della natura del materiale trasmesso e di avere l'età necessaria per poter guardarlo. Inoltre, accetti di assumerti la piena responsabilità della visione di questo canale, esonerando Zappr e i suoi affiliati da qualsiasi conseguenza derivante da un uso improprio o non autorizzato.<br><br><b>Continuare?</b>",
+        untitledList: "Lista senza nome",
+        deleteList: "Elimina lista",
+        favoritesListEmpty: "La lista dei preferiti è vuota! Aggiungi dei canali ai preferiti cliccando l'icona della matita.",
+        deleteListConfirmation: "Sei sicuro di voler eliminare questa lista?",
+        deleteChannelConfirmation: "Sei sicuro di voler eliminare questo canale?",
+        listNameInputLabel: "&nbsp;Nome",
+        listNameInput: "Nome della lista",
+        listIconInputLabel: "Icona",
+        listIconInput: "URL di un'immagine PNG/SVG",
+        listEPGInputLabel: "&nbsp;&nbsp;EPG",
+        listEPGInput: "URL del file JSON dell'EPG",
+        channel: "Canale",
+        clickChannelToFavorite: "Clicca su un canale per aggiungerlo ai preferiti",
+        invalidURL: "URL non valido.",
+        localList: "Lista locale",
+        saveChannel: "Salva canale",
+        useEmoji: "Usa emoji",
+        listURLCopied: `È stato copiato con successo l'URL della lista!\nPer importarla altrove, clicca sull'icona di My List, poi su "Aggiungi una lista..." e, nella casella di testo "Inserisci URL...", inserisci l'URL appena copiato.\nPuoi importare questa lista sia come lista base che come lista aggiuntiva.`,
+        myListTemporaryPromoTooltipTitle: "Prova <i>My List</i>, la nuova funzione di Zappr",
+        myListTemporaryPromoTooltipText: `<span>Personalizza la lista dei canali a tuo piacimento.</span>
+        <span>Assembla la lista dei tuoi canali preferiti, o creane di nuove con i canali che desideri. Proprio come in un client IPTV.</span>`,
+        additionalChannelFavoritingDisabled: "Puoi aggiungere solo canali della lista base ufficiale di Zappr ai preferiti.",
+        selectFavoritesFromOfficialBaseList: "Seleziona i tuoi canali preferiti dalla lista ufficiale di Zappr",
+        channelEditorSchema: {
+            _groups: {
+                "basic-channel-info": "Info canale",
+                "stream-info": "Info stream"
+            },
+            lcn: ["LCN"],
+            logo: ["Logo", "URL di un'immagine PNG/SVG"],
+            name: ["Nome", "Nome canale"],
+            subtitle: ["Sottotitolo", "Sottotitolo canale"],
+            hd: ["HD"],
+            uhd: ["4K"],
+            radio: ["Canale radio?", {
+                true: "Canale radio senza traccia video",
+                video: "Canale radio con traccia video statica"
+            }],
+            ondemand: ["Video on-demand"],
+            type: ["Tipo", {
+                hls: "HLS (.m3u8)",
+                dash: "DASH (.mpd)",
+                twitch: "Twitch (username canale)",
+                youtube: "YouTube (ID canale/video)",
+                iframe: "IFrame/embed (URL)",
+                audio: "Audio",
+                direct: "Diretto (.mp4, .mkv, ecc.)",
+                popup: "Finestra popup (URL)"
+            }],
+            url: ["URL", "URL stream"],
+            http: ["Visibile solo\ntramite HTTP?"],
+            license: ["Licenza", {
+                "xdevel-wms": "Xdevel WMS Auth Sign",
+                clearkey: "ClearKey",
+                widevine: "Widevine (URL licenza)"
+            }],
+            licensedetails: ["Dettagli licenza", "Stringa o JSON"],
+            hbbtvapp: ["App HbbTV?"],
+            api: ["API", {
+                vercel: "API Vercel",
+                cloudflare: "API Cloudflare"
+            }],
+            cssfix: ["Fix CSS", {
+                "streamshow-embed": "Embed StreamShow (embed.streamshow.net)",
+                stretch: "Stretcha da 4:3 a 16:9",
+                "squashed-height": "Stretcha da 64:27 a 16:9",
+                "very-squashed-height": "Stretcha da 32:9 a 16:9",
+                "five-two-squashed-height": "Stretcha da 5:2 a 16:9",
+                "center-iframe": "Centra IFrame/embed",
+                "servizistreaming-embed": "Embed di ServiziStreaming.it",
+                "livetvuk-embed": "Embed di LiveTVUK.com",
+                "native-hls-720p-iframe": "Ingrandisci video in 720p dentro un IFrame/embed",
+                letterbox: "Stream in letterbox"
+            }],
+            "epg.source": ["Sorgente EPG", "ID sorgente EPG"],
+            "epg.id": ["ID EPG", "ID del canale nella sorgente EPG"],
+            timeshift: ["Ore di timeshift"]
+        }
     },
     en: {
         languageName: "English",
@@ -98,6 +225,7 @@ export default {
         infoTooltip: `Zappr is the new way to watch TV. Watch most of your country's national and local channels, online, for free and without any complicated setup.
         <br><br>
         <a href="https://ko-fi.com/FrancescoRosi" target="_blank" class="tooltip-link" id="donation-link">Send a donation :)</a>
+        <a href="https://trustpilot.com/evaluate/zappr.stream" target="_blank" id="trustpilot-link" class="tooltip-link">Review Zappr on Trustpilot</a>
         <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">View the source code on GitHub</a>
         <div class="tooltip-link" id="news-links">Stay up to date with the latest by following us on <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> or <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
         <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contact us via email</a>`,
@@ -109,10 +237,14 @@ export default {
         }
         #news.news-not-loaded .tooltip-content-box:after {
             content: "Loading..." !important;
+        }
+        #my-list .list:after {
+            content: "✓ Selected";
         }`,
         lcnTyping: "Enter to confirm<br>or Esc to cancel",
         errorTechnicalInfo: "Technical info",
         errorCopyInfo: "Copy",
+        errorCopiedInfo: "Copied!",
         reportError: "Please report this error via GitHub or email. By clicking on one of the buttons down below, the error's main info will be included automatically.",
         reportViaGithub: "Report via GitHub",
         reportViaEmail: "Report via email",
@@ -136,15 +268,136 @@ export default {
         viewHbbTVChannels: "View additional IP channels",
         disabledNotWorking: "This channel's streaming isn't working at the moment.",
         disabledGeoblock: "This channel is only visible in its country of origin.",
+        continue: "Continue",
+        cancel: "Cancel",
         warning: "Warning!",
         geoblockMessage: "Your IP address' country doesn't match the country you chose. This means some channels won't be visible.<br><br>To get around geoblocks, use a VPN.",
         welcomeTitle: "Welcome to Zappr!",
-        welcomeText: "Zappr allows you to watch your country's free-to-air channels, national and local <span class=\"italic\">(remember to set your country and region in the settings!)</span>.<br><br>To start watching a channel, click on it or type its channel number on your keyboard and press <b>Enter</b>. To zap between channels, use the <b>PageDown</b> and <b>PageUp</b> keys.<br><br>That's all for now. <b>Enjoy!</b>",
+        welcomeText: `Zappr allows you to watch your country's free-to-air channels, national and local <span class="italic">(remember to set your country and region in the settings!)</span>.<br><br>To start watching a channel, click on it or type its channel number on your keyboard and press <b>Enter</b>. To zap between channels, use the <b>PageDown</b> and <b>PageUp</b> keys.<br><br>If a channel has a TV guide, you can click on the name of the program currently airing to view the channel's complete TV guide for up to 7 days from the current day.<br><br>Finally, if you want to customize the channel list, by putting together a list of your favorite channels or creating new lists with the channels you want, just like in an IPTV client, you can do that with the <b>My List</b> feature, which you can access by clicking on the <img src="${listIcon}"> icon in the bottom bar.<br><br>That's all for now. <b>Enjoy!</b>`,
         newsInstructions: "Click on a title to read the full post, or click on an image to view it in full.",
         newsHosting: `Feed hosting provided by <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)`,
         newsURL: "https://mastodon.uno/@zappr.rss",
         epgLoading: "EPG will be available shortly",
         unreportableErrorDASHiOS: "Your device most likely doesn't support this type of livestream. Try on another device.",
-        unreportableErrorFAST: "The links of these channels' livestreams are automatically updated every day. Try again later or in 24 hours."
+        unreportableErrorFAST: "The links of these channels' livestreams are automatically updated every day. Try again later or in 24 hours.",
+        search: "Search",
+        news: "News",
+        info: "Info",
+        settings: "Settings",
+        save: "Save",
+        saveList: "Save list",
+        watch: "Watch",
+        selectBaseList: "Select a base list",
+        officialZapprList: "Official Zappr list",
+        listPublisherDonate: "<b>$</b> Donate",
+        favoritesBaseList: "Favorites",
+        shareList: "Share list",
+        editList: "Edit list",
+        addList: "Add a list...",
+        createListManually: "Create manually...",
+        insertListURL: "Insert URL...",
+        selectAdditionalLists: "Select one or more additional lists",
+        baseList: "Base list",
+        additionalLists: "Additional lists",
+        howDoesMyListWork: "How does My List work?",
+        myListExplanation: "My List allows you to personalize Zappr's channel list. Choose a base list, which will serve as your main source of channels, and enhance it with as many additional lists as you like. The channels from the additional lists will be combined with those from the base list.",
+        addChannel: "Add a channel...",
+        listEditorInfo: "Info",
+        listEditorChannels: "Channels",
+        disabledRegionSettings: "These settings are only available with Zappr's official base list (or the favorites list).",
+        multipleChannelSelectionText: (matchedChannel) => `<b>Press ${matchedChannel.map((channel, index) => `${index + 1} for ${channel.name}`).join(",<br>")}<br>or Esc to cancel</b>`,
+        popupReopenPlayer: "Reopen player",
+        popupAccessDeniedTitle: "Popup access denied",
+        popupAccessDeniedText: (channel) => `Your browser didn't allow Zappr to open a popup window to watch <b>${name}</b>. To watch this channel, you must allow Zappr to open popup windows or open the window as a new tab in your browser and watch the channel there.`,
+        openInNewWindow: "Open in new tab",
+        closeModal: "Close",
+        couldntFetchSchema: "Warning: Zappr wasn't able to verify the selected list's compliance with the channel list schema. Therefore, for your safety, we've re-enabled the default base channel list.",
+        notSchemaCompliantOnLoading: (errors) => `Warning: The format of the base channel list you selected is invalid. Therefore, for your safety, we've re-enabled the default channel list.\n\nErrors:\n${errors}`,
+        couldntFetchSchemaAdditionalList: (list) => `Warning: Zappr wasn't able to verify the compliance of one of your selected additional lists with the channel list schema. Therefore, for your safety, we've disabled it.\n\nList: ${list}`,
+        notSchemaCompliantAdditionalList: (list, errors) => `Warning: The format of one of your selected additional lists is invalid. Therefore, for your safety, we've disabled it.\n\nList: ${list}\nErrors:\n${errors}`,
+        couldntFetchChannelList: "Couldn't fetch channel list",
+        alreadyAddedRemoteList: "You already have a list with this URL",
+        listFormatInvalid: "List format invalid",
+        nightAdultChannelModalText: "In this timeslot (23:00 - 07:00), this channel might broadcast 18+ content.",
+        fullyAdultChannelModalText: "This channel broadcasts 18+ content.",
+        adultChannelModalText: "Clicking on <b>Continue</b> down below, you confirm that you are aware of the nature of the material being broadcast and that you are of legal age to view it. Furthermore, you agree to assume full responsibility for viewing this channel, releasing Zappr and its affiliates from any liability arising from improper or unauthorized use.<br><br><b>Do you wish to continue?</b>",
+        untitledList: "Untitled list",
+        deleteList: "Delete list",
+        favoritesListEmpty: "The favorites list is empty! Favorite some channels by clicking on the pencil icon.",
+        deleteListConfirmation: "Are you sure you want to delete this list?",
+        deleteChannelConfirmation: "Are you sure you want to delete this channel?",
+        listNameInputLabel: "&nbsp;Name",
+        listNameInput: "List name",
+        listIconInputLabel: "&nbsp;Icon",
+        listIconInput: "URL of a PNG/SVG image",
+        listEPGInputLabel: "&nbsp;&nbsp;EPG",
+        listEPGInput: "URL of the EPG JSON file",
+        channel: "Channel",
+        clickChannelToFavorite: "Click on a channel to favorite it",
+        invalidURL: "Invalid URL.",
+        localList: "Local list",
+        saveChannel: "Save channel",
+        useEmoji: "Use emoji",
+        listURLCopied: `The list's URL has been copied successfully!\nTo import it elsewhere, click on the My List icon, then on "Add a list...", and in the "Insert URL..." textbox, insert the URL that's just been copied into your clipboard.\nYou can import this list either as a base list or as an additional list.`,
+        myListTemporaryPromoTooltipTitle: "Try <i>My List</i>, Zappr's new feature",
+        myListTemporaryPromoTooltipText: `<span>Customize the channel list to your liking.</span>
+        <span>Put together a list of your favorite channels, or create new lists with the channels you want. Just like in an IPTV client.</span>`,
+        additionalChannelFavoritingDisabled: "You can only favorite channels from Zappr's official base list.",
+        selectFavoritesFromOfficialBaseList: "Select your favorite channels from Zappr's official base list",
+        channelEditorSchema: {
+            _groups: {
+                "basic-channel-info": "Channel info",
+                "stream-info": "Stream info"
+            },
+            lcn: ["LCN"],
+            logo: ["Logo", "URL of a PNG/SVG image"],
+            name: ["Name", "Channel name"],
+            subtitle: ["Subtitle", "Channel subtitle"],
+            hd: ["HD"],
+            uhd: ["4K"],
+            radio: ["Radio channel?", {
+                true: "Radio channel without a video track",
+                video: "Radio channel with a static video track"
+            }],
+            ondemand: ["On-demand video"],
+            type: ["Type", {
+                hls: "HLS (.m3u8)",
+                dash: "DASH (.mpd)",
+                twitch: "Twitch (channel username)",
+                youtube: "YouTube (channel/video ID)",
+                iframe: "IFrame/embed (URL)",
+                audio: "Audio",
+                direct: "Direct (.mp4, .mkv, etc.)",
+                popup: "Popup window (URL)"
+            }],
+            url: ["URL", "Stream URL"],
+            http: ["Only visible\nthrough HTTP?"],
+            license: ["License", {
+                "xdevel-wms": "Xdevel WMS Auth Sign",
+                clearkey: "ClearKey",
+                widevine: "Widevine (license URL)"
+            }],
+            licensedetails: ["License details", "JSON or string"],
+            hbbtvapp: ["HbbTV app?"],
+            api: ["API", {
+                vercel: "Vercel API",
+                cloudflare: "Cloudflare API"
+            }],
+            cssfix: ["CSS fix", {
+                "streamshow-embed": "StreamShow embed (embed.streamshow.net)",
+                stretch: "Stretch from 4:3 to 16:9",
+                "squashed-height": "Stretch from 64:27 to 16:9",
+                "very-squashed-height": "Stretch from 32:9 to 16:9",
+                "five-two-squashed-height": "Stretch from 5:2 to 16:9",
+                "center-iframe": "Center IFrame/embed",
+                "servizistreaming-embed": "ServiziStreaming.it embed",
+                "livetvuk-embed": "LiveTVUK.com embed",
+                "native-hls-720p-iframe": "Make a 720p video inside an IFrame/embed full size",
+                letterbox: "Letterbox stream"
+            }],
+            "epg.source": ["EPG source", "ID of the EPG source"],
+            "epg.id": ["EPG ID", "ID of the channel in the EPG source"],
+            timeshift: ["Timeshift hours"]
+        }
     }
 }

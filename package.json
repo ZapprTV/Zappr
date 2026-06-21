@@ -29,9 +29,14 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.0.8",
+    "@twemoji/api": "^17.0.3",
+    "emoji-picker-element": "^1.29.1",
+    "fflate": "^0.8.3",
+    "jsonschema": "^1.5.0",
     "lodash": "^4.17.21",
     "luxon": "^3.6.1",
     "medium-zoom": "^1.1.0",
+    "morphdom": "^2.7.8",
     "video.js": "8.14.0",
     "videojs-contrib-eme": "^5.5.2",
     "videojs-contrib-quality-menu": "^1.0.4",
@@ -39,7 +44,7 @@
   },
   "devDependencies": {
     "isomorphic-git": "^1.25.2",
-    "vite": "^6.3.5",
+    "vite": "^8.0.16",
     "vite-plugin-top-level-await": "^1.5.0"
   }
 }

@@ -289,6 +289,127 @@
                     <div class="toast-notification">
                         <img src="/assets/icons/info.svg">
                         <span data-translation-id="epgLoading"></span>
+                        <a class="save-favorites" data-translation-id="save"></a>
+                    </div>
+                </div>
+                <div class="tooltip-content" id="my-list">
+                    <div class="tooltip-content-box" id="list-picker">
+                        <div class="tabs">
+                            <div id="base-list-tab">
+                                <h3 data-translation-id="selectBaseList"></h3>
+                                <div class="list" data-id="default">
+                                    <img src="/assets/icons/favicon.svg" class="list-icon">
+                                    <div class="list-info">
+                                        <span class="list-name" data-translation-id="officialZapprList"></span>
+                                        <span>Publisher: <a href="https://github.com/ZapprTV" target="_blank">Zappr</a> <a class="list-publisher-donate" href="https://ko-fi.com/FrancescoRosi" target="_blank" data-translation-id="listPublisherDonate"></a></span>
+                                    </div>
+                                </div>
+                                <div class="list" data-id="favorites">
+                                    <img src="/assets/icons/star.svg" class="list-icon">
+                                    <div class="list-info">
+                                        <span class="list-name" data-translation-id="favoritesBaseList"></span>
+                                        <span class="list-subtitle" data-translation-id="selectFavoritesFromOfficialBaseList"></span>
+                                    </div>
+                                    <div class="list-icons">
+                                        <img class="edit-list" src="/assets/icons/edit.svg" data-translation-id="editList" data-translation-target="alt">
+                                    </div>
+                                </div>
+                                <div class="list add-list">
+                                    <img src="/assets/icons/plus.svg" class="list-icon">
+                                    <div class="list-info">
+                                        <span class="list-name" data-translation-id="addList"></span>
+                                    </div>
+                                    <div class="add-list-options">
+                                        <a class="add-list-option create-manually" data-translation-id="createListManually"></a>
+                                        <input class="add-list-option" data-translation-id="insertListURL" data-translation-target="placeholder" type="url">
+                                        <a class="load-custom-url">
+                                            <img src="/assets/icons/right-arrow.svg">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="additional-list-tab">
+                                <h3 data-translation-id="selectAdditionalLists"></h3>
+                                <div class="list add-list">
+                                    <img src="/assets/icons/plus.svg" class="list-icon">
+                                    <div class="list-info">
+                                        <span class="list-name" data-translation-id="addList"></span>
+                                    </div>
+                                    <div class="add-list-options">
+                                        <a class="add-list-option create-manually" data-translation-id="createListManually"></a>
+                                        <input class="add-list-option" data-translation-id="insertListURL" data-translation-target="placeholder" type="url">
+                                        <a class="load-custom-url">
+                                            <img src="/assets/icons/right-arrow.svg">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-links">
+                            <a data-translation-id="baseList"></a>
+                            <a data-translation-id="additionalLists"></a>
+                        </div>
+                        <div id="my-list-explanation-container">
+                            <a id="my-list-explanation-link">
+                                <img src="/assets/icons/help.svg">
+                                <span data-translation-id="howDoesMyListWork"></span>
+                            </a>
+                            <div id="my-list-explanation" data-translation-id="myListExplanation"></div>
+                        </div>
+                        <a class="save-tab">
+                            <img src="/assets/icons/restart.svg">
+                            <span data-translation-id="saveAndReload"></span>
+                        </a>
+                    </div>
+                    <div class="tooltip-content-box" id="list-editor">
+                        <div class="tabs">
+                            <div id="list-info-tab"></div>
+                            <div id="list-channels-tab">
+                                <div id="list-channels"></div>
+                                <div class="list" id="edit-channel">
+                                    <img src="/assets/icons/plus.svg" class="list-icon">
+                                    <div class="list-info">
+                                        <span class="list-name" data-translation-id="addChannel"></span>
+                                    </div>
+                                    <div id="edit-channel-options"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-links">
+                            <a data-translation-id="listEditorInfo"></a>
+                            <a data-translation-id="listEditorChannels"></a>
+                        </div>
+                        <a class="save-tab">
+                            <img src="/assets/icons/save.svg">
+                            <span data-translation-id="saveList"></span>
+                        </a>
+                    </div>
+                </div>
+                <div class="tooltip-content" id="settings">
+                    <div class="tooltip-content-box">
+                        <div id="region-selector">
+                            <span data-translation-id="language"></span>
+                            <select id="language"></select>
+                            <span data-translation-id="country"></span>
+                            <select id="country"></select>
+                            <span data-translation-id="region"></span>
+                            <select id="region"></select>
+                            <div class="disabled-layer" data-translation-id="disabledRegionSettings" data-translation-target="title"></div>
+                        </div>
+                        <a id="save-and-reload" class="tooltip-button" data-translation-id="saveAndReload" hidden></a>
+                    </div>
+                </div>
+                <div class="tooltip-content" id="info-tooltip">
+                    <div class="tooltip-content-box" data-translation-id="infoTooltip"></div>
+                </div>
+                <div class="tooltip-content news-not-loaded" id="news">
+                    <div class="tooltip-content-box">
+                        <div id="news-info">
+                            <span data-translation-id="newsInstructions"></span>
+                            <span data-translation-id="newsHosting"></span>
+                        </div>
+                        <div id="news-list"></div>
+                        <a rel="me" href="https://mastodon.uno/@zappr" hidden id="mastodon-verification"></a>
                     </div>
                 </div>
                 <div id="bottom">
@@ -300,45 +421,29 @@
                             <span data-translation-id="installPWA">Installa</span>
                             <img src="/assets/icons/install.svg">
                         </a>
-                        <a id="search-icon">
+                        <a id="my-list-icon" class="tooltip icon" data-target="#my-list" aria-label="My List">
+                            <img src="/assets/icons/list.svg">
+                            <div class="promo-tooltip">
+                                <div class="header">
+                                    <b data-translation-id="myListTemporaryPromoTooltipTitle"></b>
+                                    <div class="close"></div>
+                                </div>
+                                <div class="content" data-translation-id="myListTemporaryPromoTooltipText"></div>
+                            </div>
+                        </a>
+                        <a id="search-icon" class="icon" data-translation-id="search" data-translation-target="aria-label">
                             <img src="/assets/icons/search.svg">
                         </a>
-                        <a class="tooltip" data-target="#news">
+                        <a class="tooltip icon" data-target="#news" data-translation-id="news" data-translation-target="aria-label">
                             <img src="/assets/icons/news.svg">
                         </a>
-                        <a class="tooltip" data-target="#info-tooltip">
+                        <a class="tooltip icon" data-target="#info-tooltip" data-translation-id="info" data-translation-target="aria-label">
                             <img src="/assets/icons/info.svg">
                         </a>
                         <span id="tv-settings"><img src="assets/icons/back.svg"> <b>BACK</b> <span data-translation-id="tvChangeRegion">per cambiare regione</span></span>
-                        <a id="settings-icon" class="tooltip" data-target="#settings">
+                        <a id="settings-icon" class="tooltip icon" data-target="#settings" data-translation-id="settings" data-translation-target="aria-label">
                             <img src="/assets/icons/settings.svg">
                         </a>
-                        <div class="tooltip-content" id="settings">
-                            <div class="tooltip-content-box">
-                                <div id="region-selector">
-                                    <span data-translation-id="language"></span>
-                                    <select id="language"></select>
-                                    <span data-translation-id="country"></span>
-                                    <select id="country"></select>
-                                    <span data-translation-id="region"></span>
-                                    <select id="region"></select>
-                                </div>
-                                <a id="save-and-reload" class="tooltip-button" data-translation-id="saveAndReload" hidden></a>
-                            </div>
-                        </div>
-                        <div class="tooltip-content" id="info-tooltip">
-                            <div class="tooltip-content-box" data-translation-id="infoTooltip"></div>
-                        </div>
-                        <div class="tooltip-content news-not-loaded" id="news">
-                            <div class="tooltip-content-box">
-                                <div id="news-info">
-                                    <span data-translation-id="newsInstructions"></span>
-                                    <span data-translation-id="newsHosting"></span>
-                                </div>
-                                <div id="news-list"></div>
-                                <a rel="me" href="https://mastodon.uno/@zappr" hidden id="mastodon-verification"></a>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -352,8 +457,8 @@
             </div>
         </div>
         <script type="module">
-            if (typeof navigator.serviceWorker != "undefined") {
-                navigator.serviceWorker.register(new URL("/assets/js/sw.js", import.meta.url));
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register('/assets/js/sw.js');
             };
         </script>
         <script>
@@ -368,7 +473,7 @@
                             get(obj, prop) {
                                 if (prop === "open") {
                                     return function (method, url, ...rest) {
-                                        if (url.startsWith("https://prod-kami.wuaki.tv/v1/licensing/aes128/")) url = `https://alwaysdata-api.zappr.stream/rakuten-licensing/${new URL(url).searchParams.get("uuid")}`;
+                                        if (url.startsWith("https://prod-kami.wuaki.tv/v1/licensing/aes128/")) url = `https://api.zappr.stream/rakuten-licensing/${new URL(url).searchParams.get("uuid")}`;
                                         return obj.open(method, url, ...rest);
                                     };
                                 };

@@ -49,7 +49,7 @@
     align-items: center;
     font-size: 2.5rem;
     font-weight: 900;
-    transition: 500ms 500ms;
+    transition: 500ms 500ms opacity;
     flex-direction: column;
     will-change: opacity, z-index;
     user-select: none;
@@ -82,7 +82,7 @@ html, body {
     pointer-events: none;
 }
 ::-webkit-scrollbar {
-    width: 0.5rem;
+    width: 0.333rem;
     height: 0.5rem;
 }
 ::-webkit-scrollbar-button {
@@ -103,6 +103,15 @@ html, body {
 ::-webkit-scrollbar-track {
     background: #111111;
     border: 0px none #ffffff;
+}
+#channels::-webkit-scrollbar-track, #search-results::-webkit-scrollbar-track, .epg-items::-webkit-scrollbar-track {
+    margin-bottom: 3rem;
+}
+.epg-items::-webkit-scrollbar-track {
+    margin-top: 5.5rem;
+}
+#epg.long-channel-name .epg-items::-webkit-scrollbar-track {
+    margin-top: 7rem;
 }
 ::-webkit-scrollbar-corner {
     background: transparent;
@@ -157,6 +166,8 @@ a {
     background: #971b21;
     border-bottom: 1px solid #ff747b;
     padding: 0.75rem 1rem;
+    z-index: 10000;
+    position: relative;
 }
 #urgent-alerts, #urgent-alerts * {
     line-height: 1.2;
@@ -303,13 +314,13 @@ a {
     width: 100%;
     z-index: 0;
 }
-.channel:hover .channel-program-progress, .channel.androidtv-active .channel-program-progress, .channel.watching .channel-program-progress {
+#channels-column:not(.favorites-picker-mode) .channel:hover .channel-program-progress, .channel.androidtv-active .channel-program-progress, .channel.watching .channel-program-progress {
     height: 24px;
     z-index: 0;
     position: relative;
     margin-top: 0;
 }
-.channel:hover .channel-program-progress-background, .channel.androidtv-active .channel-program-progress-background, .channel.watching .channel-program-progress-background {
+#channels-column:not(.favorites-picker-mode) .channel:hover .channel-program-progress-background, .channel.androidtv-active .channel-program-progress-background, .channel.watching .channel-program-progress-background {
     margin-top: -24px;
     height: 24px;
     z-index: 0;
@@ -318,6 +329,12 @@ a {
 }
 .channel:not(:last-of-type) {
     border-bottom: 2px #373737 solid;
+}
+#channels > .channel.last-channel {
+    margin-bottom: calc(3rem - 1px);
+}
+#channels .hbbtv-container:has(.channel.last-channel) {
+    margin-bottom: calc(3rem - 1px);
 }
 .channel-program-times {
     position: absolute;
@@ -343,7 +360,7 @@ body:not(.androidtv) .channel-program-start-time {
 body:not(.androidtv) .channel-program-end-time {
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
-.channel:hover .channel-program-times, .channel.androidtv-active .channel-program-times, .channel.watching .channel-program-times {
+#channels-column:not(.favorites-picker-mode) .channel:hover .channel-program-times, .channel.androidtv-active .channel-program-times, .channel.watching .channel-program-times {
     bottom: 0;
 }
 .channel-program, .channel-program-progress, .channel-program-progress-background, .channel-program-times {
@@ -352,14 +369,15 @@ body:not(.androidtv) .channel-program-end-time {
 #search-input {
     order: 1;
     position: absolute;
-    width: calc(25% - 4.5rem);
+    width: calc(25% - 4rem);
     background: rgb(0 0 0 / 75%);
     border-top: 1px solid rgba(0, 0, 0, 1);
     box-shadow: 0 -4px 30px rgb(0 0 0 / 10%);
     backdrop-filter: blur(5px);
-    bottom: 0;
+    bottom: 1rem;
     height: 0;
     padding: 0 2rem;
+    opacity: 0;
     overflow: hidden;
     pointer-events: none;
     will-change: bottom, height, padding;
@@ -381,16 +399,18 @@ body:not(.androidtv) .channel-program-end-time {
 .toast-notification-container {
     position: absolute;
     bottom: 0;
-    width: calc(25vw - 4.5rem);
+    width: calc(25vw - 4rem);
     left: 2rem;
-    height: 2.5rem;
+    height: 2.75rem;
     display: flex;
     justify-content: center;
     transition: 500ms;
+    opacity: 0;
     user-select: none;
 }
 .toast-notification-container.visible {
     bottom: 4rem;
+    opacity: 1;
 }
 .toast-notification {
     background: rgb(0 0 0 / 75%);
@@ -404,7 +424,6 @@ body:not(.androidtv) .channel-program-end-time {
     height: 100%;
     width: max-content;
     gap: 1rem;
-    padding: 0 1.5rem;
     line-height: 1;
 }
 .toast-notification span {
@@ -412,6 +431,22 @@ body:not(.androidtv) .channel-program-end-time {
 }
 .toast-notification img {
     height: 1.5rem;
+    padding-left: 1.5rem;
+}
+[data-translation-id="epgLoading"] {
+    margin-right: 1.5rem;
+}
+#channels-column.favorites-picker-mode [data-translation-id="epgLoading"] {
+    margin-right: 0;
+}
+#channels-column.favorites-picker-mode .channel-program {
+    user-select: none;
+    pointer-events: none;
+} 
+#channels-column.favorites-picker-mode .channel[data-additional="true"] {
+    opacity: 0.5;
+    user-select: none;
+    cursor: not-allowed;
 }
 #channels-column {
     background: #242424;
@@ -432,6 +467,7 @@ body:not(.androidtv) .channel-program-end-time {
     pointer-events: all;
     height: 1.75rem;
     padding: 1rem 2rem;
+    opacity: 1;
 }
 #channels-column.epg-visible #channels, #channels-column.epg-visible #search-results {
     transform: translateX(-100%);
@@ -441,7 +477,7 @@ body:not(.androidtv) .channel-program-end-time {
 }
 #channels, #search-results {
     background-color: #242424;
-    height: calc(100% - 3rem);
+    height: 100%;
     overflow-y: auto;
     transition: 500ms;
     will-change: height, width;
@@ -458,7 +494,7 @@ body:not(.androidtv) .channel-program-end-time {
     left: 0;
     transform: translateX(100%);
     width: 100%;
-    height: calc(100% - 3rem);
+    height: 100%;
     transition: 500ms;
     overflow: hidden;
 }
@@ -477,7 +513,7 @@ body:not(.androidtv) .channel-program-end-time {
     column-gap: 0.75rem;
     row-gap: 0.5rem;
     flex-direction: column;
-    width: calc(100% - 2.5rem);
+    width: calc(100% - 2rem);
 }
 #epg-header div {
     max-width: 80%;
@@ -562,6 +598,9 @@ body:not(.androidtv) .channel-program-end-time {
     padding-left: 3.5rem !important;
     border-top: 0px;
     overflow: hidden;
+}
+.epg-item-container:last-child {
+    margin-bottom: 3rem;
 }
 .epg-item-container.restart-soon::after {
     height: 1rem;
@@ -770,19 +809,41 @@ body:not(.androidtv) .channel:not([disabled]):hover, .channel.androidtv-active, 
 .highlighted {
     animation: highlighted 2.5s linear forwards;
 }
-.lcn {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.5rem;
+.left-hand-badges {
     margin-top: 0.25rem;
     margin-bottom: 0.25rem;
     margin-right: 0.5rem;
     margin-left: 1rem;
+    display: flex;
+    align-items: center;
+}
+.hbbtv-channels .lcn {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    margin-right: 0.5rem;
+    margin-left: 1rem;
+}
+.lcn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
     background: #111111;
     width: max-content;
     font-size: 1.25rem;
     display: flex;
     align-items: center;
     height: 40%;
+}
+.favorites-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: -2.25rem;
+    margin-right: 0.75rem;
+    transition: 250ms ease-in-out;
+    opacity: 0;
+}
+#channels-column.favorites-picker-mode .channel.marked-as-favorite .favorites-icon {
+    margin-left: 0;
+    opacity: 1;
 }
 .hd::after {
     content: "HD";
@@ -832,17 +893,21 @@ body:not(.androidtv) .channel:not([disabled]):hover, .channel.androidtv-active, 
     border-radius: 0.5rem;
 }
 #bottom {
-    position: sticky;
+    position: absolute;
     height: 1.5rem;
     bottom: 0;
-    width: auto;
-    background: linear-gradient(90deg, hsla(0, 100%, 25%, 1) 0%, hsla(33, 100%, 25%, 1) 10%, hsla(67, 76%, 25%, 1) 20%, hsla(114, 63%, 25%, 1) 30%, hsla(179, 70%, 25%, 1) 40%, hsla(188, 74%, 25%, 1) 50%, hsla(213, 81%, 25%, 1) 60%, hsla(258, 91%, 25%, 1) 70%, hsla(288, 90%, 25%, 1) 80%, hsla(315, 96%, 25%, 1) 90%, hsla(0, 100%, 25%, 1) 100%);
+    width: calc(100% - 1.5rem);
+    background: linear-gradient(90deg, hsla(0, 100%, 25%, 0.66) 0%, hsla(33, 100%, 25%, 0.66) 10%, hsla(67, 76%, 25%, 0.66) 20%, hsla(114, 63%, 25%, 0.66) 30%, hsla(179, 70%, 25%, 0.66) 40%, hsla(188, 74%, 25%, 0.66) 50%, hsla(213, 81%, 25%, 0.66) 60%, hsla(258, 91%, 25%, 0.66) 70%, hsla(288, 90%, 25%, 0.66) 80%, hsla(315, 96%, 25%, 0.66) 90%, hsla(0, 100%, 25%, 0.66) 100%);
+    background-color: rgb(0 0 0 / 33.333%);
+    backdrop-filter: blur(0.3333rem);
     font-size: 1.325rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem;
+    z-index: 99999;
+    transition: 500ms;
 }
 #bottom #version {
     background: white;
@@ -938,8 +1003,179 @@ iframe {
 #info-tooltip {
     background: linear-gradient(360deg, black 6.25%, transparent);
 }
-#news {
-    background: linear-gradient(360deg, black, rgba(0, 0, 0, 0.8));
+#icons .icon {
+    position: relative;
+}
+#icons .icon:before, #icons .icon:after {
+    opacity: 0;
+    transition: 200ms;
+    z-index: 9999;
+}
+#icons .icon:not(:last-of-type):before, #icons .icon:not(:last-of-type):after {
+    transform: translateX(-50%) translateY(20%) scale(0.9) !important;
+}
+#icons .icon:last-of-type:before, #icons .icon:last-of-type:after {
+    transform: translateX(0%) translateY(20%) scale(0.9) !important;
+}
+#icons .icon:hover:before, #icons .icon:hover:after {
+    opacity: 1;
+}
+#icons .icon:not(:last-of-type):hover:before, #icons .icon:not(:last-of-type):hover:after {
+    transform: translateX(-50%) !important;
+}
+#icons .icon:hover:before, #icons .icon:hover:after {
+    transform: translateX(0%) !important;
+}
+#icons .icon:after {
+    content: attr(aria-label);
+    position: absolute;
+    font-weight: 400;
+    bottom: 2.25rem;
+    font-size: 1rem;
+    color: black;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 0.25rem 0.7rem;
+    border-radius: 0.5rem;
+    user-select: none;
+    pointer-events: none;
+    width: max-content;
+}
+#icons .icon:not(:last-of-type):after {
+    left: 50%;
+    transform: translateX(-50%);
+}
+#icons .icon:last-of-type:after {
+    left: auto;
+    right: -0.25rem;
+    transform: translateX(0%);
+}
+#icons .icon:before, .promo-tooltip:before {
+    content: "";
+    border-width: 0.25rem;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.75) transparent transparent transparent;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    bottom: 1.75rem;
+}
+#icons:not(:hover) .promo-tooltip.active, #icons .promo-tooltip.active:hover {
+    opacity: 1;
+    user-select: auto;
+    pointer-events: auto;
+}
+#icons .promo-tooltip {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 400;
+    bottom: 2.25rem;
+    color: black;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.5rem;
+    border-top-left-radius: 4px;
+    width: max-content;
+    max-width: 16.25rem;
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    gap: 0.5rem;
+    transition: 250ms;
+    opacity: 0;
+    user-select: none;
+    pointer-events: none;
+}
+#icons .promo-tooltip:before {
+    bottom: 0 !important;
+    margin-bottom: -8px;
+}
+@keyframes promoTooltipProgress {
+    0% {
+        width: 100%;
+    }
+    100% {
+        width: 0%;
+    }
+}
+@keyframes hidePromoTooltip {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        user-select: none;
+        pointer-events: none;
+    }
+}
+@keyframes disablePromoTooltip {
+    100% {
+        display: none;
+    }
+}
+.promo-tooltip:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 4px;
+    left: 0;
+    border-top-left-radius: 0.5rem;
+    background: #00b2ff;
+}
+#loading.loaded + .columns #my-list-icon .promo-tooltip.active:after {
+    animation: promoTooltipProgress 20s linear forwards;
+}
+#loading.loaded + .columns #my-list-icon .promo-tooltip.active, #loading.loaded + .columns #my-list-icon .promo-tooltip.active .close {
+    animation: hidePromoTooltip 500ms ease 19500ms forwards;
+}
+#loading.loaded + .columns #my-list-icon .promo-tooltip {
+    animation: disablePromoTooltip 1ms 20s forwards;
+}
+#icons .promo-tooltip .header {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    padding-top: 4px;
+}
+#icons .promo-tooltip .header .close {
+    display: block;
+    width: 24px;
+    height: 24px;
+    transform: scale(0.75);
+    min-width: 24px;
+    filter: brightness(0.75);
+    max-height: 24px;
+    user-select: none;
+    pointer-events: none;
+    cursor: pointer;
+    transition: 500ms;
+}
+#icons .promo-tooltip.active .header .close {
+    pointer-events: auto;
+    user-select: auto;
+}
+#icons .icon:has(.promo-tooltip:hover):before, #icons .icon:has(.promo-tooltip:hover):after, .tooltip-content.visible ~ #bottom .promo-tooltip, .tooltip-content.visible ~ #bottom .promo-tooltip .close {
+    opacity: 0 !important;
+    user-select: none !important;
+    pointer-events: none !important;
+}
+#icons .promo-tooltip .header .close:hover {
+    filter: brightness(0);
+}
+#icons .promo-tooltip * {
+    line-height: 1.1;
+}
+#icons .promo-tooltip b {
+    font-size: 1.05rem;
+}
+#icons .promo-tooltip .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+#news, #my-list {
+    background: linear-gradient(360deg, black, rgba(0, 0, 0, 0.666));
 }
 #news .tooltip-content-box {
     max-height: calc(100% - 5rem);
@@ -948,6 +1184,540 @@ iframe {
     overflow-x: hidden;
     flex-direction: column-reverse;
     bottom: 0;
+}
+#my-list .tooltip-content-box {
+    bottom: 0;
+    padding: 0;
+    width: 100%;
+}
+#my-list .tab-links {
+    display: flex;
+    width: 100%;
+    background: #242424;
+    font-size: 1.25rem;
+    font-weight: bold;
+    background-image: linear-gradient(90deg, #333);
+    transition: 500ms;
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position-x: 0%;
+    border-top: 1px solid #525252;
+}
+.tooltip-content-box.second-tab-active .tab-links {
+    background-position-x: 100% !important;
+}
+#my-list .tab-links a {
+    width: 50%;
+    padding: 0.75rem 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+}
+#my-list .tab-links a:first-child {
+    border-right: 1px solid #525252;
+}
+#my-list .save-tab {
+    box-sizing: border-box;
+    font-weight: 700;
+    background: #242424;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: center;
+    width: 100%;
+    height: calc(2.5rem + 1px);
+    padding: 0.75rem 0.5rem;
+    overflow: hidden;
+    border-top: 1px solid #525252;
+    transition: 250ms;
+    line-height: 1.1;
+}
+#list-picker .save-tab {
+    position: absolute;
+    bottom: 0;
+    opacity: 0;
+    user-select: none;
+    pointer-events: none;
+}
+#list-picker .save-tab.active {
+    opacity: 1;
+    user-select: auto;
+    pointer-events: auto;
+}
+#my-list .save-tab img {
+    height: 1.25rem;
+}
+#my-list .save-channel {
+    border-radius: 1rem;
+    position: sticky;
+    margin: 1rem 0;
+    box-sizing: border-box;
+    font-weight: 700;
+    background: #242424;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    overflow: hidden;
+    transition: 250ms;
+    line-height: 1.1;
+    box-shadow: 0px -5px 20px black;
+    border: 1px solid #373737;
+    bottom: 1rem;
+    min-height: max-content;
+    width: max-content;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#my-list .save-channel img {
+    height: 1rem;
+}
+#my-list .tabs {
+    width: 200%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    transition: 500ms;
+    transform: translateX(25%);
+    align-items: flex-end;
+}
+.tooltip-content-box.second-tab-active .tabs {
+    transform: translateX(-25%) !important;
+}
+#my-list .tabs > div {
+    width: 100%;
+    height: calc(100vh - 8.5rem - 2px);
+    overflow-y: auto;
+    place-content: flex-end;
+}
+#my-list .list {
+    background: #242424;
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    border-top: 1px solid #525252;
+    transition: .25s all ease-in-out;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+#my-list .list:hover {
+    background: #333 !important;
+}
+#my-list .list:after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgb(18 18 18);
+    padding: 0.125rem 0.75rem;
+    border-bottom-left-radius: 0.75rem;
+    height: 1.5rem;
+    transition: 500ms;
+    transform: translateY(-1.75rem);
+}
+#my-list .list.selected {
+    background: #333;
+}
+#my-list .list.selected:after {
+    transform: translateY(0);
+}
+#my-list .list-publisher-donate {
+    text-decoration: none;
+    background: white;
+    color: black;
+    font-size: 0.9rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+}
+#my-list .add-list, #my-list #edit-channel {
+    height: 1.5rem;
+    font-style: italic;
+    transition: 500ms !important;
+}
+#my-list .add-list.active {
+    background: transparent !important;
+}
+#my-list .add-list.active .list-info {
+    transform: translateY(-2rem);
+    opacity: 0;
+}
+#my-list .add-list-options {
+    position: absolute;
+    left: 7rem;
+    height: 100%;
+    width: calc(100% - 7rem);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(2rem);
+    opacity: 0;
+    transition: 500ms;
+    user-select: none;
+    pointer-events: none;
+}
+#my-list .add-list.active .add-list-options {
+    transform: translateY(0);
+    opacity: 1;
+    user-select: auto;
+    pointer-events: auto;
+}
+#my-list .add-list-option:first-child {
+    border-bottom: 1px solid #525252;
+}
+#my-list .add-list-option {
+    height: 50%;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    outline: none;
+    border: none;
+    color: white;
+    padding: 0;
+}
+#my-list input.add-list-option {
+    width: calc(100% - 3rem);
+}
+#my-list .add-list-option::-webkit-input-placeholder {
+    font-style: italic;
+    font-size: 1rem;
+}
+#my-list .load-custom-url {
+    width: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    height: calc(50% - 1px);
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#my-list .load-custom-url img {
+    width: 100%;
+    height: 100%;
+}
+#my-list .list-icon {
+    width: 4rem;
+    height: 4rem;
+    object-fit: contain;
+    transition: 500ms;
+}
+#my-list .add-list .list-icon, #my-list #edit-channel .list-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 1.25rem;
+}
+#my-list .list-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    transition: 500ms;
+}
+#my-list .list-info .list-subtitle {
+    line-height: 1;
+    margin-top: 0.25rem;
+}
+#my-list .list-info .list-subtitle * {
+    line-height: 1;
+}
+#my-list .list-name {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+#my-list .list-icons {
+    margin-left: auto;
+    width: min-content;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+#my-list .share-list, #my-list .edit-list, #my-list .edit-channel, #my-list .delete-list, #my-list .delete-channel {
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: 500ms;
+    cursor: pointer;
+    user-select: none;
+}
+#my-list-explanation-container {
+    width: 100%;
+    background: #242424;
+    border-top: 1px solid #525252;
+}
+#my-list-explanation-link {
+    width: 100%;
+    height: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.1;
+    padding: 0.25rem 0.75rem;
+    box-sizing: border-box;
+    gap: 0.5rem;
+    text-align: left;
+    line-height: 1;
+    transition: 500ms;
+    font-weight: bold;
+}
+#my-list-explanation-link img {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+#my-list-explanation {
+    overflow: hidden;
+    line-height: 1.35rem;
+    padding: 0 1.25rem;
+    height: 0px;
+    transition: 500ms;
+    user-select: none;
+    pointer-events: none;
+}
+#my-list-explanation-link.active {
+    opacity: 0.5;
+}
+#my-list-explanation-link.active + #my-list-explanation {
+    user-select: auto;
+    pointer-events: auto;
+    height: calc(var(--height) + 0.75rem);
+}
+#my-list #list-picker {
+    overflow: hidden;
+    transition: 500ms;
+}
+#my-list #list-editor {
+    overflow: hidden;
+    left: 100%;
+    transition: 500ms;
+}
+#my-list.editor-active #list-picker, #my-list.editor-active #list-editor {
+    transform: translateX(-100%);
+}
+#list-editor #list-info-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    width: calc(100% - 6rem);
+    overflow-x: hidden;
+}
+#list-editor #list-info-tab .list {
+    user-select: none;
+    pointer-events: none;
+    margin-left: -1.5rem;
+    width: 100%;
+    border-bottom: 1px solid #525252;
+}
+#list-editor #list-info-tab .form-group {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+}
+#list-editor #list-info-tab .form-group label {
+    font-weight: bold;
+    width: 12.5%;
+    text-align: right;
+}
+#list-editor #list-info-tab .form-group input {
+    width: 100%;
+}
+#list-editor #list-info-tab #icon-picker {
+    width: 100%;
+    display: flex;
+    position: relative;
+}
+#list-editor #list-info-tab #icon-picker input {
+    width: 100%;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    z-index: 1;
+}
+#list-editor #list-info-tab #icon-picker div {
+    width: auto;
+    border: 1px solid rgb(255 255 255 / 12.5%);
+    border-left: 0;
+    border-radius: 0.25rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background: #111;
+    color: white;
+    outline: none;
+    padding: 0.25rem 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
+    cursor: pointer;
+    z-index: 1;
+    user-select: none;
+}
+emoji-picker {
+    --emoji-font-family: "Twemoji";
+    --background: #242424;
+    --border-radius: 1rem 1rem 0 0;
+    position: absolute;
+    bottom: 2rem;
+    right: 0;
+    z-index: 0;
+    opacity: 0;
+    transform: translateY(1rem);
+    user-select: none;
+    pointer-events: none;
+    transition: 250ms;
+}
+emoji-picker.active {
+    opacity: 1;
+    transform: translateY(0);
+    user-select: auto;
+    pointer-events: auto;
+}
+#my-list #list-channels-tab {
+    display: flex;
+    flex-direction: column;
+}
+#my-list #list-channels {
+    height: calc(100% - 4.5rem - 1px);
+    place-content: flex-end;
+    overflow-y: auto;
+}
+#my-list #list-channels .channel {
+    background: #242424;
+}
+#my-list #list-channels .channel .edit-channel-actions {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: calc(100% - 3rem);
+    width: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(90deg, transparent, #242424);
+    padding-left: 3rem;
+    transition: 500ms;
+    transform: translateX(calc(100% - 3rem));
+    z-index: 99;
+}
+#my-list #list-channels .channel:hover .edit-channel-actions {
+    transform: translateX(0%);
+}
+#my-list #edit-channel #edit-channel-options {
+    position: absolute;
+    padding: 0 1.5rem;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: calc(100% - 3rem);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: 500ms all;
+    user-select: none;
+    pointer-events: none;
+    font-style: normal;
+    text-align: left;
+    overflow-y: auto;
+    will-change: height;
+}
+#my-list #edit-channel.active {
+    background: transparent !important;
+    user-select: auto;
+}
+#my-list #edit-channel #edit-channel-options .channel {
+    min-height: max-content;
+    background: #242424;
+    margin-top: 1rem;
+    border-radius: 1rem;
+    border: 1px solid #373737;
+    position: sticky;
+    top: 1rem;
+    z-index: 9;
+    box-shadow: 0 5px 20px black;
+}
+#my-list #edit-channel #edit-channel-options h4 {
+    margin: 0.5rem 0;
+}
+#my-list #edit-channel #edit-channel-options .group-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    justify-content: space-between;
+}
+#my-list #edit-channel #edit-channel-options .group-container:last-child {
+    margin-bottom: 1rem;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group {
+    display: flex;
+    align-items: center;
+    height: max-content;
+    place-self: center;
+    gap: 0.75rem;
+    margin: 0 0.5rem;
+    width: -webkit-fill-available;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group input {
+    height: 1.25rem;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group:not(.boolean), #my-list #edit-channel #edit-channel-options .group-container .form-group input:not([type="checkbox"]), #my-list #edit-channel #edit-channel-options .group-container .form-group select {
+    flex: 1;
+    max-width: 100%;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group select {
+    min-width: 0;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group input[type="number"] {
+    width: 3.25rem;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group.number {
+    flex: 0;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group.boolean {
+    width: auto;
+    gap: 0;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group.boolean label {
+    padding-right: 0.75rem;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group label {
+    user-select: none;
+    line-height: 1.1;
+}
+#my-list #edit-channel #edit-channel-options .group-container .form-group:not(.boolean) label {
+    width: min-content;
+    text-wrap-style: balance;
+    font-size: 0.9rem;
+}
+#list-channels-tab .form-group:not(.boolean):not(:has(~ .form-group:not(.boolean))) input {
+    width: 100vw !important;
+}
+#my-list #edit-channel.active .list-icon, #my-list #edit-channel.active .list-info {
+    opacity: 0;
+    user-select: none;
+    pointer-events: none;
+    transform: translateY(-2rem) !important;
+}
+#my-list #edit-channel.active #edit-channel-options {
+    opacity: 1;
+    user-select: auto;
+    pointer-events: auto;
+}
+.toast-notification .save-favorites {
+    padding: 0 1.5rem;
+    height: 100%;
+    display: none;
+    align-items: center;
+    border-left: 1px solid #525252;
+    font-weight: bold;
+}
+#channels-column.favorites-picker-mode .toast-notification .save-favorites {
+    display: flex;
 }
 #news-list {
     width: 100%;
@@ -1019,7 +1789,7 @@ iframe {
     visibility: hidden;
     font-size: 1rem;
     position: absolute;
-    z-index: 9;
+    z-index: 99999;
     transition: 250ms all;
     text-align: right;
     height: 100svh;
@@ -1028,6 +1798,7 @@ iframe {
     left: 0;
     bottom: 3rem;
     text-align: center;
+    backdrop-filter: blur(0.1875rem);
 }
 .tooltip-content-box {
     display: flex;
@@ -1064,6 +1835,9 @@ a.tooltip-link {
     background-repeat: no-repeat;
     position: absolute;
     left: 2rem;
+}
+#trustpilot-link:before {
+    background-image: url("/assets/icons/trustpilot.svg");
 }
 #github-link:before {
     background-image: url("/assets/icons/github.svg");
@@ -1183,6 +1957,9 @@ a.tooltip-link {
 .modal-buttons {
     margin-bottom: 0.5rem;
 }
+.modal-content p img {
+    height: 0.75rem;
+}
 .modal-content p:last-child {
     margin-bottom: 0;
 }
@@ -1209,6 +1986,28 @@ a.tooltip-link {
     flex-direction: column;
     font-weight: 700;
     align-items: center;
+    position: relative;
+}
+.tooltip-content #region-selector [disabled] {
+    opacity: 0.5;
+}
+.tooltip-content #region-selector .disabled-layer {
+    position: absolute;
+    bottom: 0;
+    cursor: not-allowed;
+    display: none;
+}
+.tooltip-content #region-selector .disabled-layer.active {
+    display: block !important;
+}
+input:not([data-translation-id="searchChannel"]), select {
+    background: #111;
+    backdrop-filter: blur(2px);
+    color: white;
+    outline: none;
+    border: 1px solid rgb(255 255 255 / 12.5%);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
 }
 #region-selector span {
     margin: 0.333rem 0;
@@ -1293,6 +2092,7 @@ a.tooltip-link {
     display: flex;
 }
 .channel-title-subtitle {
+    text-align: left;
     margin-left: 1rem;
     width: 100%;
 }
@@ -1344,7 +2144,7 @@ a.tooltip-link {
     height: 75%;
     font-size: 1rem;
 }
-.hbbtv-container:hover .hbbtv-enabler:not(.hbbtv-mosaic), .channel.watching + .hbbtv-enabler, .channel.watching-hbbtv + .hbbtv-enabler, .hbbtv-enabler.clicked:not(.hbbtv-mosaic), .hbbtv-enabler:not(.hbbtv-mosaic).androidtv-active, .channel.androidtv-active + .hbbtv-enabler {
+#channels-column:not(.favorites-picker-mode) .hbbtv-container:hover .hbbtv-enabler:not(.hbbtv-mosaic), .channel.watching + .hbbtv-enabler, .channel.watching-hbbtv + .hbbtv-enabler, .hbbtv-enabler.clicked:not(.hbbtv-mosaic), .hbbtv-enabler:not(.hbbtv-mosaic).androidtv-active, .channel.androidtv-active + .hbbtv-enabler {
     height: 2.5rem;
     padding: 0.5rem 0 0.5rem 1rem;
     border-bottom: 2px #373737 solid;
@@ -1701,15 +2501,14 @@ a#reopen-window svg {
     pointer-events: none;
 }
 @media screen and (max-width: 100vh) {
+    *, ::before, ::after {
+        cursor: default !important;
+    };
     .channel.hbbtv-app {
         display: none;
     }
     .modal {
         position: fixed;
-    }
-    #search-input {
-        border-bottom: 0;
-        border-top: 2px #373737 solid;
     }
     #channels-column {
         display: flex !important;
@@ -1717,6 +2516,7 @@ a#reopen-window svg {
         width: 100% !important;
         height: 100svh;
         overflow: hidden;
+        transition: none !important;
     }
     #epg-resize {
         display: none;
@@ -1786,7 +2586,7 @@ a#reopen-window svg {
         height: calc(100vh - 56.25vw);
     }
     #search-input, .toast-notification-container {
-        width: calc(100vw - 4.5rem);
+        width: calc(100vw - 4rem);
     }
     .epg-item {
         backdrop-filter: brightness(0.05);
@@ -1846,6 +2646,15 @@ a#reopen-window svg {
     .vjs-theme-plyr.vjs-waiting .vjs-play-progress {
         max-width: none !important;
     }
+    #channels-column.tooltip-visible + #tv {
+        transform: translateY(-100%);
+    }
+    #channels-column.tooltip-visible #channels, #channels-column.tooltip-visible #search-results, #channels-column.tooltip-visible #epg {
+        margin-top: 0% !important;
+    }
+    #channels-column.tooltip-visible #news {
+        height: 100svh;
+    }
 }
 @media screen and (min-width: 769px) {
     .columns {
@@ -1865,7 +2674,7 @@ a#reopen-window svg {
         margin-left: calc(40vw * -0.4 + 0.25rem);
     }
     #search-input, .toast-notification-container {
-        width: calc(40vw - 4.5rem);
+        width: calc(40vw - 4rem);
     }
     #overlays {
         width: 60%;
@@ -1886,7 +2695,7 @@ a#reopen-window svg {
         margin-left: calc(40vw * -0.4 + 0.25rem);
     }
     #search-input, .toast-notification-container {
-        width: calc(40vw - 4.5rem);
+        width: calc(40vw - 4rem);
     }
     #overlays {
         width: 60%;
@@ -1910,7 +2719,7 @@ a#reopen-window svg {
         margin-left: calc(33.3333vw * -0.4 + 0.25rem);
     }
     #search-input, .toast-notification-container {
-        width: calc(33.3333vw - 4.5rem);
+        width: calc(33.3333vw - 4rem);
     }
     #overlays {
         width: 66.6666%;
@@ -1934,7 +2743,7 @@ a#reopen-window svg {
         margin-left: calc(25vw * -0.4 + 0.25rem);
     }
     #search-input, .toast-notification-container {
-        width: calc(25vw - 4.5rem);
+        width: calc(25vw - 4rem);
     }
     #overlays {
         width: 75%;

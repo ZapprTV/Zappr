@@ -6,7 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default {
     build: {
-        target: "chrome51",
+        target: "es2018",
         rollupOptions: {
             input: {
                 main: resolve(__dirname, "index.html"),

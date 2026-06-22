@@ -298,7 +298,7 @@ const createErrorModal = async ({ title, error, info, params, type, additional =
             </div>
             <div class="code" onclick="copyInfo()">${info}</div>    
             ` : ""}
-            ${!additional && localStorage.getItem("selected-base-list") === "default" && localStorage.getItem("selected-base-list") === "favorites" ? `<p id="report-error">${type === "dash" && isiOS
+            ${!additional && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites") ? `<p id="report-error">${type === "dash" && isiOS
                 ? locale["unreportableErrorDASHiOS"]
                 : params.lcn >= 1000
                     ? locale["unreportableErrorFAST"]

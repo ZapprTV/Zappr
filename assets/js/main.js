@@ -1085,6 +1085,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                         params.keys = licenseDetails;
                     };
                 };
+                if (fallbackURL) params.fallback = true;
                 loadStream({
                     type: "iframe",
                     url: `clearkey/?${new URLSearchParams(params).toString()}`,

@@ -7,6 +7,7 @@ const finalURL = `${urlWithoutSearch}?${new URLSearchParams(nonPlayerSearch).toS
 const kid = new URL(location.href).searchParams.get("kid");
 const key = new URL(location.href).searchParams.get("key");
 const keys = JSON.parse(decodeURIComponent(new URL(location.href).searchParams.get("keys")));
+const fallback = new URL(location.href).searchParams.get("fallback");
 
 if (finalURL) {
     document.addEventListener("shaka-ui-loaded", async () => {
@@ -36,7 +37,9 @@ if (finalURL) {
             });
         };
         
-        await player.load(finalURL);
+        await player.load(finalURL).catch(() => {
+            if (fallback && window.parent) window.parent.zappr.player.src({});
+        });
 
         if (playerOptions["clearkeyPlayer.audioLanguage"] && player.getAudioLanguages().includes(playerOptions["clearkeyPlayer.audioLanguage"])) player.selectAudioLanguage(playerOptions["clearkeyPlayer.audioLanguage"]);
 

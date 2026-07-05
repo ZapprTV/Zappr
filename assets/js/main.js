@@ -815,6 +815,13 @@ const loadStream = async ({ type, url, api = false, name, lcn, logo, fullLogo, r
                     };
                 };
 
+                if (new URLSearchParams(location.search).get("androidtv") != null) {
+                    iframe.addEventListener("load", () => {
+                        document.querySelector("#channels-column").style.display = "none";
+                        document.querySelector("#overlays").classList.add("full-width");
+                    });
+                };
+
                 if (document.querySelector("iframe") === null) overlays.insertAdjacentElement("afterbegin", iframe);
                 break;
         };
@@ -2091,6 +2098,18 @@ const toggleNightAdultChannelsStyle = () => {
 
 toggleNightAdultChannelsStyle();
 
+const canAccessIFrame = (element) => {
+    try {
+        element.contentWindow.document;
+        return true;
+    } catch {
+        return false;
+    };
+};
+
+// bruh
+let androidTVClearkeyPlayerControlsShownTimeout;
+
 const keydownHandler = (e) => {
     if (document.activeElement.tagName != "INPUT") {
         if (e.code === "Escape" && document.querySelector(".modal") != null && document.querySelector(".modal").classList.contains("is-visible")) window.zappr.closeModal();
@@ -2248,16 +2267,39 @@ const keydownHandler = (e) => {
             };
             if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {
                 if (document.querySelector("#channels-column").style.display === "none") {
-                    if (player.paused()) player.play()
-                    else player.pause()
+                    if ((currentType === "iframe" && canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player)) {
+                        const clearkeyDocument = document.querySelector("iframe").contentDocument;
+                        clearkeyDocument.querySelector(".shaka-controls-container").setAttribute("shown", true);
+                        if (clearkeyDocument.querySelector("video").paused) clearkeyDocument.querySelector("video").play()
+                        else clearkeyDocument.querySelector("video").pause();
+                    } else {
+                        if (player.paused()) player.play();
+                        else player.pause();
+                    };
                 } else if (document.querySelector("#channels-column").style.display != "none" && e.key != "MediaPlayPause") {
                     if (document.querySelector(".androidtv-active")) document.querySelector(".androidtv-active").click();
                 };
             } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "MediaRewind" || e.key === "MediaFastForward") && document.querySelector("#channels-column").style.display === "none") {
-                player.userActive(true);
-                if (e.key === "ArrowLeft" || e.key === "MediaRewind") player.currentTime(player.currentTime() - 5)
-                else if (e.key === "ArrowRight" || e.key === "MediaFastForward") player.currentTime(player.currentTime() + 5);
-            } else if (e.key === "ArrowRight" && document.querySelector("#channels-column").style.display != "none" && document.querySelector("iframe") === null && document.querySelector("#hide-player").media === "not all") {
+                if (currentType === "iframe" && canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player) {
+                    const clearkeyWindow = document.querySelector("iframe").contentWindow;
+                    if (e.key === "ArrowLeft" || e.key === "MediaRewind") {
+                        const targetTime = clearkeyWindow.document.querySelector("video").currentTime - 5;
+                        if (targetTime >= clearkeyWindow.player.seekRange().start) clearkeyWindow.document.querySelector("video").currentTime = targetTime;
+                        else clearkeyWindow.document.querySelector("video").currentTime = clearkeyWindow.player.seekRange().start;
+                    } else if (e.key === "ArrowRight" || e.key === "MediaFastForward") {
+                        const targetTime = clearkeyWindow.document.querySelector("video").currentTime + 5;
+                        if (targetTime <= clearkeyWindow.player.seekRange().end) clearkeyWindow.document.querySelector("video").currentTime = targetTime;
+                        else clearkeyWindow.document.querySelector("video").currentTime = clearkeyWindow.player.seekRange().end;
+                    };
+                    clearkeyWindow.document.querySelector(".shaka-controls-container").setAttribute("shown", true);
+                    clearInterval(androidTVClearkeyPlayerControlsShownTimeout);
+                    androidTVClearkeyPlayerControlsShownTimeout = setTimeout(() => clearkeyWindow.document.querySelector(".shaka-controls-container").removeAttribute("shown"), 5000);
+                } else {
+                    player.userActive(true);
+                    if (e.key === "ArrowLeft" || e.key === "MediaRewind") player.currentTime(player.currentTime() - 5)
+                    else if (e.key === "ArrowRight" || e.key === "MediaFastForward") player.currentTime(player.currentTime() + 5);
+                }
+            } else if (e.key === "ArrowRight" && document.querySelector("#channels-column").style.display != "none" && document.querySelector("#hide-player").media === "not all") {
                 document.querySelector("#channels-column").style.display = "none";
                 document.querySelector("#overlays").classList.add("full-width");
             };

@@ -1753,13 +1753,22 @@ const adultChannelConfirmation = async (night = false) => {
     });
 };
 
+const canAccessIFrame = (element) => {
+    try {
+        element.contentWindow.document;
+        return true;
+    } catch {
+        return false;
+    };
+};
+
 const addAutoRestart = (el, startTime, manual) => {
     if (!el.querySelector(".epg-restart")) {
         el.querySelector(".epg-buttons").insertAdjacentHTML("beforeend", `<div class="epg-restart${manual ? " manual": ""}"><img src="${restartIcon}">Restart</div>`);
         el.querySelector(".epg-restart").addEventListener("click", () => {
-            if (!document.querySelector(`iframe[src*="clearkey/"]`)) player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - startTime) / 1000) + 10);
+            if (currentType != "iframe" && !canAccessIFrame(document.querySelector("iframe")) && !document.querySelector("iframe")?.contentWindow?.player) player.currentTime(player.liveTracker.liveCurrentTime() - ((DateTime.now().ts - startTime) / 1000) + 10);
             else {
-                const clearkeyWindow = document.querySelector(`iframe[src*="clearkey/"]`).contentWindow;
+                const clearkeyWindow = document.querySelector("iframe").contentWindow;
                 const clearkeyPlayer = clearkeyWindow.document.querySelector("video");
                 clearkeyPlayer.currentTime = clearkeyWindow.player.seekRange().end - (((DateTime.now().ts - startTime) / 1000) + 10);
             };
@@ -1995,8 +2004,12 @@ const updateRestartablePrograms = async (manual = false) => {
     if (manual) manualRestart.fetchCache = {};  
     document.querySelectorAll(".epg-restart:not(.manual)").forEach(el => el.remove());
     if (document.querySelector(".channel.watching") && document.querySelector(".channel.watching").dataset.epgSource && document.querySelector("#channels-column").classList.contains("epg-visible") && document.querySelector(`#epg[data-epg-source="${document.querySelector(".channel.watching").dataset.epgSource}"][data-epg-id="${document.querySelector(".channel.watching").dataset.epgId}"]`)) {
+        let isClearkey = currentType === "iframe" && canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player;
+        let clearkeyWindow;
+        if (isClearkey) clearkeyWindow = document.querySelector("iframe").contentWindow;
         document.querySelectorAll(".epg-item-container").forEach(el => {
-            if ((parseInt(el.dataset.startTime) >= DateTime.now().ts - ((player.seekable().end(0) - player.seekable().start(0)) * 1000) && parseInt(el.dataset.startTime) <= DateTime.now().ts) && !document.querySelector(".channel.watching").dataset.manualRestartSource) {
+            let playerRange = !isClearkey ? player.seekable().end(0) - player.seekable().start(0) : clearkeyWindow.player.seekRange().end - clearkeyWindow.player.seekRange().start;
+            if ((parseInt(el.dataset.startTime) >= DateTime.now().ts - (playerRange * 1000) && parseInt(el.dataset.startTime) <= DateTime.now().ts) && !document.querySelector(".channel.watching").dataset.manualRestartSource) {
                 addAutoRestart(el, parseInt(el.dataset.startTime));
             };
         });
@@ -2097,15 +2110,6 @@ const toggleNightAdultChannelsStyle = () => {
 };
 
 toggleNightAdultChannelsStyle();
-
-const canAccessIFrame = (element) => {
-    try {
-        element.contentWindow.document;
-        return true;
-    } catch {
-        return false;
-    };
-};
 
 // bruh
 let androidTVClearkeyPlayerControlsShownTimeout;
@@ -2267,7 +2271,7 @@ const keydownHandler = (e) => {
             };
             if (e.key === "Enter" || e.key === " " || e.key === "MediaPlayPause") {
                 if (document.querySelector("#channels-column").style.display === "none") {
-                    if ((currentType === "iframe" && canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player)) {
+                    if (currentType === "iframe" && canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player) {
                         const clearkeyDocument = document.querySelector("iframe").contentDocument;
                         clearkeyDocument.querySelector(".shaka-controls-container").setAttribute("shown", true);
                         if (clearkeyDocument.querySelector("video").paused) clearkeyDocument.querySelector("video").play()

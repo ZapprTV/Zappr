@@ -851,6 +851,17 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                     });
                 break;
 
+            case "dailymotion":
+                loadStream({
+                    type: "iframe",
+                    url: `https://geo.dailymotion.com/player/x1ganu.html?video=${parameter}`,
+                    name: name,
+                    lcn: lcn,
+                    logo: logo,
+                    additional: additional
+                });
+                break;
+
             case "la7-hbbtv":
                 await fetch(`https://www.la7.it/appPlayer/liveUrlWithFailPerApp.php?channel=${parameter}&v=${Date.now()}`)
                     .then(response => response.json())

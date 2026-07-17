@@ -3,6 +3,11 @@ html, body, video, [data-shaka-player-container] {
     width: 100%;
     height: 100%;
     background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
 }
 * {
     font-family: "IBM Plex Mono", monospace !important;

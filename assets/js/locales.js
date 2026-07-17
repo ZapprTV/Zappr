@@ -148,6 +148,7 @@ export default {
         <span>Assembla la lista dei tuoi canali preferiti, o creane di nuove con i canali che desideri. Proprio come in un client IPTV.</span>`,
         additionalChannelFavoritingDisabled: "Puoi aggiungere solo canali della lista base ufficiale di Zappr ai preferiti.",
         selectFavoritesFromOfficialBaseList: "Seleziona i tuoi canali preferiti dalla lista ufficiale di Zappr",
+        disabledClearkeyiOS: "Questo canale non è visibile su iOS perché non supporta il DRM ClearKey.",
         channelEditorSchema: {
             _groups: {
                 "basic-channel-info": "Info canale",
@@ -344,6 +345,7 @@ export default {
         <span>Put together a list of your favorite channels, or create new lists with the channels you want. Just like in an IPTV client.</span>`,
         additionalChannelFavoritingDisabled: "You can only favorite channels from Zappr's official base list.",
         selectFavoritesFromOfficialBaseList: "Select your favorite channels from Zappr's official base list",
+        disabledClearkeyiOS: "This channel is not visible on iOS due to its lack of support for ClearKey DRM.",
         channelEditorSchema: {
             _groups: {
                 "basic-channel-info": "Channel info",

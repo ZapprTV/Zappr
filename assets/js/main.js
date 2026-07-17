@@ -142,6 +142,8 @@ await fetch("/config.json")
         };
     });
 
+window.zappr.locale = locale;
+
 try {
     fetch(`${zappr.config.urgentalerts.host}/${selectedCountry}`)
         .then(response => { if (response.ok) return response.text(); })
@@ -854,7 +856,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
             case "dailymotion":
                 loadStream({
                     type: "iframe",
-                    url: `https://geo.dailymotion.com/player/x1ganu.html?video=${parameter}`,
+                    url: `https://geo.dailymotion.com/player/x1jo48.html?video=${parameter}`,
                     name: name,
                     lcn: lcn,
                     logo: logo,
@@ -1182,7 +1184,8 @@ const returnErrorMessage = (errorCode) => {
     return ({
         "not-working": locale["disabledNotWorking"],
         "http-ios": "Questo è un canale HTTP, una tipologia di canale che non è visibile su iOS.",
-        "geoblock": locale["disabledGeoblock"]
+        "geoblock": locale["disabledGeoblock"],
+        "clearkey-ios": locale["disabledClearkeyiOS"]
     })[errorCode];
 };
 
@@ -1203,10 +1206,17 @@ const generateChannelHTML = (channel, index) => {
 
     const className = `${channel.hbbtvapp ? "hbbtv-app" : ""}${channel.url && channel.url.includes("pluto.tv") ? "pluto-channel" : ""} ${index === zappr.channels.length - 1 ? "last-channel" : ""} ${channel.hbbtvmosaic ? "hbbtv-enabler hbbtv-mosaic": "channel"} ${favorites.includes(`${channel.lcn}|${channel.name}`) ? "marked-as-favorite" : ""} ${channel.adult === true ? "adult" : channel.adult === "night" ? "adult at-night" : ""}`.trim().replaceAll(/\s+/g, " ");
 
+    if (isiOS && channel.license === "clearkey" && channel.licensedetails && channel.fallback && channel.fallback.license != "clearkey" && !channel.fallback.licensedetails) {
+        channel = { ...channel, ...channel.fallback };
+        delete channel.license;
+        delete channel.licensedetails;
+        delete channel.fallback;
+    };
+
     return `
         ${channel.categorySeparator === undefined
             ? `${channel.hbbtv ? `<div class="hbbtv-container">` : ""}
-                <div class="${className}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.license ? `data-license="${channel.geoblock.license}"` : channel.license != undefined ? `data-license="${channel.license}"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.licensedetails ? `data-license-details="${encodeURI(JSON.stringify(channel.geoblock.licensedetails))}"` : channel.licensedetails != undefined ? `data-license-details="${encodeURI(JSON.stringify(channel.licensedetails))}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.fallback && channel.fallback.cssfix ? `data-fallback-cssfix="${channel.fallback.cssfix}"` : ""} ${channel.fallback && channel.fallback.license ? `data-fallback-license="${channel.fallback.license}"` : ""} ${channel.fallback && channel.fallback.licensedetails ? `data-fallback-license-details="${encodeURI(JSON.stringify(channel.fallback.licensedetails))}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""} ${channel.additional ? `data-additional="true"` : ""}>
+                <div class="${className}" data-name="${channel.name}" data-lowercase-name="${channel.name.toLowerCase()}" data-logo="${getChannelLogoURL(channel.logo)}" data-full-logo="${getChannelLogoURL(channel.logo, false)}" ${channel.radio ? `data-radio="${channel.radio}"` : ""} ${channel.type != undefined && (!isGeoblocked || !channel.geoblock) ? `data-type="${channel.type}"` : ""} ${channel.type != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-type="${channel.geoblock.type}"` : ""} ${channel.url != undefined && (!isGeoblocked || !channel.geoblock) ? `data-url="${channel.url}"` : ""} ${channel.url != undefined && typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked ? `data-url="${channel.geoblock.url}"` : ""} data-lcn="${channel.lcn}" ${channel.seek != undefined ? `data-seek="${channel.seek}"` : ""} ${channel.disabled ? `disabled data-disabled="${channel.disabled}" title="${returnErrorMessage(channel.disabled)}"` : ""} ${!channel.disabled && channel.http && isiOS ? `disabled data-disabled="http-ios"` : ""} ${!channel.disabled && channel.license === "clearkey" && channel.licensedetails && !channel.fallback && isiOS ? `disabled data-disabled="clearkey-ios"` : ""} ${!channel.disabled && channel.geoblock && isGeoblocked && typeof channel.geoblock === "boolean" ? `disabled data-disabled="geoblock" title="${returnErrorMessage('geoblock')}"` : ""} ${channel.api && (!isGeoblocked || !channel.geoblock) ? `data-api="${channel.api}"` : ""} ${typeof channel.geoblock === "object" && channel.geoblock && isGeoblocked && channel.geoblock.api != undefined ? `data-api="${channel.geoblock.api}"` : ""} ${channel.cssfix != undefined && (!isGeoblocked || !channel.geoblock) ? `data-cssfix="${channel.cssfix}"` : ""} ${channel.cssfix === undefined && typeof channel.geoblock === "object" && channel.geoblock.cssfix && isGeoblocked ? `data-cssfix="${channel.geoblock.cssfix}"` : ""} ${channel.http ? `data-http="true"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.license ? `data-license="${channel.geoblock.license}"` : channel.license != undefined ? `data-license="${channel.license}"` : ""} ${isGeoblocked && typeof channel.geoblock === "object" && channel.geoblock.licensedetails ? `data-license-details="${encodeURI(JSON.stringify(channel.geoblock.licensedetails))}"` : channel.licensedetails != undefined ? `data-license-details="${encodeURI(JSON.stringify(channel.licensedetails))}"` : ""} ${channel.feed ? `data-feed="${channel.feed}"` : ""} ${channel.fallback ? `data-fallback-type="${channel.fallback.type}" data-fallback-url="${channel.fallback.url}"` : ""} ${channel.fallback && channel.fallback.api ? `data-fallback-api="${channel.fallback.api}"` : ""} ${channel.fallback && channel.fallback.cssfix ? `data-fallback-cssfix="${channel.fallback.cssfix}"` : ""} ${channel.fallback && channel.fallback.license ? `data-fallback-license="${channel.fallback.license}"` : ""} ${channel.fallback && channel.fallback.licensedetails ? `data-fallback-license-details="${encodeURI(JSON.stringify(channel.fallback.licensedetails))}"` : ""} ${channel.epg ? `data-epg-source="${channel.epg.source}" data-epg-id="${channel.epg.id}"` : ""} ${channel.manualRestart ? `data-manual-restart-source="${channel.manualRestart.source}" data-manual-restart-id="${channel.manualRestart.id}"` : ""} ${channel.timeshift ? `data-timeshift="${channel.timeshift}"` : ""} ${categoryIndexes.findLastIndex(category => channelIndex > category) > 0 ? `data-category="${zappr.channels[categoryIndexes[categoryIndexes.findLastIndex(category => channelIndex > category)]].categorySeparator}"` : ""} ${channel.additional ? `data-additional="true"` : ""}>
                     <div class="channel-info">
                         <div class="left-hand-badges">
                             <svg class="favorites-icon" xmlns="http://www.w3.org/2000/svg" viewBox="1 2.1 34 32.53"><path fill="white" d="M27.287 34.627c-.404 0-.806-.124-1.152-.371L18 28.422l-8.135 5.834c-.693.496-1.623.496-2.312-.008-.689-.499-.979-1.385-.721-2.194l3.034-9.792-8.062-5.681c-.685-.505-.97-1.393-.708-2.203.264-.808 1.016-1.357 1.866-1.363L12.947 13l3.179-9.549c.268-.809 1.023-1.353 1.874-1.353.851 0 1.606.545 1.875 1.353L23 13l10.036.015c.853.006 1.606.556 1.867 1.363.263.81-.022 1.698-.708 2.203l-8.062 5.681 3.034 9.792c.26.809-.033 1.695-.72 2.194-.347.254-.753.379-1.16.379z"></path></svg>
@@ -1818,70 +1828,29 @@ let manualRestart = {
                 break;
 
             case "wbd":
-                const startTime = DateTime.fromMillis(data.startTime);
-                const chunkStart = startTime.set({
-                    minutes: Math.floor(startTime.minute / data.epgChunkSize) * data.epgChunkSize,
-                    seconds: 0,
-                    milliseconds: 0
-                });
-                const chunkEnd = chunkStart.plus({ minutes: data.epgChunkSize });
-
-                const epgChunk = await fetch(`${data.epgEndpoint}/${data.id}/${chunkStart.ts}-${chunkEnd.ts}.json`)
-                    .then(response => response.json());
-
-                const programs = epgChunk.data.schedule.filter(el => el.segmentNo && el.segmentNo === 1);
-                if (programs.length >= 1) {
-                    let playoutStartTime = parseInt(programs.reduce((previous, current) => Math.abs(current.startts - DateTime.now().ts) < Math.abs(previous.startts - DateTime.now().ts) ? current : previous).startts) / 1000;
-
-                    const authToken = await fetch("https://public.aurora.enhanced.live/token?realm=it")
-                        .then(response => response.json())
-                        .then(json => json.data.attributes.token);
-
-                    const hlsURL = await fetch("https://public.aurora.enhanced.live/playback/v3/channelPlaybackInfo", {
-                        method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${authToken}`,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            deviceInfo: {
-                                adBlocker: false,
-                                drmSupported: false,
-                                hdrCapabilities: ["SDR"],
-                                hwDecodingCapabilities: [],
-                                soundCapabilities: ["STEREO"]
-                            },
-                            wisteriaProperties: {
-                                device: {
-                                    browser: {
-                                        name: "chrome",
-                                        version: "38"
-                                    },
-                                    type: "desktop"
-                                },
-                                platform: "desktop"
-                            },
-                            channelId: data.restartID
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(json => json.data.attributes.streaming[0].url);
-
-                    const canRestart = await fetch(`${hlsURL}&aws.manifestsettings=start:${playoutStartTime}`)
-                        .then(response => response.ok);
-
-                    if (canRestart) {
-                        await loadStream({ type: "hls", url: `${hlsURL}&aws.manifestsettings=start:${playoutStartTime}`, name: `${channel.dataset.name} (restart)`, lcn: channel.dataset.lcn, logo: channel.dataset.logo });
-                        seekToStart = () => {
-                            if (player.liveTracker.isLive()) player.currentTime(data.buffer / 1000);
-                            player.off("loadeddata", seekToStart);
-                        };
-                        player.on("loadeddata", seekToStart);
+                if (canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player) {
+                    const startTime = DateTime.fromMillis(data.startTime);
+                    const chunkStart = startTime.set({
+                        minutes: Math.floor(startTime.minute / data.epgChunkSize) * data.epgChunkSize,
+                        seconds: 0,
+                        milliseconds: 0
+                    });
+                    const chunkEnd = chunkStart.plus({ minutes: data.epgChunkSize });
+    
+                    const epgChunk = await fetch(`${data.epgEndpoint}/${data.id}/${chunkStart.ts}-${chunkEnd.ts}.json`)
+                        .then(response => response.json());
+    
+                    const programs = epgChunk.data.schedule.filter(el => el.segmentNo);
+                    const clearkeyWindow = document.querySelector("iframe").contentWindow;
+                    if (programs.length >= 1) {
+                        let playoutStartTime = parseInt(programs.reduce((previous, current) => Math.abs(current.startts - startTime) < Math.abs(previous.startts - startTime) ? current : previous).startts) / 1000;
+                        const targetTime = clearkeyWindow.player.seekRange().end - (DateTime.now().toSeconds() - playoutStartTime) + 20;
+                        if (targetTime >= clearkeyWindow.player.seekRange().start) clearkeyWindow.document.querySelector("video").currentTime = targetTime;
                     } else {
-                        alert("Impossibile effettuare il restart. Se il programma è iniziato da poco prova ad aspettare qualche minuto.");
+                        clearkeyWindow.document.querySelector("video").currentTime = clearkeyWindow.player.seekRange().end - (((DateTime.now().ts - data.startTime) / 1000) + 10);
                     };
                 } else {
-                    alert("Impossibile effettuare il restart. Se il programma è iniziato da poco prova ad aspettare qualche minuto.");
+                    alert("Impossibile effettuare il restart.");
                 };
                 
                 break;
@@ -1957,46 +1926,46 @@ let manualRestart = {
                     break;
 
                 case "wbd":
-                    if (ipLocation === selectedCountry) {
-                        if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
-                        else {
-                            let channelModulesURL = await fetch(`https://datahub.enhanced.tools/live/it/${id}.json`)
-                                .then(response => response.json())
-                                .then(json => json.containers[0].configUrl.replaceAll("http://", "https://"));
+                    if (manualRestart.fetchCache[source] && manualRestart.fetchCache[source][id]) json = manualRestart.fetchCache[source][id];
+                    else {
+                        let channelModulesURL = await fetch(`https://datahub.enhanced.tools/live/it/${id}.json`)
+                            .then(response => response.json())
+                            .then(json => json.containers[0].configUrl.replaceAll("http://", "https://"));
 
-                            let channelModules = await fetch(channelModulesURL)
-                                .then(response => response.json());
-                            let channelConfigURL = channelModules.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://");
-                            let channelConfig = await fetch(channelConfigURL)
-                                .then(response => response.json());
+                        let channelModules = await fetch(channelModulesURL)
+                            .then(response => response.json());
+                        let channelConfigURL = channelModules.bundles.filter(el => el.javascript.module === "galaxy")[0].javascript.configUrl.replaceAll("http://", "https://");
+                        let channelConfig = await fetch(channelConfigURL)
+                            .then(response => response.json());
+                        let restartID = channelConfig.launchers.filter(el => el.style === "restart")[0].interactiveItem.action.payload.id;
 
-                            let startOverWindow = parseInt(channelConfig.startOverWindow) * 1000;
-                            let restartID = channelConfig.launchers.filter(el => el.style === "restart")[0].interactiveItem.action.payload.id;
-
-                            let epgConfig = await fetch(`https://datahub.enhanced.tools/configs/bundles/epg/config.json`)
-                                .then(response => response.json());
-                                
-                            json = {
-                                startOverWindow: startOverWindow,
-                                epgConfig: epgConfig,
-                                restartID: restartID,
-                                channelID: channelModules.currentChannel.name
-                            };
-
-                            manualRestart.fetchCache[source] = {};
-                            manualRestart.fetchCache[source][id] = json;
+                        let epgConfig = await fetch(`https://datahub.enhanced.tools/configs/bundles/epg/config.json`)
+                            .then(response => response.json());
+                            
+                        json = {
+                            epgConfig: epgConfig,
+                            restartID: restartID,
+                            channelID: channelModules.currentChannel.name
                         };
-    
-                        if (startTime.ts > DateTime.now().ts - json.startOverWindow && startTime.ts < DateTime.now().ts && els[el].classList.contains("on-air")) {
-                            manualRestart.addButton(els[el], channel, source, {
-                                buffer: parseInt(json.epgConfig.channelDelay),
-                                epgEndpoint: new URL(json.epgConfig.epgApiEndpoint).origin,
-                                epgChunkSize: parseInt(json.epgConfig.epgChunkSize),
-                                id: json.channelID,
-                                restartID: json.restartID,
-                                startTime: startTime.ts
-                            });
-                        };
+
+                        manualRestart.fetchCache[source] = {};
+                        manualRestart.fetchCache[source][id] = json;
+                    };
+                    
+                    let isClearkey = currentType === "iframe" && canAccessIFrame(document.querySelector("iframe")) && document.querySelector("iframe")?.contentWindow?.player;
+                    let clearkeyWindow;
+                    if (isClearkey) clearkeyWindow = document.querySelector("iframe").contentWindow;
+                    let playerRange = (!isClearkey ? player.seekable().end(0) - player.seekable().start(0) : clearkeyWindow.player.seekRange().end - clearkeyWindow.player.seekRange().start) * 1000;
+
+                    if (startTime.ts > DateTime.now().ts - playerRange && startTime.ts < DateTime.now().ts) {
+                        manualRestart.addButton(els[el], channel, source, {
+                            buffer: parseInt(json.epgConfig.channelDelay),
+                            epgEndpoint: new URL(json.epgConfig.epgApiEndpoint).origin,
+                            epgChunkSize: parseInt(json.epgConfig.epgChunkSize),
+                            id: json.channelID,
+                            restartID: json.restartID,
+                            startTime: startTime.ts
+                        });
                     };
                     break;
             };

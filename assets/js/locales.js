@@ -5,6 +5,7 @@ export default {
         language: "Lingua",
         country: "Nazione",
         region: "Regione",
+        noRegion: "Nessuna (solo canali nazionali)",
         loading: "Caricamento...",
         mainSource: "DTT",
         previousSource: "Sorgente precedente",
@@ -83,7 +84,7 @@ export default {
         newsURL: "https://mastodon.uno/@zappr.rss",
         epgLoading: "L'EPG sarà disponibile a breve",
         unreportableErrorDASHiOS: "Molto probabilmente il tuo dispositivo non supporta lo streaming di questo canale. Prova su un altro dispositivo.",
-        unreportableErrorFAST: "I link di questi canali vengono aggiornati automaticamente ogni giorno. Riprova più tardi o tra 24 ore.",
+        unreportableErrorFAST: "Gli streaming di questi canali vengono aggiornati automaticamente ogni giorno. Riprova più tardi o tra 24 ore.",
         search: "Cerca",
         news: "Notizie",
         info: "Info",
@@ -210,6 +211,7 @@ export default {
         language: "Language",
         country: "Country",
         region: "Region",
+        noRegion: "None (only national channels)",
         loading: "Loading...",
         mainSource: "Freeview",
         previousSource: "Previous source",
@@ -400,6 +402,212 @@ export default {
             "epg.source": ["EPG source", "ID of the EPG source"],
             "epg.id": ["EPG ID", "ID of the channel in the EPG source"],
             timeshift: ["Timeshift hours"]
+        }
+    },
+    fr: {
+        languageName: "Français",
+        language: "Langue",
+        country: "Pays",
+        region: "Région",
+        noRegion: "Aucune (chaînes nationales uniquement)",
+        loading: "Chargement...",
+        mainSource: "TNT",
+        previousSource: "Source précédente",
+        nextSource: "Source suivante",
+        epgExit: "Quitter",
+        epgHeaderText: `Programme TV de <span id="epg-channel"></span>`,
+        epgPreviousDay: "Jour précédent",
+        epgNextDay: "Jour suivant",
+        epgResize: "Agrandir l'EPG",
+        searchChannel: "Rechercher une chaîne...",
+        installPWA: "Installer",
+        tvChangeRegion: "pour changer de région",
+        saveAndReload: "Enregistrer et recharger",
+        infoTooltip: `Zappr est la nouvelle façon de regarder la télévision. Regardez les chaînes nationales et locales de votre pays, en ligne, gratuitement et sans configuration compliquée.
+        <br><br>
+        <a href="https://ko-fi.com/FrancescoRosi" target="_blank" class="tooltip-link" id="donation-link">Faire un don :)</a>
+        <a href="https://trustpilot.com/evaluate/zappr.stream" target="_blank" id="trustpilot-link" class="tooltip-link">Évaluez Zappr sur Trustpilot</a>
+        <a href="https://github.com/ZapprTV" target="_blank" id="github-link" class="tooltip-link">Afficher le code source sur GitHub</a>
+        <div class="tooltip-link" id="news-links">Restez informé des dernières actualités en nous suivant sur <a href="https://www.facebook.com/ZapprTV" target="_blank">Facebook</a>, <a href="https://x.com/ZapprStream" target="_blank">Twitter</a> ou <a href="https://mastodon.uno/@zappr" target="_blank">Mastodon</a></div>
+        <a href="mailto:zappr@francescoro.si" class="tooltip-link" id="email-link">Contactez-nous par email</a>`,
+        playerLanguageCSS: `:root {
+            --videojs-plyr-quality-text: "Qualité";
+            --videojs-plyr-captions-text: "Sous-titres";
+            --videojs-plyr-audiotracks-text: "Piste audio";
+            --videojs-plyr-subtitles-disabled-text: "Désactivés";
+            --videojs-plyr-settings-text: "Paramètres";
+            --videojs-plyr-playback-speed-text: "Vitesse";
+        }
+        .epg-item-container::after {
+            content: "Le programme demandé commencera bientôt" !important;
+        }
+        .epg-item-container.on-air .epg-start-time::before {
+            content: "EN DIRECT" !important;
+        }
+        #news.news-not-loaded .tooltip-content-box:after {
+            content: "Chargement..." !important;
+        }
+        #my-list .list:after {
+            content: "✓ Sélectionnée";
+        }`,
+        lcnTyping: "Entrée pour confirmer<br>ou Échap pour annuler",
+        errorTechnicalInfo: "Informations techniques",
+        errorCopyInfo: "Copier",
+        errorCopiedInfo: "Copié !",
+        reportError: "Merci de signaler cette erreur via GitHub ou par email. En cliquant sur l'un des boutons ci-dessous, les principales informations de l'erreur seront automatiquement incluses.",
+        reportViaGithub: "Signaler via GitHub",
+        reportViaEmail: "Signaler par email",
+        errorEmailFooter: "Merci de préciser ci-dessous si la chaîne fonctionne ailleurs (sur d'autres sites ou applications) et sur quel navigateur l'erreur se produit :",
+        nowPlaying: "En cours de lecture",
+        channelError: "Erreur de chaîne",
+        cantLoad: "Impossible de charger",
+        unknownSuffix: "inconnu",
+        unknownErrorInfo: "Erreur inconnue",
+        formatServerError: "en raison d'un problème de format/serveur ",
+        formatServerErrorTitle: "Erreur de format/serveur",
+        decodingError: "en raison d'un problème de décodage",
+        decodingErrorTitle: "Erreur de décodage",
+        serverError: "en raison d'un problème de serveur",
+        serverErrorTitle: "Erreur de serveur",
+        unknownError: "en raison d'une erreur inconnue",
+        unknownErrorTitle: "Erreur inconnue",
+        hbbtvMosaic: "Mosaïque HbbTV",
+        not247: "Pas toujours actif",
+        viewFullEPG: "Cliquez ici pour voir l'EPG complet",
+        viewHbbTVChannels: "Afficher les chaînes HbbTV",
+        disabledNotWorking: "Le streaming de cette chaîne ne fonctionne pas actuellement.",
+        disabledGeoblock: "Cette chaîne n'est visible que dans son pays d'origine.",
+        continue: "Continuer",
+        cancel: "Annuler",
+        warning: "Attention !",
+        geoblockMessage: "Le pays de votre adresse IP ne correspond pas au pays choisi. Cela signifie que certaines chaînes ne seront pas visibles.<br><br>Pour contourner ces restrictions géographiques, utilisez un VPN.",
+        welcomeTitle: "Bienvenue sur Zappr !",
+        welcomeText: `Zappr vous permet de regarder facilement et gratuitement la télévision numérique terrestre, nationale et locale <span class="italic">(n'oublie pas de sélectionner ta région dans les paramètres !)</span>, ainsi que les chaînes de Samsung TV Plus et Pluto TV.<br><br>Pour commencer à regarder une chaîne, cliquez dessus ou tapez son numéro sur votre clavier et appuyez sur <b>Entrée</b>. Pour zapper, utilisez les touches <b>PageDown</b> et <b>PageUp</b> pour parcourir les chaînes.<br><br>Si une chaîne dispose d'un guide TV, vous pouvez cliquer sur le nom de l'émission en cours pour consulter le programme complète jusqu'à 7 jours à compter du jour actuel.<br><br>Enfin, si vous souhaitez personnaliser la liste des chaînes, en composant une liste de favoris ou en créant de nouvelles listes avec les chaînes de votre choix, tout comme dans un client IPTV, vous pouvez le faire grâce à la fonction <b>My List</b>, accessible en cliquant sur l'icône <img src="${listIcon}"> dans la barre inférieure.<br><br>C'est tout. <b>Bon visionnage !</b>`,
+        newsInstructions: "Cliquez sur un titre pour lire l'article complet, ou cliquez sur une image pour l'agrandir.",
+        newsHosting: `Hébergement du flux fourni par <a href="https://mastodon.uno" target="_blank">mastodon.uno</a> :)`,
+        newsURL: "https://mastodon.uno/@zappr.rss",
+        epgLoading: "L'EPG sera bientôt disponible",
+        unreportableErrorDASHiOS: "Il est très probable que votre appareil ne prenne pas en charge ce type de flux en direct. Essayez sur un autre appareil.",
+        unreportableErrorFAST: "Les flux de ces chaînes sont mis à jour automatiquement chaque jour. Réessayez plus tard ou dans 24 heures.",
+        search: "Rechercher",
+        news: "Actualités",
+        info: "Infos",
+        settings: "Paramètres",
+        save: "Enregistrer",
+        saveList: "Enregistrer la liste",
+        watch: "Regarder",
+        selectBaseList: "Sélectionner une liste de base",
+        officialZapprList: "Liste officielle de Zappr",
+        listPublisherDonate: "<b>$</b> Faire un don",
+        favoritesBaseList: "Favoris",
+        shareList: "Partager la liste",
+        editList: "Modifier la liste",
+        addList: "Ajouter une liste...",
+        createListManually: "Créer manuellement...",
+        insertListURL: "Insérer une URL...",
+        selectAdditionalLists: "Sélectionner une ou plusieurs listes supplémentaires",
+        baseList: "Liste de base",
+        additionalLists: "Listes supplémentaires",
+        howDoesMyListWork: "Comment fonctionne My List ?",
+        myListExplanation: "My List vous permet de personnaliser la liste des chaînes de Zappr. Choisissez une liste de base, qui servira de source principale de chaînes, et enrichissez-la avec autant de listes supplémentaires que vous le souhaitez. Les chaînes des listes supplémentaires seront intégrées à celles de la liste de base.",
+        addChannel: "Ajouter une chaîne...",
+        listEditorInfo: "Infos",
+        listEditorChannels: "Chaînes",
+        disabledRegionSettings: "Ces paramètres ne sont disponibles qu'avec la liste de base officielle de Zappr (ou la liste des favoris).",
+        multipleChannelSelectionText: (matchedChannel) => `<b>Appuyez sur ${matchedChannel.map((channel, index) => `${index + 1} pour ${channel.name}`).join(",<br>")}<br>ou sur Échap pour annuler</b>`,
+        popupReopenPlayer: "Rouvrir le lecteur",
+        popupAccessDeniedTitle: "Accès aux popups refusé",
+        popupAccessDeniedText: (channel) => `Votre navigateur n'a pas autorisé Zappr à ouvrir une fenêtre popup pour regarder <b>${name}</b>. Pour regarder cette chaîne, vous devez autoriser Zappr à ouvrir des fenêtres popup, ou ouvrir la fenêtre sous forme de nouvel onglet et regarder la chaîne à cet endroit.`,
+        openInNewWindow: "Ouvrir dans un nouvel onglet",
+        closeModal: "Fermer",
+        couldntFetchSchema: "Attention : Zappr n'a pas pu vérifier la conformité de la liste sélectionnée avec le schéma de liste de chaînes. Par conséquent, par votre sécurité, nous avons réactivé la liste de chaînes par défaut.",
+        notSchemaCompliantOnLoading: (errors) => `Attention : Le format de la liste de base de chaînes que vous avez sélectionnée n'est pas valide. Par conséquent, par votre sécurité, nous avons réactivé la liste de chaînes par défaut.\n\nErreurs :\n${errors}`,
+        couldntFetchSchemaAdditionalList: (list) => `Attention : Zappr n'a pas pu vérifier la conformité d'une de vos listes supplémentaires sélectionnées avec le schéma de liste de chaînes. Par conséquent, par votre sécurité, nous l'avons désactivée.\n\nListe : ${list}`,
+        notSchemaCompliantAdditionalList: (list, errors) => `Attention : Le format d'une de vos listes de chaînes supplémentaires sélectionnées n'est pas valide. Par conséquent, nous l'avons désactivée.\n\nListe : ${list}\nErreurs :\n${errors}`,
+        couldntFetchChannelList: "Impossible de récupérer la liste des chaînes",
+        alreadyAddedRemoteList: "Vous avez déjà une liste avec cette URL",
+        listFormatInvalid: "Format de liste invalide",
+        nightAdultChannelModalText: "Pendant cette plage horaire (23h00 - 07h00), cette chaîne pourrait diffuser des contenus interdits aux moins de 18 ans.",
+        fullyAdultChannelModalText: "Cette chaîne diffuse des contenus interdits aux moins de 18 ans.",
+        adultChannelModalText: "En cliquant sur <b>Continuer</b> ci-dessous, vous confirmez avoir conscience de la nature du contenu diffusé et avoir l'âge légal requis pour le visionner. En outre, vous acceptez d'assumer l'entière responsabilité du visionnage de cette chaîne, dégageant Zappr et ses affiliés de toute responsabilité découlant d'un usage inapproprié ou non autorisé.<br><br><b>Souhaitez-vous continuer ?</b>",
+        untitledList: "Liste sans titre",
+        deleteList: "Supprimer la liste",
+        favoritesListEmpty: "La liste des favoris est vide ! Ajoutez des chaînes à vos favoris en cliquant sur l'icône du crayon.",
+        deleteListConfirmation: "Êtes-vous sûr de vouloir supprimer cette liste ?",
+        deleteChannelConfirmation: "Êtes-vous sûr de vouloir supprimer cette chaîne ?",
+        listNameInputLabel: "&nbsp;&nbsp;Nom",
+        listNameInput: "Nom de la liste",
+        listIconInputLabel: "Icône",
+        listIconInput: "URL d'une image PNG/SVG",
+        listEPGInputLabel: "&nbsp;&nbsp;EPG",
+        listEPGInput: "URL du fichier JSON de l'EPG",
+        channel: "Chaîne",
+        clickChannelToFavorite: "Cliquez sur une chaîne pour l'ajouter aux favoris",
+        invalidURL: "URL invalide.",
+        localList: "Liste locale",
+        saveChannel: "Enregistrer la chaîne",
+        useEmoji: "Emoji",
+        listURLCopied: `L'URL de la liste a été copiée avec succès !\nPour l'importer ailleurs, cliquez sur l'icône My List, puis sur « Ajouter une liste... », et dans le champ « Insérer une URL... », collez l'URL qui vient d'être copiée dans votre presse-papiers.\nVous pouvez importer cette liste soit comme liste de base, soit comme liste supplémentaire.`,
+        myListTemporaryPromoTooltipTitle: "Essayez <i>My List</i>, la nouvelle fonctionnalité de Zappr",
+        myListTemporaryPromoTooltipText: `<span>Personnalisez la liste des chaînes à votre convenance.</span>
+        <span>Composez la liste de vos chaînes préférées, ou créez de nouvelles listes avec les chaînes de votre choix. Tout comme dans un client IPTV.</span>`,
+        additionalChannelFavoritingDisabled: "Vous ne pouvez ajouter aux favoris que des chaînes de la liste de base officielle de Zappr.",
+        selectFavoritesFromOfficialBaseList: "Sélectionnez vos chaînes préférées dans la liste officielle de Zappr",
+        disabledClearkeyiOS: "Cette chaîne n'est pas visible sur iOS car elle ne prend pas en charge le DRM ClearKey.",
+        channelEditorSchema: {
+            _groups: {
+                "basic-channel-info": "Infos chaîne",
+                "stream-info": "Infos flux"
+            },
+            lcn: ["LCN"],
+            logo: ["Logo", "URL d'une image PNG/SVG"],
+            name: ["Nom", "Nom de la chaîne"],
+            subtitle: ["Sous-titre", "Sous-titre de la chaîne"],
+            hd: ["HD"],
+            uhd: ["4K"],
+            radio: ["Chaîne radio ?", {
+                true: "Chaîne radio sans piste vidéo",
+                video: "Chaîne radio avec piste vidéo statique"
+            }],
+            ondemand: ["Vidéo à la demande"],
+            type: ["Type", {
+                hls: "HLS (.m3u8)",
+                dash: "DASH (.mpd)",
+                twitch: "Twitch (username de la chaîne)",
+                youtube: "YouTube (ID chaîne/vidéo)",
+                iframe: "IFrame/embed (URL)",
+                audio: "Audio",
+                direct: "Direct (.mp4, .mkv, etc.)",
+                popup: "Fenêtre popup (URL)"
+            }],
+            url: ["URL", "URL du flux"],
+            http: ["Visible\nuniquement\nvia HTTP ?"],
+            license: ["Licence", {
+                "xdevel-wms": "Xdevel WMS Auth Sign",
+                clearkey: "ClearKey",
+                widevine: "Widevine (URL de licence)"
+            }],
+            licensedetails: ["Détails de licence", "Chaîne de caractères ou JSON"],
+            hbbtvapp: ["App HbbTV ?"],
+            api: ["API", {
+                vercel: "API Vercel",
+                cloudflare: "API Cloudflare"
+            }],
+            cssfix: ["Correctif CSS", {
+                "streamshow-embed": "Embed StreamShow (embed.streamshow.net)",
+                stretch: "Étirer de 4:3 à 16:9",
+                "squashed-height": "Étirer de 64:27 à 16:9",
+                "very-squashed-height": "Étirer de 32:9 à 16:9",
+                "five-two-squashed-height": "Étirer de 5:2 à 16:9",
+                "center-iframe": "Centrer l'IFrame/embed",
+                "servizistreaming-embed": "Embed de ServiziStreaming.it",
+                "livetvuk-embed": "Embed de LiveTVUK.com",
+                "native-hls-720p-iframe": "Agrandir la vidéo 720p dans un IFrame/embed en plein format",
+                letterbox: "Flux en letterbox"
+            }],
+            "epg.source": ["Source EPG", "ID de la source EPG"],
+            "epg.id": ["ID EPG", "ID de la chaîne dans la source EPG"],
+            timeshift: ["Heures de timeshift"]
         }
     }
 }

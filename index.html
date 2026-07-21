@@ -473,6 +473,8 @@
                             get(obj, prop) {
                                 if (prop === "open") {
                                     return function (method, url, ...rest) {
+                                        if (zappr.selectedCountry === "fr" && zappr.ipLocation != "fr" && url.startsWith("https://simulcast-p.ftven.fr/") && url != "https://simulcast-p.ftven.fr/keys/hls.key" && !url.includes("France_Info")) url = url.replace("https://simulcast-p.ftven.fr/", "https://francetv.zappr.stream/");
+                                        if (zappr.selectedCountry === "fr" && zappr.ipLocation != "fr" && url.startsWith("https://simulcast-fr3regions-p.ftven.fr/") && url != "https://simulcast-fr3regions-p.ftven.fr/keys/hls_f3r.key") url = url.replace("https://simulcast-fr3regions-p.ftven.fr/", "https://francetv-regional.zappr.stream/");
                                         if (url.startsWith("https://prod-kami.wuaki.tv/v1/licensing/aes128/")) url = `https://api.zappr.stream/rakuten-licensing/${new URL(url).searchParams.get("uuid")}`;
                                         return obj.open(method, url, ...rest);
                                     };

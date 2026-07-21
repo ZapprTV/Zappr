@@ -1213,6 +1213,7 @@ iframe {
     justify-content: center;
     align-items: center;
     user-select: none;
+    line-height: 1;
 }
 #my-list .tab-links a:first-child {
     border-right: 1px solid #525252;
@@ -1999,6 +2000,9 @@ a.tooltip-link {
 }
 .tooltip-content #region-selector .disabled-layer.active {
     display: block !important;
+}
+option[value="national"] {
+    font-style: italic;
 }
 input:not([data-translation-id="searchChannel"]), select {
     background: #111;

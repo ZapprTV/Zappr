@@ -22,19 +22,25 @@ let ipLocation = await fetch("https://zappr.stream/cdn-cgi/trace")
 if (!localStorage.getItem("selected-base-list") && localStorage.getItem("country")) document.querySelector("#my-list-icon .promo-tooltip").classList.add("active");
 const isFirstVisit = JSON.stringify(localStorage) === "{}";
 const getCountry = () => {
-    if (!countries[ipLocation]) {
-        localStorage.setItem("country", "it");
-        return "it";
-    };
-    if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
-    if (ipLocation && !localStorage.getItem("country")) {
-        localStorage.setItem("country", ipLocation);
-        return ipLocation;
-    } else return localStorage.getItem("country") || Object.keys(countries)[0];
+    if (new URLSearchParams(location.search).get("country") != null) return new URLSearchParams(location.search).get("country")
+    else {
+        if (!countries[ipLocation]) {
+            localStorage.setItem("country", "it");
+            return "it";
+        };
+        if (countries[ipLocation].nationalBase) localStorage.setItem("region", Object.keys(countries[ipLocation].regions[Object.keys(countries[ipLocation].regions)[0]])[0]);
+        if (ipLocation && !localStorage.getItem("country")) {
+            localStorage.setItem("country", ipLocation);
+            return ipLocation;
+        } else return localStorage.getItem("country") || Object.keys(countries)[0];
+    }
 };
 const getLanguage = () => {
-    if (new URLSearchParams(location.search).get("androidtv") != null) return "it";
-    return localStorage.getItem("language") || (navigator.language || "en").split("-")[0];
+    if (new URLSearchParams(location.search).get("language") != null) return new URLSearchParams(location.search).get("language")
+    else {
+        if (new URLSearchParams(location.search).get("androidtv") != null) return "it";
+        return localStorage.getItem("language") || (navigator.language || "en").split("-")[0];
+    };
 };
 
 let selectedCountry = getCountry();
@@ -43,12 +49,14 @@ if (!countries[selectedCountry]) {
     selectedCountry = "it";
 };
 let selectedLanguage = getLanguage();
+
+const getLeafKeys = object => Object.entries(object).flatMap(([key, value]) => value && typeof value === "object" && !Array.isArray(value) ? getLeafKeys(value) : key);
 try {
-    if (!Object.keys(Object.assign({}, ...Object.keys(countries[selectedCountry].regions).map(group => countries[selectedCountry].regions[group]))).includes(localStorage.getItem("region"))) localStorage.removeItem("region");
+    if (!getLeafKeys(countries[selectedCountry].regions).includes(localStorage.getItem("region"))) localStorage.removeItem("region");
 } catch {
     localStorage.removeItem("region");
 };
-let selectedRegion = localStorage.getItem("region");
+let selectedRegion = new URLSearchParams(location.search).get("region") != null ? new URLSearchParams(location.search).get("region") : localStorage.getItem("region");
 let language = selectedLanguage in locales ? selectedLanguage : "en";
 let locale = locales[language];
 
@@ -77,19 +85,19 @@ languageDropdown.addEventListener("change", e => {
         };
     });
 });
-if (!countries[selectedCountry].nationalBase) document.querySelector("#region").insertAdjacentHTML("beforeend", `<option value="national">Nessuna (solo canali nazionali)</option>`)
-document.querySelector("#region").insertAdjacentHTML("beforeend", Object.keys(countries[selectedCountry].regions).map(group => `<optgroup label="${group}">
-    ${Object.keys(countries[selectedCountry].regions[group]).map(region => `<option value="${region}" ${region === selectedRegion ? "selected" : ""}>${countries[selectedCountry].regions[group][region]}</option>`)}
-</optgroup>`));
+if (!countries[selectedCountry].nationalBase) document.querySelector("#region").insertAdjacentHTML("beforeend", `<option value="national">${locale["noRegion"]}</option>`)
+document.querySelector("#region").insertAdjacentHTML("beforeend", Object.keys(countries[selectedCountry].regions).map(el => typeof(countries[selectedCountry].regions[el]) === "object" ? `<optgroup label="${el}">
+    ${Object.keys(countries[selectedCountry].regions[el]).map(region => `<option value="${region}" ${region === selectedRegion ? "selected" : ""}>${countries[selectedCountry].regions[el][region]}</option>`).join("")}
+</optgroup>` : `<option value="${el}" ${el === selectedRegion ? "selected" : ""}>${countries[selectedCountry].regions[el]}</option>`).join(""));
 countryDropdown.addEventListener("change", e => {
     localStorage.setItem("country", e.target.value);
     document.querySelector("#region").innerHTML = "";
     countryDropdown.querySelector("[selected]").removeAttribute("selected");
     countryDropdown.querySelector(`option[value="${e.target.value}"]`).setAttribute("selected", "");
     if (!countries[e.target.value].nationalBase) document.querySelector("#region").insertAdjacentHTML("beforeend", `<option value="national">Nessuna (solo canali nazionali)</option>`)
-    document.querySelector("#region").insertAdjacentHTML("beforeend", Object.keys(countries[e.target.value].regions).map(group => `<optgroup label="${group}">
-        ${Object.keys(countries[e.target.value].regions[group]).map(region => `<option value="${region}" ${e.target.value === selectedCountry && region === selectedRegion ? "selected" : ""}>${countries[e.target.value].regions[group][region]}</option>`)}
-    </optgroup>`));
+    document.querySelector("#region").insertAdjacentHTML("beforeend", Object.keys(countries[e.target.value].regions).map(el => typeof(countries[e.target.value].regions[el]) === "object" ? `<optgroup label="${el}">
+        ${Object.keys(countries[e.target.value].regions[el]).map(region => `<option value="${region}" ${e.target.value === selectedCountry && region === selectedRegion ? "selected" : ""}>${countries[e.target.value].regions[el][region]}</option>`).join("")}
+    </optgroup>` : `<option value="${el}" ${el === selectedRegion ? "selected" : ""}>${countries[e.target.value].regions[el]}</option>`).join(""));
     updateSelectWidth(document.querySelector("#region"));
     document.querySelector("#save-and-reload").removeAttribute("hidden");
     localStorage.setItem("region", document.querySelector("#region").value);
@@ -142,6 +150,8 @@ await fetch("/config.json")
         };
     });
 
+window.zappr.ipLocation = ipLocation;
+window.zappr.selectedCountry = selectedCountry;
 window.zappr.locale = locale;
 
 try {
@@ -1032,44 +1042,16 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
                 document.head.appendChild(acdSolutionsScript);
                 break;
 
-            case "wbd":
-                const authToken = await fetch("https://public.aurora.enhanced.live/token?realm=it")
-                    .then(response => response.json())
-                    .then(json => json.data.attributes.token);
+            case "tf1plus":
+                const playlist = await fetch(`https://raw.githubusercontent.com/Paradise-91/ParaTV/refs/heads/main/playlists/paratv/main/paratv.m3u?_=${Date.now()}`)
+                    .then(response => response.text())
+                    .then(text => text.split("\n"));
 
-                const hlsURL = await fetch("https://public.aurora.enhanced.live/playback/v3/channelPlaybackInfo", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${authToken}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        deviceInfo: {
-                            adBlocker: false,
-                            drmSupported: false,
-                            hdrCapabilities: ["SDR"],
-                            hwDecodingCapabilities: [],
-                            soundCapabilities: ["STEREO"]
-                        },
-                        wisteriaProperties: {
-                            device: {
-                                browser: {
-                                    name: "chrome",
-                                    version: "38"
-                                },
-                                type: "mobile"
-                            },
-                            platform: "mobile"
-                        },
-                        channelId: parameter
-                    })
-                })
-                    .then(response => response.json())
-                    .then(json => json.data.attributes.streaming.filter(stream => stream.type === "hls")[0].url);
-
+                const m3uRegex = new RegExp(/^\d+$/.test(parameter) ? `epg-s="${parameter}".*tf1\.fr` : `tvg-id="${parameter}.fr".*tf1\.fr`);
+                const playlistURL = playlist[playlist.indexOf(playlist.filter(line => m3uRegex.test(line))[0]) + 1];
                 loadStream({
                     type: type,
-                    url: hlsURL,
+                    url: playlistURL,
                     name: name,
                     lcn: lcn,
                     logo: logo,
@@ -1401,12 +1383,12 @@ if (localStorage.getItem("selected-additional-lists") && isJSON(localStorage.get
     collectedAdditionalChannels = collectedAdditionalChannels.map(channel => ({ ...channel, additional: true }));
     window.zappr.additionalChannels = collectedAdditionalChannels;
 };
-if (new URLSearchParams(location.search).get("androidtv") != null && localStorage.getItem("region") === "national") document.querySelector(`input[value="national"]`).checked = true;
-if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
-    if (new URLSearchParams(location.search).get("androidtv") === null) document.querySelector("select").value = localStorage.getItem("region")
-    else document.querySelector(`input[value="${localStorage.getItem("region")}"]`).checked = true;
+if (new URLSearchParams(location.search).get("androidtv") != null && selectedRegion === "national") document.querySelector(`input[value="national"]`).checked = true;
+if (selectedRegion != null && selectedRegion != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
+    if (new URLSearchParams(location.search).get("androidtv") === null) document.querySelector("select").value = selectedRegion
+    else document.querySelector(`input[value="${selectedRegion}"]`).checked = true;
 
-    await fetch(getChannelsListURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
+    await fetch(getChannelsListURL(`${countries[selectedCountry].location}/regional/${selectedRegion}`))
         .then(response => response.json())
         .then(json => {
             window.zappr.regionalChannels = json.channels;
@@ -1433,13 +1415,13 @@ if (localStorage.getItem("selected-base-list") === "default" || localStorage.get
             console.warn(`Can't find FAST channels: ${e.stack}`);
             document.querySelector(".source-header").remove();
         });
-} else document.querySelector(".source-header").remove();
+} else if (document.querySelector(".source-header")) document.querySelector(".source-header").remove();
 
 const todoEditFavorites = localStorage.getItem("todo-edit-favorites") === "true";
 const favorites = JSON.parse(localStorage.getItem("favorites")) ?? [];
 if (localStorage.getItem("selected-base-list") === "favorites" && !todoEditFavorites) window.zappr.channels = window.zappr.channels.filter(channel => favorites.includes(`${channel.lcn}|${channel.name}`));
 if (localStorage.getItem("selected-base-list") === "favorites") {
-    document.querySelector(".source-header").remove();
+    if (document.querySelector(".source-header")) document.querySelector(".source-header").remove();
     fastChannelsPresent = false;
 };
 
@@ -3103,8 +3085,8 @@ fetch(baseEPGToFetch)
         const { merge } = await import("lodash");
         window.zappr.epg = merge({}, window.zappr.epg, json);
 
-        if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
-            await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
+        if (selectedRegion != null && selectedRegion != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
+            await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${selectedRegion}`))
                 .then(response => response.json())
                 .then(async json => {
                     const { merge } = await import("lodash");
@@ -3163,8 +3145,8 @@ setInterval(async () => {
     window.zappr.nationalEPG = await fetch(getEPGURL(`${countries[selectedCountry].location}/national`))
         .then(response => response.json());
 
-    if (localStorage.getItem("region") != null && localStorage.getItem("region") != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
-        await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${localStorage.getItem("region")}`))
+    if (selectedRegion != null && selectedRegion != "national" && (localStorage.getItem("selected-base-list") === "default" || localStorage.getItem("selected-base-list") === "favorites")) {
+        await fetch(getEPGURL(`${countries[selectedCountry].location}/regional/${selectedRegion}`))
             .then(response => response.json())
             .then(async json => {
                 const { merge } = await import("lodash");

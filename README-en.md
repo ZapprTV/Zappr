@@ -1,5 +1,5 @@
 <div align="center">
-    <b>English</b> | <a href="README.md">Italiano</a>
+    <a href="README.md">Italiano</a> | <b>English</b> | <a href="README-fr.md">Français</a>
 </div>
 <div align="center"><b>This repo contains Zappr's frontend. For the channel lists and the logos, you should turn to <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</b></div>
 <br><br>

@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="README-en.md">English</a> | <b>Italiano</b>
+    <b>Italiano</b> | <a href="README-en.md">English</a> | <a href="README-fr.md">Français</a>
 </div>
 <div align="center"><b>Questa è la repo del frontend di Zappr. Per le liste dei canali e i loghi vedere <a href="https://github.com/ZapprTV/channels">ZapprTV/channels</a>.</b></div>
 <br><br>

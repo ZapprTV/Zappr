@@ -849,7 +849,7 @@ const loadChannel = async ({ type, url, api = false, name, lcn, logo, fullLogo, 
         switch(url.split("/")[2]) {
 
             case "sky":
-                await fetch(`https://apid.sky.it/vdp/v1/getLivestream?id=${parameter}&isMobile=false`)
+                await fetch(`https://video.sky.it/api/v1/getLivestream?id=${parameter}&isMobile=false`)
                     .then(response => response.json())
                     .then(json => {
                         loadStream({
